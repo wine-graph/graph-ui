@@ -1,0 +1,56 @@
+import {
+  FaSearch,
+  FaHome,
+  FaStore,
+  FaBoxOpen,
+  FaShoppingCart,
+  FaUser,
+  FaCompass,
+  FaGlobe,
+  FaWineBottle,
+  FaRegHeart,
+  FaSyncAlt,
+  FaClipboardList,
+  FaRegStar,
+  FaPlus,
+  FaMinus,
+  FaRegEye,
+  FaConnectdevelop,
+  FaLink,
+} from "react-icons/fa";
+
+import {
+  IoStorefrontOutline,
+  IoAnalytics,
+  IoFilter,
+  IoClose,
+} from "react-icons/io5";
+import { BsStars } from "react-icons/bs";
+import { MdMessage } from "react-icons/md";
+
+export {
+  FaSearch,
+  FaHome,
+  FaStore,
+  FaBoxOpen,
+  FaShoppingCart,
+  FaUser,
+  FaCompass,
+  FaRegStar,
+  FaRegHeart,
+  FaRegEye,
+  FaSyncAlt,
+  FaClipboardList,
+  IoStorefrontOutline,
+  MdMessage,
+  IoAnalytics,
+  BsStars,
+  FaPlus,
+  FaMinus,
+  IoFilter,
+  IoClose,
+  FaGlobe,
+  FaWineBottle,
+  FaConnectdevelop,
+  FaLink,
+};
