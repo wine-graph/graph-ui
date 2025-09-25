@@ -5,19 +5,22 @@ import {
   FaShoppingCart,
   FaUser,
   FaGlobe,
-  FaSearch,
   FaWineBottle,
-} from "../../assets/icons";
+} from "react-icons/fa";
 import { NavLink } from "react-router-dom";
 
 const SideNavbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const navlinks = {
     visitor: [
-      { title: "Home", icon: FaHome },
-      { title: "Wine World", icon: FaGlobe },
-      { title: "Wine Finder", icon: FaSearch },
-      { title: "Profile", icon: FaUser },
+      { title: "Home", icon: FaHome, route: "" },
+      { title: "Wine World", icon: FaGlobe, route: "/explore" },
+      {
+        title: "Marketplace",
+        icon: FaShoppingCart,
+        route: "/marketplace",
+      },
+      { title: "Profile", icon: FaUser, route: "/profile" },
     ],
     enthusiast: [
       { title: "Home", icon: FaHome },
@@ -51,10 +54,9 @@ const SideNavbar = () => {
       onMouseLeave={() => setIsOpen(false)}
     >
       <ul className="w-full flex flex-col gap-y-4 pt-3 text-primary">
-        {navlinks.retailer.map((nav, index) => (
+        {navlinks.visitor.map((nav, index) => (
           <NavLink
             to={nav.route}
-            end={nav.route === "/retailer"}
             key={index}
             className={({ isActive }) =>
               `group w-full flex items-center gap-x-5 px-5 py-3 cursor-pointer transition-all duration-200

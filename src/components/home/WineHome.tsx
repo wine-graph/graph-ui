@@ -47,8 +47,8 @@ const WineHome: React.FC<userHomeComp> = ({ userComponent }) => {
   const newWines = mockWines.slice(2, 6);
 
   return (
-    <div className="w-full flex justify-center flex-col gap-5 my-16">
-      <div className="flex flex-col md:flex-row gap-5">
+    <div className="w-full flex justify-center flex-col gap-3 md:gap-4 my-10">
+      <div className="flex flex-col md:flex-row gap-3 md:gap-4">
         {/* Most Reviewed Wines Section */}
         <SectionCard
           cardHeader={{ icon: FaRegStar, title: "Most Reviewed Wines" }}
@@ -60,9 +60,11 @@ const WineHome: React.FC<userHomeComp> = ({ userComponent }) => {
             ))}
           </div>
         </SectionCard>
+
+        {/*Section based on the user*/}
         {userComponent}
       </div>
-      <div className="flex flex-col md:flex-row gap-5">
+      <div className="flex flex-col md:flex-row gap-3 md:gap-4">
         {/* Trending offer Section */}
         <SectionCard
           cardHeader={{ icon: IoAnalytics, title: "Trending Retailer Offers" }}

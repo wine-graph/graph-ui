@@ -5,7 +5,7 @@ import {
   FaBoxOpen,
   FaShoppingCart,
   FaUser,
-  FaCompass,
+  FaRegCompass,
   FaGlobe,
   FaWineBottle,
   FaRegHeart,
@@ -17,6 +17,9 @@ import {
   FaRegEye,
   FaConnectdevelop,
   FaLink,
+  FaMapMarkedAlt,
+  FaSeedling,
+  FaUserSecret,
 } from "react-icons/fa";
 
 import {
@@ -24,9 +27,15 @@ import {
   IoAnalytics,
   IoFilter,
   IoClose,
+  IoCardOutline,
+  IoLocationOutline,
+  IoMailOpenOutline,
+  IoInformationCircleOutline,
+  IoArrowRedo,
 } from "react-icons/io5";
 import { BsStars } from "react-icons/bs";
-import { MdMessage } from "react-icons/md";
+import { MdMessage, MdKeyboardArrowDown } from "react-icons/md";
+import { SiWine } from "react-icons/si";
 
 export {
   FaSearch,
@@ -35,7 +44,7 @@ export {
   FaBoxOpen,
   FaShoppingCart,
   FaUser,
-  FaCompass,
+  FaRegCompass,
   FaRegStar,
   FaRegHeart,
   FaRegEye,
@@ -53,4 +62,14 @@ export {
   FaWineBottle,
   FaConnectdevelop,
   FaLink,
+  FaMapMarkedAlt,
+  FaSeedling,
+  FaUserSecret,
+  SiWine,
+  MdKeyboardArrowDown,
+  IoCardOutline,
+  IoLocationOutline,
+  IoMailOpenOutline,
+  IoInformationCircleOutline,
+  IoArrowRedo,
 };
