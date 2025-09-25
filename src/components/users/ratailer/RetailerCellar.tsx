@@ -2,21 +2,10 @@ import { useCallback, useEffect, useState } from "react";
 import { FaSearch, FaSyncAlt, IoClose } from "../../../assets/icons";
 import { type RetailerInventory } from "../../../types/Retailer";
 import Button from "../../utility/Button";
-
-type HeaderProps = { title: string; desc: string };
+import PageHeader from "../../common/PageHeader";
 
 type RetailerCellarProps = {
   items: RetailerInventory[];
-};
-
-// Section header with title and description
-export const Header: React.FC<HeaderProps> = ({ title, desc }) => {
-  return (
-    <header>
-      <h1 className="text-2xl font-semibold text-textPrimary">{title}</h1>
-      <p className="text-textSecondary text-sm">{desc}</p>
-    </header>
-  );
 };
 
 export const RetailerCellar = ({ items }: RetailerCellarProps) => {
@@ -71,12 +60,11 @@ export const RetailerCellar = ({ items }: RetailerCellarProps) => {
   return (
     <>
       <div className="w-full px-3 sm:px-0 sm:ml-8 my-4 sm:my-8">
-        <Header
+        <PageHeader
           title="Retailer Cellar"
           desc="Current Inventory shown below. Fetch from Square to review and add new
         wines."
         />
-        <div className="separator" />
         <div className="mt-8">
           <div className="flex items-center justify-between my-5">
             <div className="search border border-[#c4a1a8] flex items-center rounded-md bg-background w-1/3 font-roboto">

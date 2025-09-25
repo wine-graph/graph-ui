@@ -9,20 +9,31 @@ import {
   RouterProvider,
 } from "react-router-dom";
 
-import {
+/* import {
   RetailerHomePage,
   RetailerCellarPage,
   RetailerMarketplacePage,
   RetailerProfilePage,
-} from "./pages/Retailer";
+} from "./pages/Retailer"; */
+
+import {
+  VisitorHomePage,
+  VisitorExplorePage,
+  VisitorMarketplacePage,
+  VisitorProfilePage,
+} from "./pages/visitor";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path="" element={<App />}>
-      <Route path="" element={<RetailerHomePage />} />
+      <Route index element={<VisitorHomePage />} />
+      <Route path="explore" element={<VisitorExplorePage />} />
+      <Route path="marketplace" element={<VisitorMarketplacePage />} />
+      <Route path="profile" element={<VisitorProfilePage />} />
+      {/* <Route path="" element={<RetailerHomePage />} />
       <Route path="inventory" element={<RetailerCellarPage />} />
       <Route path="marketplace" element={<RetailerMarketplacePage />} />
-      <Route path="profile" element={<RetailerProfilePage />} />
+      <Route path="profile" element={<RetailerProfilePage />} /> */}
     </Route>
   )
 );
