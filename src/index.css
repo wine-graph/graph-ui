@@ -1,68 +1,55 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+@import url("https://fonts.googleapis.com/css2?family=Alan+Sans:wght@300..900&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400..700;1,400..700&family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto+Slab:wght@100..900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+@import "tailwindcss";
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+@theme {
+  /* Base Theme */
+  --color-primary: #7b2c3b; /*Deep Wine Red*/
+  --color-primary-1: #5c0f1e; /*Deep Wine Red*/
+  --color-secondary: #e6b17e; /* Golden Beige*/
+  --color-background: #faf7f5; /* Soft Cream White*/
+  --color-card: #ffffff; /* White*/
+  --color-textPrimary: #2b2b2b; /* Charcoal Black*/
+  --color-textPrimary-1: #374151; /* Gray*/
+  --color-textSecondary: #5c5c5c; /* Gray*/
+  --color-border: #e0dfdc; /* Neutral Gray*/
+  --color-border-light: #9ca3af; /* Neutral Gray*/
+  --color-success: #4caf50; /* Stock Available*/
+  --color-error: #e74c3c; /* Alerts*/
+  --color-icon: #8b2236; /* icon*/
+  --color-purple: #7c3aed;
+  --color-hoverPurple: #6d28d9;
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+  /* Role based */
+  --color-visitor: #a7a7a7; /* Neutral Gray*/
+  --color-enthusiast: #a8324c; /* Burgundy*/
+  --color-retailer: #556b2f; /* Olive Green*/
+  --color-producer: #2c3e50; /* Deep Navy*/
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
+  /* Buttons */
+  --color-buttonHover: #9c3a4e; /* Hover state for primary button*/
+  --color-disabledBg: #e0dfdc; /* Disabled background*/
+  --color-disabledText: #a7a7a7; /* Disabled text*/
 
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
+  /* Tables & UI */
+  --color-tableRow: #f5f2f0; /* Striped row background*/
+  --color-tableHover: #fff3f5; /* Row hover effect*/
+  --color-tooltipBg: #fff9f5; /* Tooltip background*/
+  --color-tooltipBorder: #e6b17e; /* Tooltip border*/
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  /*font family*/
+  --font-alan-sans: "Alan Sans", sans-serif;
+  --font-libre-baskerville: "Libre Baskerville", serif;
+  --font-lora: "Lora", serif;
+  --font-merriweather: "Merriweather", serif;
+  --font-poppins: "Poppins", sans-serif;
+  --font-roboto-slab: "Roboto Slab", serif;
+  --font-roboto: "Roboto", sans-serif;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+.flex-center {
+  @apply flex items-center justify-center;
+}
+
+.separator {
+  @apply h-[1px] my-3 border-none bg-gray-200;
 }
