@@ -1,7 +1,7 @@
 import SectionCard from "../../home/SectionCard";
 import { FaConnectdevelop, FaLink } from "../../../assets/icons";
 import Button from "../../utility/Button";
-import { Header } from "./RetailerCellar";
+import PageHeader from "../../common/PageHeader";
 
 export const RetailerProfile = () => {
   const handleSquareConnect = () => {
@@ -13,12 +13,11 @@ export const RetailerProfile = () => {
 
   return (
     <div className="w-full px-3 sm:px-0 sm:ml-8 my-4 sm:my-8">
-      <Header
+      <PageHeader
         title="Retailer Profile"
         desc="Configure your shop settings and manage integration with Square."
       />
 
-      <div className="separator" />
       <div className="mt-5">
         <SectionCard
           cardHeader={{ icon: FaConnectdevelop, title: "Square Integration" }}
