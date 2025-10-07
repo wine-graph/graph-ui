@@ -5,7 +5,7 @@ import PageHeader from "../../common/PageHeader";
 
 import { mockProducers, type Producer } from "../../../types/Producer";
 
-import { FaPlus, FaMinus } from "../../../assets/icons";
+import { FaPlus, FaMinus } from "react-icons/fa";
 import SectionTab from "../../common/SectionTab";
 
 export const RetailerMarketplace = () => {
@@ -53,7 +53,7 @@ export const RetailerMarketplace = () => {
         title="Marketplace"
         desc="Source wines, connect with producers, and manage your interests."
       />
-      <SectionTab tabs={tabs} tabComponents={tabComponents} />
+      <SectionTab tabs={tabs} tabComponents={tabComponents} query={null} />
     </div>
   );
 };

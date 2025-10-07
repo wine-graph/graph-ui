@@ -5,9 +5,8 @@ import {
   FaShoppingCart,
   FaUser,
   FaGlobe,
-  FaSearch,
   FaWineBottle,
-} from "../../assets/icons";
+} from "react-icons/fa";
 import { NavLink } from "react-router-dom";
 
 const SideNavbar = () => {
