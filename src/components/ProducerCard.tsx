@@ -1,6 +1,6 @@
-import Button from "./Button";
-import { type Producer } from "../../types/Producer";
-import { mockWines } from "../../types/Wine";
+import Button from "./common/Button.tsx";
+import { type Producer } from "../types/Producer.ts";
+import { mockWines } from "../types/Wine.ts";
 import type { IconType } from "react-icons";
 
 type ButtonProp = {

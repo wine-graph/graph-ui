@@ -1,3 +1,45 @@
+# Graph UI
+
+This project is a React + TypeScript + Vite app.
+
+## Apollo Client / GraphQL Setup
+
+Apollo Client has been wired into the app. The client reads its GraphQL HTTP endpoint from environment variables with sensible fallbacks so you can run locally and when deployed on Fly.io.
+
+- Preferred: set VITE_GRAPHQL_HTTP to your GraphQL API URL.
+- Optional: set VITE_FLY_APP to your Fly app name (defaults to `winegraph`).
+- Fallbacks if VITE_GRAPHQL_HTTP isn't set:
+  - In production (non-localhost): use same-origin `/graphql`.
+  - In development: `http://localhost:4000/graphql`.
+
+### Local development
+
+Create a `.env.local` file at the project root:
+
+```
+VITE_GRAPHQL_HTTP=http://localhost:8081/graphql
+```
+
+Then start the dev server:
+
+```
+npm run dev
+```
+
+### Fly deployment
+
+When building for Fly, set the env var at build time to point at your GraphQL endpoint, for example:
+
+```
+VITE_GRAPHQL_HTTP=https://<your-api-host>/graphql
+```
+
+If you prefer same-origin `/graphql` in production, ensure your Fly nginx (or upstream) proxies `/graphql` to your GraphQL server.
+
+---
+
+Below is the original Vite template README content:
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.

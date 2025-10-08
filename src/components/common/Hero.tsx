@@ -1,4 +1,4 @@
-import { SiWine } from "../../assets/icons";
+import { SiWine } from "../../assets/icons.ts";
 
 type HeroProps = {
   image: string;
@@ -10,7 +10,7 @@ const Hero: React.FC<HeroProps> = ({ image, subHeading, desc }) => {
   return (
     <div className="flex-center flex-col">
       <div className="w-52 md:w-72 my-2">
-        <img src={image} alt="Wine Graph World" />
+        <img src={image} alt="Wine Graph" />
       </div>
       <h1 className="text-6xl font-semibold text-primary-1 flex-center flex-col gap-2 text-center font-alan-sans">
         <p className="text-base font-normal flex-center gap-2 ">
@@ -20,7 +20,7 @@ const Hero: React.FC<HeroProps> = ({ image, subHeading, desc }) => {
         </p>
         <p className="flex-center flex-col gap-2">
           <span>Welcome to</span>
-          <span>Wine Graph World</span>
+          <span>Wine Graph</span>
         </p>
       </h1>
       <p className="text-textPrimary-1 text-center px-5 my-2 font-alan-sans">
