@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { FaSearch, FaSyncAlt, IoClose } from "../../../assets/icons";
 import { type RetailerInventory } from "../../../types/Retailer";
-import Button from "../../utility/Button";
+import Button from "../../common/Button.tsx";
 import PageHeader from "../../common/PageHeader";
 
 type RetailerCellarProps = {

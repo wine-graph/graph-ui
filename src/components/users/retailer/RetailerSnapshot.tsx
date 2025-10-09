@@ -2,10 +2,11 @@ import {
   FaClipboardList,
   FaSyncAlt,
   IoStorefrontOutline,
-} from "../../../assets/icons";
-import SectionCard from "../../home/SectionCard";
-import Button from "../../utility/Button";
+} from "../../../assets/icons.ts";
+import SectionCard from "../../common/SectionCard.tsx";
+import Button from "../../common/Button.tsx";
 
+// todo possibly remove, not sure if this is needed it was carried over from mock-ui
 const RetailerSnapshot = () => {
   return (
     <SectionCard

@@ -1,8 +1,9 @@
 import PageHeader from "../../common/PageHeader";
-import SectionCard from "../../home/SectionCard";
+import SectionCard from "../../common/SectionCard.tsx";
 import { FaLink } from "../../../assets/icons";
-import Button from "../../utility/Button";
+import Button from "../../common/Button.tsx";
 
+// todo each Profile would have the Google OIDC login flow
 const VisitorProfile = () => {
   return (
     <div className="w-full px-3 sm:px-0 sm:ml-8 my-4 sm:my-8">

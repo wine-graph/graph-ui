@@ -1,13 +1,15 @@
-import SectionCard from "../../home/SectionCard";
+import SectionCard from "../../common/SectionCard.tsx";
 import {
   FaRegCompass,
   FaMapMarkedAlt,
   FaSeedling,
   FaUserSecret,
 } from "../../../assets/icons";
-import Button from "../../utility/Button";
+import Button from "../../common/Button.tsx";
 import { NavLink } from "react-router-dom";
 
+// todo this could be more generic like Discover as it would apply to visitors (non-auth) and enthusiasts (authenticated)
+// or maybe remove this as we may cleanup the home page and remove this component/block
 const VisitorDiscover = () => {
   const actionButtons = [
     {

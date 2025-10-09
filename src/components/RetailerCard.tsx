@@ -1,16 +1,16 @@
 import React from "react";
-import Button from "./Button";
+import Button from "./common/Button.tsx";
 import {
   IoCardOutline,
   IoLocationOutline,
   IoMailOpenOutline,
   IoInformationCircleOutline,
   IoArrowRedo,
-} from "../../assets/icons";
+} from "../assets/icons.ts";
 
-import { type Retailer } from "../../types/Retailer";
+import { type Retailer } from "../types/Retailer.ts";
 
-const RetailerCard: React.FC<Retailer> = ({
+export const RetailerCard: React.FC<Retailer> = ({
   name,
   logoUrl,
   location,
@@ -58,5 +58,3 @@ const RetailerCard: React.FC<Retailer> = ({
     </div>
   );
 };
-
-export default RetailerCard;
