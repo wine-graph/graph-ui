@@ -1,8 +1,10 @@
-import SectionCard from "../../home/SectionCard";
-import { FaConnectdevelop, FaLink } from "../../../assets/icons";
-import Button from "../../utility/Button";
-import PageHeader from "../../common/PageHeader";
+import SectionCard from "../../common/SectionCard.tsx";
+import { FaConnectdevelop, FaLink } from "../../../assets/icons.ts";
+import Button from "../../common/Button.tsx";
+import PageHeader from "../../common/PageHeader.tsx";
 
+// todo each Profile would have the Google OIDC login flow
+// todo this should have functionality tied to square for current status (authorized), token refresh, token revocation, etc.
 export const RetailerProfile = () => {
   const handleSquareConnect = () => {
     // Kick off Square OAuth data-adapter will own the OAuth flow

@@ -1,8 +1,7 @@
 export interface Country {
     id: string;
     name: string;
-    code: string; // e.g. 'US', 'FR'
-    description?: string;
+    description: string;
     flag?: string;
     weblink?: string;
 }
@@ -29,11 +28,6 @@ export interface Grape {
     description?: string;
     originCountryId?: string;
 }
-
-export const mockCountries: Country[] = [
-    {id: "c1", name: "United States", code: "US"},
-    {id: "c2", name: "France", code: "FR"}
-];
 
 export const mockRegions: Region[] = [
     { id: "r1", name: "California", countryId: "c1" },

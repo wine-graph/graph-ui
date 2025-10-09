@@ -2,9 +2,10 @@ import { useState } from "react";
 import PageHeader from "../../common/PageHeader";
 import Map from "../../../assets/images/map.png";
 import { FaSearch, MdKeyboardArrowDown } from "../../../assets/icons";
-import RetailerCard from "../../utility/RetailerCard";
+import {RetailerCard} from "../../RetailerCard.tsx";
 import { mockRetailer } from "../../../types/Retailer";
 
+// todo again perhaps call Marketplace
 const VisitorMarketplace = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedLocation, setSelectedLocation] = useState("");

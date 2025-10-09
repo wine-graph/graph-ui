@@ -1,45 +1,30 @@
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
+import {StrictMode} from "react";
+import {createRoot} from "react-dom/client";
 import "./index.css";
 import App from "./App.tsx";
-import {
-  createBrowserRouter,
-  createRoutesFromElements,
-  Route,
-  RouterProvider,
-} from "react-router-dom";
-
-/* import {
-  RetailerHomePage,
-  RetailerCellarPage,
-  RetailerMarketplacePage,
-  RetailerProfilePage,
-} from "./pages/Retailer"; */
-
-import {
-  VisitorHomePage,
-  VisitorExplorePage,
-  VisitorMarketplacePage,
-  VisitorProfilePage,
-} from "./pages/visitor";
+import {createBrowserRouter, createRoutesFromElements, Route, RouterProvider} from "react-router-dom";
+import {DiscoverPage} from "./pages/Discover.tsx";
+import {HomePage} from "./pages/Home.tsx";
+import {ProfilePage} from "./pages/Profile.tsx";
+import {MarketplacePage} from "./pages/Marketplace.tsx";
+import {ApolloProvider} from "@apollo/client";
+import domainClient from "./services/DomainClient.ts";
 
 const router = createBrowserRouter(
-  createRoutesFromElements(
-    <Route path="" element={<App />}>
-      <Route index element={<VisitorHomePage />} />
-      <Route path="explore" element={<VisitorExplorePage />} />
-      <Route path="marketplace" element={<VisitorMarketplacePage />} />
-      <Route path="profile" element={<VisitorProfilePage />} />
-      {/* <Route path="" element={<RetailerHomePage />} />
-      <Route path="inventory" element={<RetailerCellarPage />} />
-      <Route path="marketplace" element={<RetailerMarketplacePage />} />
-      <Route path="profile" element={<RetailerProfilePage />} /> */}
-    </Route>
-  )
+    createRoutesFromElements(
+        <Route path="" element={<App/>}>
+            <Route index element={<HomePage userType={""}/>}/>
+            <Route path="explore" element={<DiscoverPage/>}/>
+            <Route path="marketplace" element={<MarketplacePage/>}/>
+            <Route path="profile" element={<ProfilePage/>}/>
+        </Route>
+    )
 );
 
 createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <RouterProvider router={router} />
-  </StrictMode>
+    <StrictMode>
+        <ApolloProvider client={domainClient}>
+            <RouterProvider router={router}/>
+        </ApolloProvider>
+    </StrictMode>
 );

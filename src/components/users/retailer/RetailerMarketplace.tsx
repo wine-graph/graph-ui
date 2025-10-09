@@ -1,13 +1,14 @@
 import { useState, type ReactNode } from "react";
 
-import ProducerCard from "../../utility/ProducerCard";
-import PageHeader from "../../common/PageHeader";
+import ProducerCard from "../../ProducerCard.tsx";
+import PageHeader from "../../common/PageHeader.tsx";
 
-import { mockProducers, type Producer } from "../../../types/Producer";
+import { mockProducers, type Producer } from "../../../types/Producer.ts";
 
 import { FaPlus, FaMinus } from "react-icons/fa";
-import SectionTab from "../../common/SectionTab";
+import SectionTab from "../../common/SectionTab.tsx";
 
+// todo should this be renamed to ProducerMarketplace?
 export const RetailerMarketplace = () => {
   const [favoriteProducers, setFavoriteProducers] = useState<Producer[]>([]);
 

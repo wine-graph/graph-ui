@@ -14,7 +14,7 @@ const SideNavbar = () => {
   const navlinks = {
     visitor: [
       { title: "Home", icon: FaHome, route: "" },
-      { title: "Wine World", icon: FaGlobe, route: "/explore" },
+      { title: "Discover", icon: FaGlobe, route: "/explore" },
       {
         title: "Marketplace",
         icon: FaShoppingCart,
@@ -24,20 +24,20 @@ const SideNavbar = () => {
     ],
     enthusiast: [
       { title: "Home", icon: FaHome },
-      { title: "Wine World", icon: FaGlobe },
-      { title: "My Cellar", icon: FaWineBottle },
+      { title: "Discover", icon: FaGlobe },
+      { title: "Cellar", icon: FaWineBottle },
       { title: "Marketplace", icon: FaShoppingCart },
       { title: "Profile", icon: FaUser },
     ],
     producer: [
       { title: "Home", icon: FaHome },
-      { title: "Inventory", icon: FaBoxOpen },
+      { title: "Cellar", icon: FaBoxOpen },
       { title: "Marketplace", icon: FaShoppingCart },
       { title: "Profile", icon: FaUser },
     ],
     retailer: [
       { title: "Home", icon: FaHome, route: "" },
-      { title: "Inventory", icon: FaBoxOpen, route: "/inventory" },
+      { title: "Cellar", icon: FaBoxOpen, route: "/inventory" },
       {
         title: "Marketplace",
         icon: FaShoppingCart,

@@ -19,6 +19,7 @@ const Header = () => {
           </button>
         </div>
       </div>
+        {/*todo should this display the user's profile? as-in are they logged in?*/}
       <div className="profile">
         {/* <div className="size-8 rounded-full bg-amber-800"></div> */}
       </div>
