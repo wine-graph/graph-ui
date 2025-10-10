@@ -1,7 +1,7 @@
 import Hero from "../../components/common/Hero.tsx";
 import visitorBg from "../../assets/images/visitor-bg.png";
 
-export const VisitorHomePage = () => {
+const VisitorHomePage = () => {
     return (
         <Hero
             image={visitorBg}
@@ -10,3 +10,5 @@ export const VisitorHomePage = () => {
         />
     );
 };
+
+export default VisitorHomePage;

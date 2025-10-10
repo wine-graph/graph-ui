@@ -1,4 +1,4 @@
-import {VisitorHomePage} from "./Visitor/VisitorHomePage.tsx";
+import VisitorHomePage from "./Visitor/VisitorHomePage.tsx";
 import {RetailerHomePage} from "./Retailer/RetailerHomePage.tsx";
 import React from "react";
 
