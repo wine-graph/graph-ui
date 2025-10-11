@@ -12,7 +12,7 @@ export const MarketplacePage = () => {
     return (
         <div className="w-full px-3 sm:px-0 sm:ml-8 my-4 sm:my-8">
             <PageHeader
-                title="Wine Finder"
+                title="Wine Locator"
                 desc="Find local wine retailers in your area. Discover shops that carry your favorite wines."
             />
             {/*<div className="main-content flex flex-col my-6">*/}

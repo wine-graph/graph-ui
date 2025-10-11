@@ -28,15 +28,20 @@ export interface RetailerLocation {
   country: string;
   state: string;
   zip: string;
+  coordinates: LocationCoordinates;
+}
+
+export interface LocationCoordinates {
+  latitude: number;
+  longitude: number;
 }
 
 export const mockRetailer: Retailer[] = [
   {
     contactEmail: "manager@chswine.com",
     id: "r1",
-    logoUrl: "/images/wineandco-logo.png",
     name: "Wine and Co",
-    pos: "SQUARE",
+    pos: "CLOVER",
     website: "https://www.chswine.com/",
     location: {
       address: "441 Meeting St Ste. B",
@@ -44,68 +49,48 @@ export const mockRetailer: Retailer[] = [
       state: "SC",
       country: "USA",
       zip: "29403",
-    },
+      coordinates: {
+        latitude: 32.7767,
+        longitude: -79.9311,
+      }
+    }
   },
   {
-    contactEmail: "info@vinoselect.com",
+    contactEmail: "info@monarchwinemerchants.com",
     id: "r2",
-    logoUrl: "/images/vinoselect-logo.png",
-    name: "Vino Select",
+    name: "Monarch Wine Merchants",
     pos: "SQUARE",
-    website: "https://www.vinoselect.com/",
+    website: "https://www.monarchwinemerchants.com/",
     location: {
-      address: "123 Main St",
-      city: "San Francisco",
-      state: "CA",
+      address: "1107 King St. Suite B",
+      city: "Charleston",
+      state: "SC",
       country: "USA",
-      zip: "94105",
-    },
+      zip: "29403",
+      coordinates: {
+        latitude: 32.7909,
+        longitude: -79.9405,
+      }
+    }
   },
   {
-    contactEmail: "contact@winemarket.com",
+    contactEmail: "info@graftchs.com",
     id: "r3",
-    logoUrl: "/images/winemarket-logo.png",
-    name: "Wine Market",
-    pos: "SHOPIFY",
-    website: "https://www.winemarket.com/",
-    location: {
-      address: "456 Vine Ave",
-      city: "Napa",
-      state: "CA",
-      country: "USA",
-      zip: "94558",
-    },
-  },
-  {
-    contactEmail: "hello@corkandbarrel.com",
-    id: "r4",
-    logoUrl: "/images/corkandbarrel-logo.png",
-    name: "Cork & Barrel",
+    name: "Graft",
     pos: "SQUARE",
-    website: "https://www.corkandbarrel.com/",
+    website: "https://www.graftchs.com/",
     location: {
-      address: "789 Oak St",
-      city: "Portland",
-      state: "OR",
+      address: "700b King St",
+      city: "Charleston",
+      state: "SC",
       country: "USA",
-      zip: "97205",
-    },
-  },
-  {
-    contactEmail: "sales@vintagecellars.com",
-    id: "r5",
-    logoUrl: "/images/vintagecellars-logo.png",
-    name: "Vintage Cellars",
-    pos: "SHOPIFY",
-    website: "https://www.vintagecellars.com/",
-    location: {
-      address: "321 Grape Rd",
-      city: "Sonoma",
-      state: "CA",
-      country: "USA",
-      zip: "95476",
-    },
-  },
+      zip: "29403",
+      coordinates: {
+        latitude: 32.7764,
+        longitude: -79.9310,
+      }
+    }
+  }
 ];
 
 export const mockInventory: RetailerInventory[] = [
