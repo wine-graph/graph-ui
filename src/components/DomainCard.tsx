@@ -13,7 +13,7 @@ export const DomainCard: React.FC<{ title: string; desc?: string; onClick?: () =
         {desc ? <p className="text-sm text-textSecondary">{desc}</p> : null}
       </header>
       <Button onClick={onClick} className="w-full flex-center bg-gray-700 text-gray-50 py-2">
-        <span className="text-sm">Explore Wines</span>
+        <span className="text-sm">Explore</span>
       </Button>
     </div>
   );

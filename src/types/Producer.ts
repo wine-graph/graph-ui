@@ -1,3 +1,5 @@
+import type {Wine} from "./Wine.ts";
+
 export interface Producer {
     id: string;
     name: string;
@@ -7,6 +9,7 @@ export interface Producer {
     description: string;
     areaId: string;
     introOffer?: boolean;
+    wines?: Wine[];
 }
 
 export const mockProducers: Producer[] = [
