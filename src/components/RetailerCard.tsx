@@ -4,7 +4,7 @@ import {
   IoCardOutline,
   IoLocationOutline,
   IoMailOpenOutline,
-  IoInformationCircleOutline,
+  MdOutlineInventory2,
   IoArrowRedo,
 } from "../assets/icons.ts";
 
@@ -18,7 +18,7 @@ export const RetailerCard: React.FC<Retailer> = ({
   pos,
 }) => {
   return (
-    <div className="border border-gray-300 bg-gray-50/70 rounded-xl shadow font-poppins">
+    <div className="flex flex-col justify-between border border-gray-300 bg-gray-50/70 rounded-xl shadow font-poppins">
       <header className="flex items-center justify-between border-b p-3 pb-2 border-gray-200 bg-gray-600 text-white rounded-t-xl">
         <h1 className="text-lg font-merriweather">{name}</h1>
         {logoUrl && (
@@ -28,7 +28,7 @@ export const RetailerCard: React.FC<Retailer> = ({
           </div>
         )}
       </header>
-      <div className="details w-4/5 my-8 flex flex-col gap-3 ml-4 text-sm">
+      <div className="details w-4/5 mt-4 flex flex-col gap-3 ml-4 text-sm">
         <div className="flex items-center gap-5">
           <IoLocationOutline className="text-textPrimary-1 text-3xl" />
           <p className="">
@@ -45,10 +45,10 @@ export const RetailerCard: React.FC<Retailer> = ({
           <span>{pos}</span>
         </div>
       </div>
-      <div className="actions flex items-center justify-between mt-12 p-3">
-        <Button className="border-gray-600 text-textPrimary-1 hover:bg-gray-100 px-4">
-          <IoInformationCircleOutline size={22} />
-          <span className="">Details</span>
+      <div className="actions flex items-center justify-between mt-12  p-4">
+        <Button className="border-gray-400 text-textPrimary-1 hover:bg-gray-100 px-4 py-2">
+          <MdOutlineInventory2 size={22} />
+          <span className="">Inventory</span>
         </Button>
         <Button className="border-gray-600 bg-gray-600 hover:bg-gray-700 text-gray-50 px-4">
           <IoArrowRedo size={22} />

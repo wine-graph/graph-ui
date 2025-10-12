@@ -1,5 +1,5 @@
-import VisitorHomePage from "./Visitor/VisitorHomePage.tsx";
-import {RetailerHomePage} from "./Retailer/RetailerHomePage.tsx";
+import VisitorHomePage from "./visitor/VisitorHomePage.tsx";
+import { RetailerHomePage } from "./Retailer/RetailerHomePage.tsx";
 import React from "react";
 
 /**
@@ -7,10 +7,10 @@ import React from "react";
  * @param userType
  */
 export const HomePage: React.FC<{ userType: string }> = (userType) => {
-    // believe this covers null, empty string, falsy values
-    if (userType) {
-        return <VisitorHomePage/>
-    } else {
-        return <RetailerHomePage/>
-    }
-}
+  // believe this covers null, empty string, falsy values
+  if (userType) {
+    return <VisitorHomePage />;
+  } else {
+    return <RetailerHomePage />;
+  }
+};

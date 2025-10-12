@@ -20,6 +20,8 @@ import {
   FaMapMarkedAlt,
   FaSeedling,
   FaUserSecret,
+  FaSignInAlt,
+  FaSignOutAlt,
 } from "react-icons/fa";
 
 import {
@@ -34,7 +36,11 @@ import {
   IoArrowRedo,
 } from "react-icons/io5";
 import { BsStars } from "react-icons/bs";
-import { MdMessage, MdKeyboardArrowDown } from "react-icons/md";
+import {
+  MdMessage,
+  MdKeyboardArrowDown,
+  MdOutlineInventory2,
+} from "react-icons/md";
 import { SiWine } from "react-icons/si";
 
 export {
@@ -72,4 +78,7 @@ export {
   IoMailOpenOutline,
   IoInformationCircleOutline,
   IoArrowRedo,
+  MdOutlineInventory2,
+  FaSignInAlt,
+  FaSignOutAlt,
 };

@@ -6,11 +6,18 @@ import {
   FaUser,
   FaGlobe,
   FaWineBottle,
+  FaSignOutAlt,
 } from "react-icons/fa";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { logout } from "../../store/features/authSlice";
 
 const SideNavbar = () => {
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
   const [isOpen, setIsOpen] = useState(false);
+
   const navlinks = {
     visitor: [
       { title: "Home", icon: FaHome, route: "" },
@@ -46,9 +53,14 @@ const SideNavbar = () => {
       { title: "Profile", icon: FaUser, route: "/profile" },
     ],
   };
+
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate("/login");
+  };
   return (
     <div
-      className={`hidden sm:flex fixed min-h-screen left-0 bg-primary/6 overflow-hidden transition-all duration-200 z-50 backdrop-blur-xl
+      className={`hidden sm:inline-block fixed min-h-screen left-0 bg-primary/6 overflow-hidden transition-all duration-200 z-40 backdrop-blur-xl
         ${isOpen ? "w-52" : "w-16"}`}
       onMouseEnter={() => setIsOpen(true)}
       onMouseLeave={() => setIsOpen(false)}
@@ -78,6 +90,23 @@ const SideNavbar = () => {
           </NavLink>
         ))}
       </ul>
+      {isAuthenticated && (
+        <button
+          onClick={handleLogout}
+          className="hidden sm:flex absolute bottom-20 w-full items-center gap-x-5 px-5 py-3 cursor-pointer transition-all duration-200 hover:bg-primary/10 text-textPrimary"
+        >
+          <span>
+            <FaSignOutAlt size={22} />
+          </span>
+          <span
+            className={`whitespace-nowrap transition-all duration-200 ${
+              isOpen ? "opacity-100" : "opacity-0 w-0 overflow-hidden"
+            }`}
+          >
+            Log out
+          </span>
+        </button>
+      )}
     </div>
   );
 };
