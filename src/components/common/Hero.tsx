@@ -9,10 +9,10 @@ type HeroProps = {
 const Hero: React.FC<HeroProps> = ({ image, subHeading, desc }) => {
   return (
     <div className="flex-center flex-col">
-      <div className="w-52 md:w-72 my-2">
+      <div className="w-52 md:w-72 sm:my-2">
         <img src={image} alt="Wine Graph" />
       </div>
-      <h1 className="text-6xl font-semibold text-primary-1 flex-center flex-col gap-2 text-center font-alan-sans">
+      <h1 className="text-6xl font-semibold text-primary-1 flex-center flex-col text-center font-alan-sans">
         <p className="text-base font-normal flex-center gap-2 ">
           <SiWine size={22} className="rotate-y-180" />
           {subHeading}
