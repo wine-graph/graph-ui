@@ -1,10 +1,10 @@
 import React, { type ReactNode, useMemo, useState } from "react";
 import { DomainCard } from "../components/DomainCard.tsx";
 import { useQuery } from "@apollo/client";
-import { DOMAIN_QUERY } from "../queries/graphqlQueries.ts";
-import type { Country } from "../types/WineDomain.ts";
+import { DOMAIN_QUERY } from "../queries/domain.ts";
 import PageHeader from "../components/common/PageHeader.tsx";
 import CrumbButton from "../components/common/CrumbButton.tsx";
+import type {Area, Country, Region} from "../types/WineDomain.ts";
 
 const Grid: React.FC<{ children: ReactNode }> = ({ children }) => (
   <div className="w-full px-3 sm:px-0 sm:ml-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 ">
@@ -20,16 +20,16 @@ const DomainList: React.FC = () => {
   );
   const [selectedRegionId, setSelectedRegionId] = useState<string | null>(null);
 
-  const countries = (data?.Domain?.countries as Country[]) ?? [];
+  const countries = useMemo(() => data?.Domain?.countries ?? [], [data]);
 
   const selectedCountry = useMemo(
-    () => countries.find((c) => c.id === selectedCountryId) ?? null,
+    () => countries.find((c: Country) => c.id === selectedCountryId) ?? null,
     [countries, selectedCountryId]
   );
 
   const selectedRegion = useMemo(
     () =>
-      selectedCountry?.regions.find((r) => r.id === selectedRegionId) ?? null,
+      selectedCountry?.regions.find((r: Region) => r.id === selectedRegionId) ?? null,
     [selectedCountry, selectedRegionId]
   );
 
@@ -83,7 +83,7 @@ const DomainList: React.FC = () => {
 
           <Grid>
             {showCountries &&
-              countries.map((c) => (
+              countries.map((c: Country) => (
                 <DomainCard
                   key={c.id}
                   title={c.name}
@@ -96,7 +96,7 @@ const DomainList: React.FC = () => {
               ))}
 
             {showRegions &&
-              selectedCountry?.regions.map((r) => (
+              selectedCountry?.regions.map((r : Region) => (
                 <DomainCard
                   key={r.id}
                   title={r.name}
@@ -106,7 +106,7 @@ const DomainList: React.FC = () => {
               ))}
 
             {showAreas &&
-              selectedRegion?.areas.map((a) => (
+              selectedRegion?.areas.map((a : Area) => (
                 <DomainCard
                   key={a.id}
                   title={a.name}

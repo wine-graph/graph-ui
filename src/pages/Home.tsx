@@ -1,6 +1,6 @@
-import VisitorHomePage from "./visitor/VisitorHomePage.tsx";
-import { RetailerHomePage } from "./Retailer/RetailerHomePage.tsx";
 import React from "react";
+import VisitorHomePage from "./Visitor/VisitorHomePage.tsx";
+import {RetailerHomePage} from "./Retailer/RetailerHomePage.tsx";
 
 /**
  * Home page component for all user types

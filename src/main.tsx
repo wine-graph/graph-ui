@@ -13,8 +13,7 @@ import { HomePage } from "./pages/Home.tsx";
 import { ProfilePage } from "./pages/Profile.tsx";
 import { MarketplacePage } from "./pages/Marketplace.tsx";
 import { ApolloProvider } from "@apollo/client";
-import domainClient from "./services/DomainClient.ts";
-import Login from "./pages/Login.tsx";
+import domainGraph from "./services/domainGraph.ts";
 import { Provider } from "react-redux";
 import store from "./store/store.ts";
 
@@ -25,7 +24,6 @@ const router = createBrowserRouter(
       <Route path="explore" element={<DiscoverPage />} />
       <Route path="marketplace" element={<MarketplacePage />} />
       <Route path="profile" element={<ProfilePage />} />
-      <Route path="login" element={<Login />} />
     </Route>
   )
 );
@@ -33,7 +31,7 @@ const router = createBrowserRouter(
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <Provider store={store}>
-      <ApolloProvider client={domainClient}>
+      <ApolloProvider client={domainGraph}>
         <RouterProvider router={router} />
       </ApolloProvider>
     </Provider>
