@@ -7,8 +7,7 @@ import {DiscoverPage} from "./pages/Discover.tsx";
 import {HomePage} from "./pages/Home.tsx";
 import {ProfilePage} from "./pages/Profile.tsx";
 import {MarketplacePage} from "./pages/Marketplace.tsx";
-import {Provider} from "react-redux";
-import store from "./store/store.ts";
+import {AuthProvider} from "./context/AuthProvider";
 import {InventoryPage} from "./pages/Retailer/InventoryPage.tsx";
 
 const router = createBrowserRouter(
@@ -25,8 +24,8 @@ const router = createBrowserRouter(
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <Provider store={store}>
+    <AuthProvider>
       <RouterProvider router={router}/>
-    </Provider>
+    </AuthProvider>
   </StrictMode>
 );
