@@ -5,19 +5,19 @@ export interface Retailer {
   logoUrl?: string;
   name: string;
   pos: string;
-  website: string;
+  inventory?: RetailerInventory[];
 }
 
 export interface RetailerInventory {
   description: string;
   externalItemId: string;
   name: string;
-  price: string;
+  price?: string;
   producer: string;
   retailerId: string;
   source: string;
   vintage: number;
-  varietal?: string;
+  varietal: string;
   wineId: string;
   matched?: boolean;
 }
@@ -28,6 +28,7 @@ export interface RetailerLocation {
   country: string;
   state: string;
   zip: string;
+  website: string;
   coordinates: LocationCoordinates;
 }
 
@@ -42,13 +43,13 @@ export const mockRetailer: Retailer[] = [
     id: "r1",
     name: "Wine and Co",
     pos: "CLOVER",
-    website: "https://www.chswine.com/",
     location: {
       address: "441 Meeting St Ste. B",
       city: "Charleston",
       state: "SC",
       country: "USA",
       zip: "29403",
+      website: "https://www.chswine.com/",
       coordinates: {
         latitude: 32.7767,
         longitude: -79.9311,
@@ -60,13 +61,13 @@ export const mockRetailer: Retailer[] = [
     id: "r2",
     name: "Monarch Wine Merchants",
     pos: "SQUARE",
-    website: "https://www.monarchwinemerchants.com/",
     location: {
       address: "1107 King St. Suite B",
       city: "Charleston",
       state: "SC",
       country: "USA",
       zip: "29403",
+      website: "https://www.monarchwinemerchants.com/",
       coordinates: {
         latitude: 32.7909,
         longitude: -79.9405,
@@ -78,13 +79,13 @@ export const mockRetailer: Retailer[] = [
     id: "r3",
     name: "Graft",
     pos: "SQUARE",
-    website: "https://www.graftchs.com/",
     location: {
       address: "700b King St",
       city: "Charleston",
       state: "SC",
       country: "USA",
       zip: "29403",
+      website: "https://www.graftchs.com/",
       coordinates: {
         latitude: 32.7764,
         longitude: -79.9310,
@@ -204,31 +205,5 @@ export const mockInventory: RetailerInventory[] = [
     price: "$17.99",
     source: "SQUARE",
     description: "Still nothing special",
-  },
-  // New inventory items for additional retailers
-
-  {
-    wineId: "w8",
-    externalItemId: "VS-LULI-SB-2023",
-    name: "Luli Sauvignon Blanc",
-    producer: "Luli Wines",
-    retailerId: "r2",
-    vintage: 2023,
-    price: "$21.99",
-    source: "SQUARE",
-    description:
-      "Luli Sauvignon Blanc was made with classic winemaking techniques.",
-  },
-  {
-    wineId: "w11",
-    externalItemId: "CB-LULI-CHARD-2023",
-    name: "Luli Chardonnay",
-    producer: "Luli Wines",
-    retailerId: "r4",
-    vintage: 2023,
-    price: "$38.99",
-    source: "SQUARE",
-    description:
-      "The Luli Chardonnay was made from hand-picked fruit and whole-cluster pressed grapes.",
-  },
+  }
 ];
