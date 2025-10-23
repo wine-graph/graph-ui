@@ -4,13 +4,13 @@ import {RetailerHomePage} from "./Retailer/RetailerHomePage.tsx";
 
 /**
  * Home page component for all user types
- * @param userType
+ * @param type
  */
-export const HomePage: React.FC<{ userType: string }> = (userType) => {
+export const HomePage: React.FC<{ userType: string }> = (type) => {
   // believe this covers null, empty string, falsy values
-  if (userType) {
+  if (type.userType === "visitor") {
     return <VisitorHomePage />;
-  } else {
+  } else if (type.userType === "retailer") {
     return <RetailerHomePage />;
   }
 };

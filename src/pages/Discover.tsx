@@ -1,9 +1,10 @@
-import React, { type ReactNode, useMemo, useState } from "react";
+import React, {type ReactNode, useMemo, useState} from "react";
 import { DomainCard } from "../components/DomainCard.tsx";
 import { useQuery } from "@apollo/client";
 import { DOMAIN_QUERY } from "../queries/domain.ts";
 import PageHeader from "../components/common/PageHeader.tsx";
 import CrumbButton from "../components/common/CrumbButton.tsx";
+import {domainClient} from "../services/DomainClient.ts";
 import type {Area, Country, Region} from "../types/WineDomain.ts";
 
 const Grid: React.FC<{ children: ReactNode }> = ({ children }) => (
@@ -13,14 +14,16 @@ const Grid: React.FC<{ children: ReactNode }> = ({ children }) => (
 );
 
 const DomainList: React.FC = () => {
-  const { data, loading, error } = useQuery(DOMAIN_QUERY);
+  const { data, loading, error } = useQuery(DOMAIN_QUERY, {client: domainClient});
 
   const [selectedCountryId, setSelectedCountryId] = useState<string | null>(
     null
   );
   const [selectedRegionId, setSelectedRegionId] = useState<string | null>(null);
 
-  const countries = useMemo(() => data?.Domain?.countries ?? [], [data]);
+  const countries = useMemo(() => (data?.Domain?.countries as Country[]) ?? [], [
+    data,
+  ]);
 
   const selectedCountry = useMemo(
     () => countries.find((c: Country) => c.id === selectedCountryId) ?? null,
