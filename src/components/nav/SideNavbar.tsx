@@ -56,7 +56,7 @@ const SideNavbar = () => {
 
   const handleLogout = () => {
     dispatch(logout());
-    navigate("/login");
+    navigate("/profile");
   };
   return (
     <div

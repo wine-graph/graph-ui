@@ -15,7 +15,7 @@ import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { logout } from "../../store/features/authSlice";
 
 const Header = () => {
-  const { isAuthenticated } = useAppSelector((state) => state.auth);
+  const { isAuthenticated, user } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -33,7 +33,7 @@ const Header = () => {
   const handleLogout = () => {
     dispatch(logout());
     setIsOpen(false);
-    navigate("/login");
+    navigate("/profile");
   };
   return (
     <>
@@ -54,10 +54,10 @@ const Header = () => {
           </div>
         </div>
 
-        {/*todo should this display the user's profile? as-in are they logged in?*/}
+        {/* Profile / Auth section */}
         <div className="profile relative">
           {!isAuthenticated ? (
-            <NavLink to="/login">
+            <NavLink to="/profile">
               <Button className="px-4 bg-primary hover:bg-buttonHover text-white">
                 <FaSignInAlt />
                 Log In
@@ -66,9 +66,20 @@ const Header = () => {
           ) : (
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="size-8 rounded-full border-2 border-gray-400 text-textPrimary-1 flex-center font-roboto font-semibold"
+              className="size-8 rounded-full border-2 border-gray-400 text-textPrimary-1 flex-center font-roboto font-semibold overflow-hidden"
+              aria-label="User menu"
             >
-              R
+              {user?.pictureUrl ? (
+                <img
+                  src={user.pictureUrl}
+                  alt={user.name || "User"}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span>
+                  {user?.name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || "U"}
+                </span>
+              )}
             </button>
           )}
 

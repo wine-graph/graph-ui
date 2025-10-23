@@ -1,14 +1,15 @@
 import PageHeader from "../components/common/PageHeader.tsx";
-import SectionCard from "../components/common/SectionCard.tsx";
-import { FaLink } from "../assets/icons.ts";
-import Button from "../components/common/Button.tsx";
-import { NavLink } from "react-router-dom";
 import SquareAuth from "../components/users/retailer/SquareAuth.tsx";
-import { useAppSelector } from "../store/hooks.ts";
+import {useAppSelector} from "../store/hooks.ts";
+import GoogleButton from "react-google-button";
+
+const sessionUrl = import.meta.env.DEV
+    ? "http://localhost:8086/session/login"
+    : "https://wine-retailer.fly.dev/session/login";
 
 /**
  * Profile page for all user types
- * //todo @param userType
+ * - Google AuthN happens from here; Square AuthZ session refresh is handled inside SquareAuth.
  */
 export const ProfilePage = () => {
   const { isAuthenticated } = useAppSelector((state) => state.auth);
@@ -25,23 +26,10 @@ export const ProfilePage = () => {
       />
       <div className="mt-5">
         {!isAuthenticated ? (
-          <SectionCard
-            cardHeader={{ icon: FaLink, title: "Connect through Google" }}
-          >
-            <div className="my-3 px-4">
-              <p className="text-sm text-textSecondary mb-3">
-                Want to use this platform?
-              </p>
-              <NavLink to="/login">
-                <Button className="bg-textPrimary-1 hover:bg-gray-600 text-white font-medium px-4 py-2 my-5">
-                  <FaLink />
-                  <span className="text-sm">
-                    Sign Up to Personalize Your Experience
-                  </span>
-                </Button>
-              </NavLink>
-            </div>
-          </SectionCard>
+            <GoogleButton
+                type={"light"}
+                onClick={() => { window.location.href = sessionUrl; }}
+            />
         ) : (
           <SquareAuth />
         )}
