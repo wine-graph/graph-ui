@@ -1,6 +1,6 @@
 import {useParams} from "react-router-dom";
 import PageHeader from "../../components/common/PageHeader.tsx";
-import {RETAILER_QUERY} from "../../queries/graphqlQueries.ts";
+import {RETAILER_QUERY} from "../../queries/domain.ts";
 import {useQuery} from "@apollo/client";
 import type {Retailer} from "../../types/Retailer.ts";
 import {retailerClient} from "../../services/DomainClient.ts";
