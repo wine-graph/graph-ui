@@ -1,6 +1,6 @@
 import {useEffect, useRef} from "react";
 import {RetailerCard} from "./RetailerCard.tsx";
-import {mockRetailer, type Retailer} from "../types/Retailer.ts";
+import {mockRetailer, type Retailer} from "./retailer.ts";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
@@ -21,7 +21,7 @@ const defaultIcon = L.icon({
 L.Marker.prototype.options.icon = defaultIcon;
 
 /**
- * Retailer Marketplace component used for most user types
+ * Retailer Marketplace component used for most users types
  * //todo @param userType
  */
 export const RetailerMarketplace = () => {

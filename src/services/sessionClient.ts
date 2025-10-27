@@ -7,7 +7,7 @@ const BASE_URL = import.meta.env.DEV
 
 const client = axios.create({
   baseURL: BASE_URL,
-  withCredentials: true // include cookies for auth
+  withCredentials: false
 });
 
 export async function getCurrentUser(): Promise<User | undefined> {

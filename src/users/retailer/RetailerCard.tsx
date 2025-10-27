@@ -1,25 +1,20 @@
-import React, {useState} from "react";
+import React from "react";
 import {useNavigate} from "react-router-dom";
-import Button from "./common/Button.tsx";
+import Button from "../../components/common/Button.tsx";
 import {
   IoCardOutline,
   IoLocationOutline,
   IoMailOpenOutline,
   MdOutlineInventory2,
   IoArrowRedo,
-} from "../assets/icons.ts";
-
-import {type Retailer} from "../types/Retailer.ts";
+} from "../../assets/icons.ts";
+import {type Retailer} from "./retailer.ts";
 
 export const RetailerCard: React.FC<Retailer> = (retailer: Retailer) => {
   const navigate = useNavigate();
-  const [currentRetailerId, setRetailerId] = useState<string | null>(null);
-
-  const currentRetailer = retailer.id === currentRetailerId;
-  console.log(currentRetailer);
+  console.log(retailer);
 
   const retailerInventory = (retailerId: string) => {
-    setRetailerId(retailerId);
     navigate(`/${retailerId}/inventory`);
   }
 
@@ -40,7 +35,7 @@ export const RetailerCard: React.FC<Retailer> = (retailer: Retailer) => {
           <IoLocationOutline className="text-textPrimary-1 text-3xl"/>
           <p className="">
             {retailer.location?.address}
-            {retailer.location?.city}, {retailer.location?.state} {retailer.location?.zip}
+            {retailer.location?.city}, {retailer.location?.state} {retailer.location?.zipCode}
           </p>
         </div>
         <div className="flex items-center gap-5">
@@ -55,7 +50,7 @@ export const RetailerCard: React.FC<Retailer> = (retailer: Retailer) => {
         </div>
       </div>
       <div className="actions flex items-center justify-between mt-12  p-4">
-        <Button onClick={() => retailerInventory("ML48DTDR8XHAY")} className="border-gray-400 text-textPrimary-1 hover:bg-gray-100 px-4 py-2">
+        <Button onClick={() => retailerInventory(retailer.id)} className="border-gray-400 text-textPrimary-1 hover:bg-gray-100 px-4 py-2">
           <MdOutlineInventory2 size={22}/>
           <span className="">Inventory</span>
         </Button>

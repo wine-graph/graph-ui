@@ -13,7 +13,7 @@ type SectionCardProps = {
 };
 
 // Header with icon and title
-export const CardHeader: React.FC<CardHeaderProps> = ({
+const CardHeader: React.FC<CardHeaderProps> = ({
   icon: Icon,
   title,
 }) => {

@@ -1,14 +1,15 @@
 import PageHeader from "../components/common/PageHeader.tsx";
-import SquareAuth from "../components/users/retailer/SquareAuth.tsx";
 import GoogleButton from "react-google-button";
+import {useAuth} from "../context/useAuth";
+import GoogleProfile from "../components/common/GoogleProfile.tsx";
+import SquareAuth from "../users/retailer/SquareAuth.tsx";
 
 const sessionUrl = import.meta.env.DEV
   ? "http://localhost:8086/session/login"
   : "https://wine-retailer.fly.dev/session/login";
-import {useAuth} from "../context/useAuth";
 
 /**
- * Profile page for all user types
+ * Profile page for all users types
  * - Google AuthN happens from here; Square AuthZ session refresh is handled inside SquareAuth.
  */
 export const ProfilePage = () => {
@@ -20,20 +21,24 @@ export const ProfilePage = () => {
         desc={
           isAuthenticated
             ? `Hi! ${user?.name}, welcome back to Wine Graph.`
-            : "This platform allows you to... based on user type"
+            : "This platform allows you to... based on users type"
         }
       />
       <div className="mt-5">
         {!isAuthenticated ? (
-          <GoogleButton
-            type={"light"}
-            onClick={() => {
-              window.location.href = sessionUrl;
-            }}
-          />
-        ) : (
-          <SquareAuth/>
-        )}
+            <GoogleButton
+              type={"light"}
+              onClick={() => {
+                window.location.href = sessionUrl;
+              }}
+            />
+          ) :
+          <div className="mt-5 flex flex-col gap-4">
+            <GoogleProfile name={user?.name ?? ""} id={user?.id ?? ""} email={user?.email ?? ""}
+                           pictureUrl={user?.pictureUrl ?? ""}/>
+            <SquareAuth/>
+          </div>
+        }
       </div>
     </div>
   );
