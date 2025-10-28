@@ -4,7 +4,7 @@ import Visitor from "../assets/images/visitor-bg.png";
 import Wine from "../assets/images/Wine-illustration.png";
 
 /**
- * Home page component for all user types
+ * Home page component for all users types
  * @param type
  */
 export const HomePage: React.FC<{ userType: string }> = (type) => {

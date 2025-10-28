@@ -4,15 +4,15 @@ type PageHeaderProps = { title: string; desc: string };
 
 const PageHeader: React.FC<PageHeaderProps> = ({ title, desc }) => {
   return (
-    <>
+    <div className="mt-7">
       <header>
         <h1 className="text-3xl font-medium text-textPrimary font-alan-sans">
           {title}
         </h1>
-        <p className="text-textSecondary text-sm">{desc}</p>
+        <p className="text-textSecondary text-md">{desc}</p>
       </header>
       <div className="separator" />
-    </>
+    </div>
   );
 };
 

@@ -1,6 +1,6 @@
-import SectionCard from "../../common/SectionCard";
-import { FaConnectdevelop } from "../../../assets/icons";
-import Button from "../../common/Button";
+import SectionCard from "../../components/common/SectionCard.tsx";
+import { FaConnectdevelop } from "../../assets/icons.ts";
+import Button from "../../components/common/Button.tsx";
 
 const squareUrl = import.meta.env.DEV
     ? "http://localhost:8085/square/authorize"

@@ -4,32 +4,19 @@ type WineData = {
   name: string;
   varietal: string;
   vintage: number;
-  producer?: string;
   description?: string;
 };
 
 export const WineCard: React.FC<WineData> = (wine: WineData) => {
   return (
-    <div className="border border-border rounded-2xl  p-4 shadow flex flex-col justify-between">
-      <div className="">
-        <div className="flex justify-between mb-2">
-          <h3 className="font-semibold text-textPrimary-1">{wine.name}</h3>
+    <div className="border border-border rounded-xl p-3 shadow-sm">
+      <div className="space-y-1">
+        <h3 className="font-medium text-textPrimary truncate" title={wine.name}>
+          {wine.name}
+        </h3>
+        <div className="text-md text-textSecondary">
+          {wine.varietal} • {wine.vintage}
         </div>
-        <ul className="w-fit text-xs text-textSecondary mb-2 flex gap-2">
-          <li className="flex flex-col">
-            <span>Varietal :</span>
-            <span>Vintage :</span>
-            <span>Producer :</span>
-          </li>
-          <li className="flex flex-col">
-            <span>{wine.varietal}</span>
-            <span>{wine.vintage}</span>
-            <span>{wine.producer}</span>
-          </li>
-        </ul>
-        <p className="desc text-xs text-textSecondary mt-3">
-          {wine.description?.slice(0, 120) + "..."}
-        </p>
       </div>
     </div>
   );

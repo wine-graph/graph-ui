@@ -1,20 +1,42 @@
 import React, {type ReactNode, useMemo, useState} from "react";
-import { DomainCard } from "../components/DomainCard.tsx";
-import { useQuery } from "@apollo/client";
-import { DOMAIN_QUERY } from "../queries/domain.ts";
+import {DomainCard} from "../components/DomainCard.tsx";
+import {useQuery} from "@apollo/client";
+import {DOMAIN_QUERY} from "../queries/domain.ts";
 import PageHeader from "../components/common/PageHeader.tsx";
 import CrumbButton from "../components/common/CrumbButton.tsx";
-import {domainClient} from "../services/DomainClient.ts";
-import type {Area, Country, Region} from "../types/WineDomain.ts";
+import {apolloClient} from "../services/apolloClient.ts";
 
-const Grid: React.FC<{ children: ReactNode }> = ({ children }) => (
+type Country = {
+  id: string;
+  name: string;
+  description: string;
+  flag?: string;
+  weblink?: string;
+  regions: Region[];
+}
+
+type Region = {
+  id: string;
+  name: string;
+  description?: string;
+  weblink?: string;
+  areas: Area[];
+}
+
+type Area = {
+  id: string;
+  name: string;
+  description?: string;
+}
+
+const Grid: React.FC<{ children: ReactNode }> = ({children}) => (
   <div className="w-full px-3 sm:px-0 sm:ml-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 ">
     {children}
   </div>
 );
 
-const DomainList: React.FC = () => {
-  const { data, loading, error } = useQuery(DOMAIN_QUERY, {client: domainClient});
+const DomainList = () => {
+  const {data, loading, error} = useQuery(DOMAIN_QUERY, {client: apolloClient});
 
   const [selectedCountryId, setSelectedCountryId] = useState<string | null>(
     null
@@ -99,7 +121,7 @@ const DomainList: React.FC = () => {
               ))}
 
             {showRegions &&
-              selectedCountry?.regions.map((r : Region) => (
+              selectedCountry?.regions.map((r: Region) => (
                 <DomainCard
                   key={r.id}
                   title={r.name}
@@ -109,7 +131,7 @@ const DomainList: React.FC = () => {
               ))}
 
             {showAreas &&
-              selectedRegion?.areas.map((a : Area) => (
+              selectedRegion?.areas.map((a: Area) => (
                 <DomainCard
                   key={a.id}
                   title={a.name}
@@ -135,7 +157,7 @@ export const DiscoverPage = () => {
           desc="Discover wines from around the world by region, varietal, or producer."
         />
       </div>
-      <DomainList />
+      <DomainList/>
     </>
   );
 };
