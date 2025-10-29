@@ -27,4 +27,4 @@ const RETAILER_QUERY = gql(`
  }
 `);
 
-export { RETAILER_QUERY };
+export {RETAILER_QUERY};

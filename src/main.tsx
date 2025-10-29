@@ -10,14 +10,17 @@ import {RetailerInventory} from "./users/retailer/RetailerInventory.tsx";
 import RoleBasedHome from "./routes/RoleBasedHome";
 import RoleRoute from "./routes/RoleRoute";
 import {MarketplacePage} from "./pages/Marketplace.tsx";
-import {ProducerMarketplace} from "./components/ProducerMarketplace.tsx";
+import {ProducerMarketplace} from "./users/producer/ProducerMarketplace.tsx";
 import {RetailerProfile} from "./users/retailer/RetailerProfile.tsx";
+import {RetailerProvider} from "./context/RetailerProvider.tsx";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path="/" element={
       <AuthProvider>
-        <App/>
+        <RetailerProvider>
+          <App/>
+        </RetailerProvider>
       </AuthProvider>
     }>
       <Route index element={<RoleBasedHome/>}/>

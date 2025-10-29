@@ -1,6 +1,6 @@
 import PageHeader from "../components/common/PageHeader.tsx";
 import GoogleButton from "react-google-button";
-import {useAuth} from "../context/useAuth";
+import {useAuth} from "../context/authContext.ts";
 import GoogleProfile from "../components/common/GoogleProfile.tsx";
 import SquareAuth from "../users/retailer/SquareAuth.tsx";
 

@@ -16,7 +16,7 @@ const Grid: React.FC<{ children: ReactNode }> = ({children}) => (
 
 export const RetailerInventory = () => {
   const {retailerId} = useParams();
-  const {data, loading, error} = useQuery(RETAILER_QUERY, {variables: {id: retailerId}, client: retailerClient});
+  const {data, loading} = useQuery(RETAILER_QUERY, {variables: {id: retailerId}, client: retailerClient});
 
   const retailer = data?.Retailer?.retailer as Retailer | undefined;
   const inventory = Array.isArray(retailer?.inventory) ? retailer!.inventory! : [];
@@ -32,10 +32,6 @@ export const RetailerInventory = () => {
       <>
         {loading ? (
           <div className="text-textSecondary">Loading inventory…</div>
-        ) : error ? (
-          <div className="text-red-600">
-            Error loading inventory: {error.message}
-          </div>
         ) : (
           <>
             {retailer ? (

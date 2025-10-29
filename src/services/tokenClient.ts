@@ -17,14 +17,22 @@ const client = axios.create({
 });
 
 export async function getToken(merchantId: string | undefined): Promise<Token | undefined> {
-  const {data} = await client.get("/status", {
-    params: merchantId ? {merchant_id: merchantId} : undefined,
-  });
-  return data as Token | undefined;
+  if (merchantId) {
+    console.log("Getting token for merchant:", merchantId);
+    const {data} = await client.get("/status", {
+      params: {merchant_id: merchantId}
+    });
+    return data as Token | undefined;
+  }
+  console.log("No merchant ID provided, skipping token request");
 }
 
 export async function refreshToken(merchantId: string | undefined): Promise<void> {
-  await client.post("/refresh", {
-    params: merchantId ? {merchant_id: merchantId} : undefined,
-  });
+  if (merchantId) {
+    const response = await client.post("/refresh", null, {
+      params: {merchant_id: merchantId}
+    });
+    console.log("Token refreshed successfully:", response.status);
+  }
+  console.log("No merchant ID provided, skipping token request");
 }

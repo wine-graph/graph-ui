@@ -2,11 +2,11 @@ import SectionCard from "../../components/common/SectionCard.tsx";
 import {FaConnectdevelop, FaLink} from "../../assets/icons.ts";
 import Button from "../../components/common/Button.tsx";
 import PageHeader from "../../components/common/PageHeader.tsx";
-import {useAuth} from "../../context/useAuth.ts";
+import {useAuth} from "../../context/authContext.ts";
 import SquareAuth from "./SquareAuth.tsx";
 import {useParams} from "react-router-dom";
 import {useEffect, useState} from "react";
-import {getToken, type Token} from "../../services/tokenClient.ts";
+import {getToken, refreshToken, type Token} from "../../services/tokenClient.ts";
 import GoogleProfile from "../../components/common/GoogleProfile.tsx";
 
 export const RetailerProfile = () => {
@@ -20,16 +20,36 @@ export const RetailerProfile = () => {
   const [tokenError, setTokenError] = useState<string | null>(null);
 
   const fetchToken = async () => {
-    const t = await getToken(retailerId ?? "");
-    if (t) {
-      setToken(t);
-    } else {
-      setTokenError("Failed to fetch token");
+    try {
+      setTokenLoading(true);
+      const t = await getToken(retailerId ?? "");
+      if (t) {
+        setToken(t);
+        setTokenError(null);
+      } else {
+        setTokenError("Failed to fetch token");
+      }
+    } catch (err) {
+      console.error("Error fetching token:", err);
+      setTokenError("Error fetching token");
+    } finally {
+      setTokenLoading(false);
+    }
+  };
+
+  const handleRefresh = async () => {
+    try {
+      setTokenLoading(true);
+      await refreshToken(retailerId ?? "");
+      await fetchToken(); // re-fetch updated token
+    } finally {
+      setTokenLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchToken().then(() => setTokenLoading(false));
+    fetchToken()
+      .then(() => console.log("token fetched"));
   }, []);
 
   const isPosAuthorized = !!token && new Date(token.expires_at).getTime() > Date.now();
@@ -77,9 +97,14 @@ export const RetailerProfile = () => {
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button className="bg-primary hover:bg-buttonHover text-white font-medium px-3 py-2">
+                    <Button
+                      onClick={handleRefresh}
+                      disabled={tokenLoading}
+                      aria-busy={tokenLoading}
+                      className="bg-primary hover:bg-buttonHover text-white font-medium px-3 py-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
                       <FaLink/>
-                      <span className="text-sm">{isPosAuthorized ? "Refresh Token" : "Connect with Square"}</span>
+                      <span className="text-sm">{isPosAuthorized ? "Refresh Token" : <SquareAuth/>}</span>
                     </Button>
                   </div>
                 </div>

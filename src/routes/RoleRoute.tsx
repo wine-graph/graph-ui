@@ -1,6 +1,6 @@
 import type {ReactNode} from "react";
 import {Navigate} from "react-router-dom";
-import {useAuth} from "../context/useAuth";
+import {useAuth} from "../context/authContext.ts";
 
 interface RoleRouteProps {
   children: ReactNode;
