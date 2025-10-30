@@ -12,7 +12,6 @@ import {type Retailer} from "./retailer.ts";
 
 export const RetailerCard: React.FC<Retailer> = (retailer: Retailer) => {
   const navigate = useNavigate();
-  console.log(retailer);
 
   const retailerInventory = (retailerId: string) => {
     navigate(`/${retailerId}/inventory`);

@@ -47,11 +47,11 @@ function producerLinks(): NavLinkDef[] {
   return baseLinks;
 }
 
-export function resolveNavLinks(isAuthenticated: boolean, user: User | null): NavLinkDef[] {
+export function resolveNavLinks(isAuthenticated: boolean, user: User | null, retailerId: string | null): NavLinkDef[] {
   const role = getEffectiveRole(isAuthenticated, user);
   switch (role) {
     case "retailer":
-      return user?.retailerId ? retailerLinks(user.retailerId) : baseLinks;
+      return retailerId ? retailerLinks(retailerId) : baseLinks;
     case "enthusiast":
       return enthusiastLinks();
     case "producer":

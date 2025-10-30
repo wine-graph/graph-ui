@@ -1,19 +1,20 @@
 import { useMemo, useState } from "react";
-import { NavLink } from "react-router-dom";
+import {NavLink} from "react-router-dom";
 import Logo from "../../assets/images/Wine-logo.png";
 import { FaSearch, FaSignInAlt } from "../../assets/icons";
 import Button from "../common/Button";
-import { useAuth } from "../../context/useAuth";
+import { useAuth } from "../../context/authContext.ts";
 import { resolveNavLinks, toPath, type NavLinkDef } from "./roleNavConfig";
+import {useRetailer} from "../../context/retailerContext.ts";
 
 const Header = () => {
   const {isAuthenticated, user} = useAuth();
-  //const navigate = useNavigate();
+  const {retailerId} = useRetailer();
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   const links: NavLinkDef[] = useMemo(
-    () => resolveNavLinks(isAuthenticated, user),
-    [isAuthenticated, user]
+    () => resolveNavLinks(isAuthenticated, user, retailerId),
+    [isAuthenticated, user, retailerId]
   );
 
   return (

@@ -1,15 +1,17 @@
 import {useMemo, useState} from "react";
 import {NavLink} from "react-router-dom";
-import {useAuth} from "../../context/useAuth";
+import {useAuth} from "../../context/authContext.ts";
 import {type NavLinkDef, resolveNavLinks, toPath} from "./roleNavConfig";
+import {useRetailer} from "../../context/retailerContext.ts";
 
 const SideNavbar = () => {
   const {isAuthenticated, user} = useAuth();
+  const {retailerId} = useRetailer();
   const [isOpen, setIsOpen] = useState(false);
 
   const links: NavLinkDef[] = useMemo(
-    () => resolveNavLinks(isAuthenticated, user),
-    [isAuthenticated, user]
+    () => resolveNavLinks(isAuthenticated, user, retailerId),
+    [isAuthenticated, user, retailerId]
   );
 
   return (

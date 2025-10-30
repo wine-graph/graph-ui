@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "visitor": "vite --mode visitor",
+    "retailer": "vite --mode retailer"
   },
   "dependencies": {
     "@apollo/client": "^3.14.0",

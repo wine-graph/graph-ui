@@ -1,5 +1,5 @@
-import {HomePage} from "../pages/Home";
-import {useAuth} from "../context/useAuth";
+import {HomePage} from "../pages/Home.tsx";
+import {useAuth} from "../context/authContext.ts";
 
 const RoleBasedHome = () => {
   const {user} = useAuth();

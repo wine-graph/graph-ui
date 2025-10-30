@@ -1,4 +1,4 @@
-import {createContext} from "react";
+import {createContext, useContext} from "react";
 
 export type User = {
   id: string;
@@ -6,7 +6,6 @@ export type User = {
   email: string;
   pictureUrl: string;
   roles?: string[];
-  retailerId?: string; // optional: associated retailer identifier for retailer users
 };
 
 export interface AuthState {
@@ -20,3 +19,11 @@ export interface AuthContextValue extends AuthState {
 }
 
 export const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+
+export const useAuth = (): AuthContextValue => {
+  const ctx = useContext(AuthContext);
+  if (!ctx) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return ctx;
+};
