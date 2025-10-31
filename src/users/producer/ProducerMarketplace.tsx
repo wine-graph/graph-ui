@@ -33,13 +33,7 @@ export const ProducerMarketplace = () => {
               {producers.map((producer) => (
                 <ProducerCard
                   key={producer.id}
-                  id={producer.id}
-                  name={producer.name}
-                  description={producer.description}
-                  email={producer.email}
-                  website={producer.website}
-                  phone={producer.phone}
-                  wines={producer.wines}
+                  {...producer}
                 />
               ))}
             </Grid>

@@ -25,6 +25,10 @@ import {
 } from "react-icons/fa";
 
 import {
+  FaCircleCheck
+} from "react-icons/fa6";
+
+import {
   IoStorefrontOutline,
   IoAnalytics,
   IoFilter,
@@ -34,6 +38,8 @@ import {
   IoMailOpenOutline,
   IoInformationCircleOutline,
   IoArrowRedo,
+  IoPhonePortrait,
+  IoPhonePortraitOutline
 } from "react-icons/io5";
 import { BsStars } from "react-icons/bs";
 import {
@@ -81,4 +87,7 @@ export {
   MdOutlineInventory2,
   FaSignInAlt,
   FaSignOutAlt,
+  FaCircleCheck,
+  IoPhonePortrait,
+  IoPhonePortraitOutline
 };

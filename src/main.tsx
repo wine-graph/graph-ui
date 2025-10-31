@@ -1,6 +1,7 @@
 import {StrictMode} from "react";
 import {createRoot} from "react-dom/client";
 import "./index.css";
+import "leaflet/dist/leaflet.css";
 import App from "./App.tsx";
 import {createBrowserRouter, createRoutesFromElements, Outlet, Route, RouterProvider,} from "react-router-dom";
 import {DiscoverPage} from "./pages/Discover.tsx";
@@ -27,7 +28,8 @@ const router = createBrowserRouter(
       <Route path="explore" element={<DiscoverPage/>}/>
       <Route path="marketplace" element={<MarketplacePage/>}/>
       <Route path="profile" element={<ProfilePage/>}/>
-
+      <Route path=":retailerId/inventory" element={<RetailerInventory/>}/>
+      <Route path="producer/marketplace" element={<ProducerMarketplace/>}/>
       {/* --- Retailer section --- */}
       <Route path="retailer">
         {/* Retailer-specific routes (require :retailerId) */}
@@ -38,18 +40,18 @@ const router = createBrowserRouter(
               <Outlet/>
             </RoleRoute>
           }>
-          <Route path="inventory" element={<RetailerInventory/>}/>
+          {/*<Route path="inventory" element={<RetailerInventory/>}/>*/}
           <Route path="profile" element={<RetailerProfile/>}/>
         </Route>
         {/* Retailer-wide routes (not tied to ID but still protected) */}
-        <Route
-          path="producers"
-          element={
-            <RoleRoute allowedRoles={["retailer"]} redirectPath="/">
-              <ProducerMarketplace/>
-            </RoleRoute>
-          }
-        />
+        {/*<Route*/}
+        {/*  path="producers"*/}
+        {/*  element={*/}
+        {/*    <RoleRoute allowedRoles={["retailer"]} redirectPath="/">*/}
+        {/*      <ProducerMarketplace/>*/}
+        {/*    </RoleRoute>*/}
+        {/*  }*/}
+        {/*/>*/}
       </Route>
       {/* --- End Retailer section --- */}
 

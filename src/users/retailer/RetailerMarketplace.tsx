@@ -1,106 +1,72 @@
-import {useEffect, useRef} from "react";
+import {useEffect, useMemo, useState} from "react";
 import {RetailerCard} from "./RetailerCard.tsx";
-import {mockRetailer, type Retailer} from "./retailer.ts";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
-import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
-import markerIcon from "leaflet/dist/images/marker-icon.png";
-import markerShadow from "leaflet/dist/images/marker-shadow.png";
+import {type Retailer} from "./retailer.ts";
+import {useQuery} from "@apollo/client";
+import {RETAILERS_QUERY} from "../../services/retailerGraph.ts";
+import {retailerClient} from "../../services/apolloClient.ts";
+import {MapView} from "../../components/MapView.tsx";
+import type {LatLngExpression} from "leaflet";
 
-const defaultIcon = L.icon({
-  iconRetinaUrl: markerIcon2x,
-  iconUrl: markerIcon,
-  shadowUrl: markerShadow,
-  iconSize: [25, 41], // Leaflet default
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  tooltipAnchor: [16, -28],
-  shadowSize: [41, 41],
-});
-// Assign as default for all markers
-L.Marker.prototype.options.icon = defaultIcon;
-
-/**
- * Retailer Marketplace component used for most users types
- * //todo @param userType
- */
 export const RetailerMarketplace = () => {
-  const mapRef = useRef<HTMLDivElement | null>(null);
+  const {data, loading} = useQuery(RETAILERS_QUERY, {client: retailerClient});
+  const retailers = useMemo(() => (data?.Retailer?.retailers as Retailer[]) ?? [], [data]);
 
-  const getMarkerCoords = (r: Retailer): [number, number] | null => {
-    const coords = r.location?.coordinates;
-    if (!coords) return null;
-    const { latitude, longitude } = coords;
-    if (
-      typeof latitude !== "number" ||
-      typeof longitude !== "number" ||
-      Number.isNaN(latitude) ||
-      Number.isNaN(longitude)
-    ) {
-      return null;
-    }
-    return [latitude, longitude];
-  };
+  const [position, setPosition] = useState<LatLngExpression | null>(null);
 
+  // Get the user's current location
   useEffect(() => {
-    if (!mapRef.current) return;
-
-    // Default center over continental US
-    const defaultCenter: [number, number] = [37.8, -96.0];
-    const map = L.map(mapRef.current).setView(defaultCenter, 4);
-
-    // Grayscale/light basemap (CartoDB Positron)
-    L.tileLayer(
-      "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-      {
-        maxZoom: 19,
-        attribution:
-          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        subdomains: "abcd",
-      }
-    ).addTo(map);
-
-    // Add markers where we have known coords
-    const markers: L.Marker[] = [];
-    mockRetailer.forEach((r) => {
-      const coords = getMarkerCoords(r);
-      if (coords) {
-        const marker = L.marker(coords).addTo(map);
-        const name = r.name;
-        const city = r.location?.city;
-        const state = r.location?.state;
-        marker.bindPopup(`<strong>${name}</strong><br/>${city}, ${state}`);
-        markers.push(marker);
-      }
-    });
-
-    if (markers.length > 0) {
-      const group = L.featureGroup(markers);
-      map.fitBounds(group.getBounds().pad(0.2));
+    if (!navigator.geolocation) {
+      console.error("Geolocation not supported by this browser");
+      return;
     }
 
-    return () => {
-      map.remove();
-    };
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const {latitude, longitude} = pos.coords;
+        setPosition([latitude, longitude]);
+      },
+      (err) => {
+        console.error("Error getting location:", err);
+        // fallback position (e.g., New York)
+        setPosition([40.7128, -74.006]);
+      }
+    );
   }, []);
+
+  // Don't render map until we have a position
+  if (!position) return <p>Loading map...</p>;
+
+  const retailerMarkers =
+    retailers.filter((r) => r.location?.coordinates)
+      .map((r) => {
+        return {
+          position: [r.location?.coordinates?.latitude, r.location?.coordinates?.longitude] as LatLngExpression,
+          label: r.name ?? "Unnamed Retailer",
+        };
+      }) ?? [];
+
+  retailerMarkers.forEach(m => console.log(m.label, m.position));
 
   return (
     <div className="w-full space-y-6">
       <div>
         <h2 className="text-xl font-semibold mb-2">Explore Retailers</h2>
-        <div
-          ref={mapRef}
-          id="retailer-map"
-          className="w-full rounded"
-          style={{height: "360px", border: "1px solid #e5e7eb"}}
-        />
+        <MapView center={position} zoom={13} markers={retailerMarkers}/>
       </div>
 
-      <div className="retailers grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {mockRetailer.map((retailer) => (
-          <RetailerCard key={retailer.id} {...retailer} />
-        ))}
-      </div>
+      {loading ? (
+        <div className="">Loading retailers…</div>
+      ) : retailers.length === 0 ? (
+        <div className="border border-dashed border-border rounded-xl p-8 text-center text-textSecondary">
+          No retailers to display.
+        </div>
+      ) : (
+        <div className="retailers grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {retailers.map((retailer) => (
+            <RetailerCard key={retailer.id} {...retailer} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

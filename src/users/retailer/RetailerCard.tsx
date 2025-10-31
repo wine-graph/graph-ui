@@ -2,11 +2,12 @@ import React from "react";
 import {useNavigate} from "react-router-dom";
 import Button from "../../components/common/Button.tsx";
 import {
+  IoArrowRedo,
   IoCardOutline,
   IoLocationOutline,
   IoMailOpenOutline,
-  MdOutlineInventory2,
-  IoArrowRedo,
+  IoPhonePortraitOutline,
+  MdOutlineInventory2
 } from "../../assets/icons.ts";
 import {type Retailer} from "./retailer.ts";
 
@@ -33,15 +34,18 @@ export const RetailerCard: React.FC<Retailer> = (retailer: Retailer) => {
         <div className="flex items-center gap-5">
           <IoLocationOutline className="text-textPrimary-1 text-3xl"/>
           <p className="">
-            {retailer.location?.address}
-            {retailer.location?.city}, {retailer.location?.state} {retailer.location?.zipCode}
+            {retailer.location?.address} {retailer.location?.city}, {retailer.location?.state} {retailer.location?.zipCode}
           </p>
         </div>
         <div className="flex items-center gap-5">
           <IoMailOpenOutline className="text-textPrimary-1 text-3xl"/>
-          <a href={`mailto:${retailer.contactEmail}`} target="_blank">
-            <span>{retailer.contactEmail}</span>
+          <a href={`mailto:${retailer.location?.contactEmail}`} target="_blank">
+            <span>{retailer.location?.contactEmail}</span>
           </a>
+        </div>
+        <div className="flex items-center gap-5">
+          <IoPhonePortraitOutline className="text-textPrimary-1 text-3xl"/>
+          <span>{retailer.location?.phone}</span>
         </div>
         <div className="flex items-center gap-5">
           <IoCardOutline className="text-textPrimary-1 text-3xl"/>
@@ -49,7 +53,8 @@ export const RetailerCard: React.FC<Retailer> = (retailer: Retailer) => {
         </div>
       </div>
       <div className="actions flex items-center justify-between mt-12  p-4">
-        <Button onClick={() => retailerInventory(retailer.id)} className="border-gray-400 text-textPrimary-1 hover:bg-gray-100 px-4 py-2">
+        <Button onClick={() => retailerInventory(retailer.id)}
+                className="border-gray-400 text-textPrimary-1 hover:bg-gray-100 px-4 py-2">
           <MdOutlineInventory2 size={22}/>
           <span className="">Inventory</span>
         </Button>

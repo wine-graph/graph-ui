@@ -27,4 +27,30 @@ const RETAILER_QUERY = gql(`
  }
 `);
 
-export {RETAILER_QUERY};
+const RETAILERS_QUERY = gql(`
+  query {
+    Retailer {
+      retailers {
+        pos
+        name
+        id
+        location {
+          zipCode
+          website
+          address
+          city
+          contactEmail
+          phone
+          id
+          state
+          coordinates {
+            latitude
+            longitude
+          }
+        }
+      }
+    }
+  }
+`)
+
+export {RETAILER_QUERY, RETAILERS_QUERY};

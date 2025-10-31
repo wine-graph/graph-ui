@@ -1,5 +1,5 @@
 import SectionCard from "../../components/common/SectionCard.tsx";
-import {FaConnectdevelop, FaLink} from "../../assets/icons.ts";
+import {FaCircleCheck, FaConnectdevelop} from "../../assets/icons.ts";
 import Button from "../../components/common/Button.tsx";
 import PageHeader from "../../components/common/PageHeader.tsx";
 import {useAuth} from "../../context/authContext.ts";
@@ -101,9 +101,9 @@ export const RetailerProfile = () => {
                       onClick={handleRefresh}
                       disabled={tokenLoading}
                       aria-busy={tokenLoading}
-                      className="bg-primary hover:bg-buttonHover text-white font-medium px-3 py-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                      className="bg-primary hover:bg-buttonHover text-white font-medium px-3 py-2 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center"
                     >
-                      <FaLink/>
+                      <FaCircleCheck size={16} className="mr-2" />
                       <span className="text-sm">{isPosAuthorized ? "Refresh Token" : <SquareAuth/>}</span>
                     </Button>
                   </div>
