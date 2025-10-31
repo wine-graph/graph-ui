@@ -62,9 +62,7 @@ export const RetailerInventory = () => {
                   {inventory.map((item) => (
                     <WineCard
                       key={item.externalItemId || item.wineId || `${item.name}-${item.vintage}-${item.producer}`}
-                      name={item.name}
-                      vintage={item.vintage}
-                      varietal={item.varietal}
+                      {...item}
                     />
                   ))}
                 </Grid>
