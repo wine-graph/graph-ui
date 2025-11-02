@@ -5,7 +5,7 @@ import {useAuth} from "../context/authContext.ts";
 interface RoleRouteProps {
   children: ReactNode;
   // If provided, users must have at least one of these roles
-  allowedRoles?: string[];
+  allowedRole?: string;
   // Allow unauthenticated visitors (default true when no allowedRoles specified)
   allowVisitor?: boolean;
   // Where to redirect if access is denied
@@ -19,20 +19,19 @@ interface RoleRouteProps {
  */
 export const RoleRoute = ({
   children,
-  allowedRoles,
+  allowedRole,
   allowVisitor,
   redirectPath = "/",
 }: RoleRouteProps) => {
   const {isAuthenticated, user} = useAuth();
 
   // If roles are required, enforce auth + role check
-  if (allowedRoles && allowedRoles.length > 0) {
+  if (allowedRole) {
     if (!isAuthenticated) {
       return <Navigate to={redirectPath} replace/>;
     }
-    const roles = user?.roles ?? [];
-    const hasRole = roles.some(r => allowedRoles.includes(r));
-    if (!hasRole) {
+    const role = user?.user?.role?.value ?? "";
+    if (!role) {
       return <Navigate to={redirectPath} replace/>;
     }
     return <>{children}</>;

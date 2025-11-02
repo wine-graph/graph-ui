@@ -1,5 +1,5 @@
-import Header from "./components/nav/Header";
-import SideNavbar from "./components/nav/SideNavbar";
+import Header from "./nav/Header";
+import SideNavbar from "./nav/SideNavbar";
 import { Outlet } from "react-router-dom";
 
 const App = () => {

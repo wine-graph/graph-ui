@@ -1,6 +1,6 @@
 import {FaBoxOpen, FaGlobe, FaHome, FaShoppingCart, FaUser} from "react-icons/fa";
-import {FaWineBottle} from "../../assets/icons.ts";
-import type {User} from "../../context/authContext";
+import {FaWineBottle} from "../assets/icons.ts";
+import type {SessionUser} from "../context/authContext.ts";
 import type {IconType} from "react-icons";
 
 export type NavLinkDef = {
@@ -10,12 +10,12 @@ export type NavLinkDef = {
 };
 
 // Determine an effective role from auth state
-function getEffectiveRole(isAuthenticated: boolean, user: User | null): string {
+function getEffectiveRole(isAuthenticated: boolean, user: SessionUser | null): string {
   if (!isAuthenticated) return "visitor";
-  const roles = user?.roles ?? [];
-  if (roles.includes("retailer")) return "retailer";
-  if (roles.includes("enthusiast")) return "enthusiast";
-  if (roles.includes("producer")) return "producer";
+  const role = user?.user.role?.value ?? "";
+  if (role.includes("retailer")) return "retailer";
+  if (role.includes("enthusiast")) return "enthusiast";
+  if (role.includes("producer")) return "producer";
   return "visitor";
 }
 
@@ -47,10 +47,11 @@ function producerLinks(): NavLinkDef[] {
   return baseLinks;
 }
 
-export function resolveNavLinks(isAuthenticated: boolean, user: User | null, retailerId: string | null): NavLinkDef[] {
+export function resolveNavLinks(isAuthenticated: boolean, user: SessionUser | null, retailerId: string | null): NavLinkDef[] {
   const role = getEffectiveRole(isAuthenticated, user);
   switch (role) {
     case "retailer":
+      console.log("Resolving links for Retailer:", retailerId);
       return retailerId ? retailerLinks(retailerId) : baseLinks;
     case "enthusiast":
       return enthusiastLinks();

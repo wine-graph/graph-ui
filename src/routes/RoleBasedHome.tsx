@@ -3,10 +3,10 @@ import {useAuth} from "../context/authContext.ts";
 
 const RoleBasedHome = () => {
   const {user} = useAuth();
-  const roles = user?.roles ?? [];
+  const role = user?.user?.role?.value ?? "";
 
   // Extend this mapping as new roles are added
-  if (roles.includes("retailer")) {
+  if (role === "retailer") {
     return <HomePage userType={"retailer"}/>;
   }
 
