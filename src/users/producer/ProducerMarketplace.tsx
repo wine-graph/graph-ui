@@ -24,13 +24,13 @@ export const ProducerMarketplace = () => {
         <div className="text-textSecondary">Loading producers...</div>
       ) : (
         <div className="mt-6">
-          {producers.length === 0 ? (
+          {producers?.length === 0 ? (
             <div className="border border-dashed border-border rounded-xl p-8 text-center text-textSecondary">
               No producers to display.
             </div>
           ) : (
             <Grid>
-              {producers.map((producer) => (
+              {producers?.map((producer) => (
                 <ProducerCard
                   key={producer.id}
                   {...producer}

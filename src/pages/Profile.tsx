@@ -3,10 +3,7 @@ import GoogleButton from "react-google-button";
 import {useAuth} from "../context/authContext.ts";
 import GoogleProfile from "../components/common/GoogleProfile.tsx";
 import SquareAuth from "../users/retailer/SquareAuth.tsx";
-
-const sessionUrl = import.meta.env.DEV
-  ? "http://localhost:8086/session/login"
-  : "https://wine-retailer.fly.dev/session/login";
+import {startAuthentication} from "../services/authClient";
 
 /**
  * Profile page for all users types
@@ -20,7 +17,7 @@ export const ProfilePage = () => {
         title={isAuthenticated ? "Welcome back!" : "Register for a Profile"}
         desc={
           isAuthenticated
-            ? `Hi! ${user?.name}, welcome back to Wine Graph.`
+            ? `Hi! ${user?.user.name}, welcome back to Wine Graph.`
             : "This platform allows you to... based on users type"
         }
       />
@@ -28,14 +25,12 @@ export const ProfilePage = () => {
         {!isAuthenticated ? (
             <GoogleButton
               type={"light"}
-              onClick={() => {
-                window.location.href = sessionUrl;
-              }}
+              onClick={startAuthentication}
             />
           ) :
           <div className="mt-5 flex flex-col gap-4">
-            <GoogleProfile name={user?.name ?? ""} id={user?.id ?? ""} email={user?.email ?? ""}
-                           pictureUrl={user?.pictureUrl ?? ""}/>
+            <GoogleProfile name={user?.user.name ?? ""} key={user?.user.id ?? ""} email={user?.user.email ?? ""}
+                           picture={user?.user.picture ?? ""}/>
             <SquareAuth/>
           </div>
         }

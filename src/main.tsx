@@ -36,22 +36,22 @@ const router = createBrowserRouter(
         <Route
           path=":retailerId"
           element={
-            <RoleRoute allowedRoles={["retailer"]} redirectPath="/">
+            <RoleRoute allowedRole={"retailer"} redirectPath="/">
               <Outlet/>
             </RoleRoute>
           }>
-          {/*<Route path="inventory" element={<RetailerInventory/>}/>*/}
+          <Route path="inventory" element={<RetailerInventory/>}/>
           <Route path="profile" element={<RetailerProfile/>}/>
         </Route>
         {/* Retailer-wide routes (not tied to ID but still protected) */}
-        {/*<Route*/}
-        {/*  path="producers"*/}
-        {/*  element={*/}
-        {/*    <RoleRoute allowedRoles={["retailer"]} redirectPath="/">*/}
-        {/*      <ProducerMarketplace/>*/}
-        {/*    </RoleRoute>*/}
-        {/*  }*/}
-        {/*/>*/}
+        <Route
+          path="producers"
+          element={
+            <RoleRoute allowedRole={"retailer"} redirectPath="/">
+              <ProducerMarketplace/>
+            </RoleRoute>
+          }
+        />
       </Route>
       {/* --- End Retailer section --- */}
 

@@ -1,11 +1,11 @@
-import { useMemo, useState } from "react";
+import {useMemo, useState} from "react";
 import {NavLink} from "react-router-dom";
-import Logo from "../../assets/images/Wine-logo.png";
-import { FaSearch, FaSignInAlt } from "../../assets/icons";
-import Button from "../common/Button";
-import { useAuth } from "../../context/authContext.ts";
-import { resolveNavLinks, toPath, type NavLinkDef } from "./roleNavConfig";
-import {useRetailer} from "../../context/retailerContext.ts";
+import Logo from "../assets/images/Wine-logo.png";
+import {FaSearch, FaSignInAlt} from "../assets/icons.ts";
+import Button from "../components/common/Button.tsx";
+import {useAuth} from "../context/authContext.ts";
+import {resolveNavLinks, toPath, type NavLinkDef} from "./roleNavConfig.ts";
+import {useRetailer} from "../context/retailerContext.ts";
 
 const Header = () => {
   const {isAuthenticated, user} = useAuth();
@@ -53,15 +53,15 @@ const Header = () => {
               className="size-10 rounded-full border-2 border-gray-400 text-textPrimary-1 flex-center font-roboto font-semibold overflow-hidden"
               aria-label="User menu"
             >
-              {user?.pictureUrl ? (
+              {user?.user.picture ? (
                 <img
-                  src={user.pictureUrl}
-                  alt={user.name || "User"}
+                  src={user.user.picture}
+                  alt={user.user.name || "User"}
                   className="w-full h-full object-cover"
                 />
               ) : (
                 <span>
-                  {user?.name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || "U"}
+                  {user?.user.name?.charAt(0)?.toUpperCase() || user?.user.email?.charAt(0)?.toUpperCase() || "U"}
                 </span>
               )}
             </button>
@@ -79,7 +79,7 @@ const Header = () => {
               key={index}
               className="flex flex-col items-center text-primary"
             >
-              <nav.icon size={18} />
+              <nav.icon size={18}/>
               <span className=" mt-1">{nav.title}</span>
             </NavLink>
           ))}

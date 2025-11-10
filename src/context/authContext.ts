@@ -1,21 +1,31 @@
 import {createContext, useContext} from "react";
 
+export type SessionUser = {
+  user: User;
+  token: string | null;
+};
+
 export type User = {
   id: string;
   name: string;
   email: string;
-  pictureUrl: string;
-  roles?: string[];
+  picture: string;
+  role: Role | null;
 };
+
+export type Role = {
+  value: string;
+  id: string;
+}
 
 export interface AuthState {
   isAuthenticated: boolean;
-  user: User | null;
-  token: string | null;
+  user: SessionUser | null;
 }
 
 export interface AuthContextValue extends AuthState {
-  login: (user?: User, token?: string) => void;
+  login: (user?: SessionUser, token?: string) => void;
+  refreshUser: () => Promise<SessionUser | null>;
 }
 
 export const AuthContext = createContext<AuthContextValue | undefined>(undefined);

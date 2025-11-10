@@ -4,15 +4,14 @@ import Button from "../../components/common/Button.tsx";
 import PageHeader from "../../components/common/PageHeader.tsx";
 import {useAuth} from "../../context/authContext.ts";
 import SquareAuth from "./SquareAuth.tsx";
-import {useParams} from "react-router-dom";
 import {useEffect, useState} from "react";
-import {getToken, refreshToken, type Token} from "../../services/tokenClient.ts";
+import {getToken, refreshToken, type Token} from "../../services/authClient";
 import GoogleProfile from "../../components/common/GoogleProfile.tsx";
+import {useRetailer} from "../../context/retailerContext.ts";
 
 export const RetailerProfile = () => {
   const {isAuthenticated, user} = useAuth();
-
-  const {retailerId} = useParams();
+  const {retailerId} = useRetailer();
 
   // POS token state
   const [token, setToken] = useState<Token | null>(null);
@@ -20,12 +19,20 @@ export const RetailerProfile = () => {
   const [tokenError, setTokenError] = useState<string | null>(null);
 
   const fetchToken = async () => {
+    if (!isAuthenticated || !retailerId) {
+      setToken(null);
+      setTokenError(null);
+      setTokenLoading(false);
+      return;
+    }
+    console.log("fetching token for retailer:", retailerId);
     try {
       setTokenLoading(true);
-      const t = await getToken(retailerId ?? "");
+      const t = await getToken(retailerId);
       if (t) {
         setToken(t);
         setTokenError(null);
+        console.log("token fetched:", t);
       } else {
         setTokenError("Failed to fetch token");
       }
@@ -40,17 +47,26 @@ export const RetailerProfile = () => {
   const handleRefresh = async () => {
     try {
       setTokenLoading(true);
-      await refreshToken(retailerId ?? "");
-      await fetchToken(); // re-fetch updated token
+      if (!retailerId) return;
+      const updated = await refreshToken(retailerId);
+      if (updated) {
+        setToken(updated);
+        setTokenError(null);
+      } else {
+        // fallback: re-fetch if backend didn't return body
+        await fetchToken();
+      }
     } finally {
       setTokenLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchToken()
-      .then(() => console.log("token fetched"));
-  }, []);
+    // fetch whenever auth or retailerId becomes available
+    fetchToken().catch(console.error);
+    // OR refresh ???
+    //handleRefresh().catch(console.error);
+  }, [isAuthenticated, retailerId]);
 
   const isPosAuthorized = !!token && new Date(token.expires_at).getTime() > Date.now();
 
@@ -67,8 +83,8 @@ export const RetailerProfile = () => {
         </div>
       ) : (
         <div className="mt-5 flex flex-col gap-4">
-          <GoogleProfile name={user?.name ?? ""} id={user?.id ?? ""} email={user?.email ?? ""}
-                         pictureUrl={user?.pictureUrl ?? ""}/>
+          <GoogleProfile name={user?.user?.name ?? ""} key={user?.user?.id ?? ""} email={user?.user?.email ?? ""}
+                         picture={user?.user?.picture ?? ""}/>
           {!token && isAuthenticated && !isPosAuthorized ? (
             <SquareAuth/>
           ) : <>
@@ -103,7 +119,7 @@ export const RetailerProfile = () => {
                       aria-busy={tokenLoading}
                       className="bg-primary hover:bg-buttonHover text-white font-medium px-3 py-2 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center"
                     >
-                      <FaCircleCheck size={16} className="mr-2" />
+                      <FaCircleCheck size={16} className="mr-2"/>
                       <span className="text-sm">{isPosAuthorized ? "Refresh Token" : <SquareAuth/>}</span>
                     </Button>
                   </div>
@@ -115,14 +131,14 @@ export const RetailerProfile = () => {
                       <div className="text-md uppercase">Merchant ID</div>
                       <div className="text-textPrimary">{token.merchant_id}</div>
                     </div>
-                    <div>
-                      <div className="text-sm uppercase">Wine Graph Square Client ID</div>
-                      <div className="text-textPrimary break-all">{token.client_id}</div>
-                    </div>
-                    <div className="sm:col-span-2">
-                      <div className="text-xs uppercase">Scopes</div>
-                      <div className="text-textPrimary break-words">{token.scopes?.join(", ")}</div>
-                    </div>
+                    {/*<div>*/}
+                    {/*  <div className="text-sm uppercase">Wine Graph Square Client ID</div>*/}
+                    {/*  <div className="text-textPrimary break-all">{token.client_id}</div>*/}
+                    {/*</div>*/}
+                    {/*<div className="sm:col-span-2">*/}
+                    {/*  <div className="text-xs uppercase">Scopes</div>*/}
+                    {/*  <div className="text-textPrimary break-words">{token.scopes?.join(", ")}</div>*/}
+                    {/*</div>*/}
                     <div>
                       <div className="text-md uppercase">Expires</div>
                       <div className="text-textPrimary">{new Date(token.expires_at).toLocaleString()}</div>
