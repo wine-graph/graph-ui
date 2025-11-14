@@ -2,73 +2,41 @@ import SectionCard from "../../components/common/SectionCard.tsx";
 import {FaCircleCheck, FaConnectdevelop} from "../../assets/icons.ts";
 import Button from "../../components/common/Button.tsx";
 import PageHeader from "../../components/common/PageHeader.tsx";
-import {useAuth} from "../../context/authContext.ts";
-import SquareAuth from "./SquareAuth.tsx";
-import {useEffect, useState} from "react";
-import {getToken, refreshToken, type Token} from "../../services/authClient";
+import {useAuth} from "../../auth/authContext.ts";
 import GoogleProfile from "../../components/common/GoogleProfile.tsx";
-import {useRetailer} from "../../context/retailerContext.ts";
+import SquareAuth from "./SquareAuth.tsx";
+import {AuthDebug} from "../../auth/AuthDebug.tsx";
 
 export const RetailerProfile = () => {
-  const {isAuthenticated, user} = useAuth();
-  const {retailerId} = useRetailer();
+  const {user, isRetailer, pos, refreshPos} = useAuth();
 
-  // POS token state
-  const [token, setToken] = useState<Token | null>(null);
-  const [tokenLoading, setTokenLoading] = useState<boolean>(true);
-  const [tokenError, setTokenError] = useState<string | null>(null);
+  if (!isRetailer) {
+    return <div className="p-4 text-red-600">Access denied. Retailer only.</div>;
+  }
 
-  const fetchToken = async () => {
-    if (!isAuthenticated || !retailerId) {
-      setToken(null);
-      setTokenError(null);
-      setTokenLoading(false);
-      return;
+  const square = pos.square;
+  const loading = pos.loading;
+  const error = pos.error;
+
+  const isAuthorized = !!square && new Date(square.expires_at).getTime() > Date.now();
+  const notConnected = !square || !isAuthorized;
+
+  const retailerId = user?.user.role.id ?? "";
+
+  // validate our user and token align
+  if (!notConnected) {
+    const merchantId = pos.square?.merchant_id ?? "";
+
+    console.log("Retailer ID:", retailerId);
+    console.log("Merchant ID:", pos);
+    if (retailerId !== merchantId) {
+      return <div className="p-4 text-red-600">Access denied. Retailer ID mismatch.</div>;
     }
-    console.log("fetching token for retailer:", retailerId);
-    try {
-      setTokenLoading(true);
-      const t = await getToken(retailerId);
-      if (t) {
-        setToken(t);
-        setTokenError(null);
-        console.log("token fetched:", t);
-      } else {
-        setTokenError("Failed to fetch token");
-      }
-    } catch (err) {
-      console.error("Error fetching token:", err);
-      setTokenError("Error fetching token");
-    } finally {
-      setTokenLoading(false);
-    }
-  };
+  }
 
   const handleRefresh = async () => {
-    try {
-      setTokenLoading(true);
-      if (!retailerId) return;
-      const updated = await refreshToken(retailerId);
-      if (updated) {
-        setToken(updated);
-        setTokenError(null);
-      } else {
-        // fallback: re-fetch if backend didn't return body
-        await fetchToken();
-      }
-    } finally {
-      setTokenLoading(false);
-    }
+    await refreshPos("square", retailerId ?? "");
   };
-
-  useEffect(() => {
-    // fetch whenever auth or retailerId becomes available
-    fetchToken().catch(console.error);
-    // OR refresh ???
-    //handleRefresh().catch(console.error);
-  }, [isAuthenticated, retailerId]);
-
-  const isPosAuthorized = !!token && new Date(token.expires_at).getTime() > Date.now();
 
   return (
     <div className="w-full px-3 sm:px-0 sm:ml-8 my-4 sm:my-8">
@@ -76,80 +44,74 @@ export const RetailerProfile = () => {
         title="Welcome back!"
         desc="Configure your shop settings and manage integration with Square."
       />
-      {/* todo: FIX loading issue */}
-      {!token ? (
-        <div className="text-red-600">
-          <SquareAuth/>
-        </div>
-      ) : (
-        <div className="mt-5 flex flex-col gap-4">
-          <GoogleProfile name={user?.user?.name ?? ""} key={user?.user?.id ?? ""} email={user?.user?.email ?? ""}
-                         picture={user?.user?.picture ?? ""}/>
-          {!token && isAuthenticated && !isPosAuthorized ? (
-            <SquareAuth/>
-          ) : <>
-            {/* POS Authorization Status */}
-            <SectionCard cardHeader={{icon: FaConnectdevelop, title: "POS Authorization"}}>
-              <div className="flex flex-col gap-3 p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`inline-flex items-center px-2 py-0.5 rounded text-lg font-medium 
-                      ${tokenLoading ? "bg-gray-100 text-gray-700" : tokenError
-                        ? "bg-red-100 text-red-700" : isPosAuthorized
-                          ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"
-                      }`}
-                    >
-                      {tokenLoading ? "Checking…" : tokenError
-                        ? "Error" : isPosAuthorized
-                          ? "Authorized" : token
-                            ? "Expired" : "Not connected"}
-                    </span>
-                    <span className="text-md text-textSecondary">
-                      {tokenLoading ? "Checking authorization status with Square…" : tokenError
-                        ? tokenError : isPosAuthorized
-                          ? "Your POS is connected to Wine Graph." : token
-                            ? "Your Square authorization has expired. Please reauthorize." : "Connect your POS to synchronize inventory and sales."}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      onClick={handleRefresh}
-                      disabled={tokenLoading}
-                      aria-busy={tokenLoading}
-                      className="bg-primary hover:bg-buttonHover text-white font-medium px-3 py-2 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center"
-                    >
-                      <FaCircleCheck size={16} className="mr-2"/>
-                      <span className="text-sm">{isPosAuthorized ? "Refresh Token" : <SquareAuth/>}</span>
-                    </Button>
+
+      <div className="mt-5 flex flex-col gap-6">
+        {/* Google Profile */}
+        <GoogleProfile
+          name={user?.user.name ?? ""}
+          email={user?.user.email ?? ""}
+          picture={user?.user.picture ?? ""}
+        />
+
+        {/* POS Authorization Status */}
+        <SectionCard cardHeader={{icon: FaConnectdevelop, title: "POS Authorization"}}>
+          <div className="flex flex-col gap-3 p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span
+                  className={`inline-flex items-center px-2 py-0.5 rounded text-lg font-medium 
+                    ${loading ? "bg-gray-100 text-gray-700" : error
+                    ? "bg-red-100 text-red-700" : isAuthorized
+                      ? "bg-green-100 text-green-800" : square
+                        ? "bg-yellow-100 text-yellow-800" : "bg-yellow-100 text-yellow-800"
+                  }`}
+                >
+                  {loading ? "Checking…" : error
+                    ? "Error" : isAuthorized
+                      ? "Authorized" : square
+                        ? "Expired" : "Not connected"}
+                </span>
+
+                <span className="text-md text-textSecondary">
+                  {loading ? "Checking authorization status with Square…" : error
+                    ? error : isAuthorized
+                      ? "Your POS is connected to Wine Graph." : square
+                        ? "Your Square authorization has expired. Please reauthorize." : "Connect your POS to synchronize inventory and sales."}
+                </span>
+              </div>
+
+              {isAuthorized && (
+                <Button onClick={handleRefresh} disabled={loading} aria-busy={loading}
+                        className="bg-primary hover:bg-buttonHover text-white font-medium px-3 py-2 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center"
+                >
+                  <FaCircleCheck size={16} className="mr-2"/>
+                  <span className="text-sm">Refresh Token</span>
+                </Button>
+              )}
+            </div>
+
+            {/* Token Details */}
+            {!loading && !error && square && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-textSecondary">
+                <div>
+                  <div className="text-md uppercase">Merchant ID</div>
+                  <div className="text-textPrimary font-mono">{square.merchant_id}</div>
+                </div>
+                <div>
+                  <div className="text-md uppercase">Expires</div>
+                  <div className="text-textPrimary">
+                    {new Date(square.expires_at).toLocaleString()}
                   </div>
                 </div>
-
-                {!tokenLoading && !tokenError && token ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-textSecondary">
-                    <div>
-                      <div className="text-md uppercase">Merchant ID</div>
-                      <div className="text-textPrimary">{token.merchant_id}</div>
-                    </div>
-                    {/*<div>*/}
-                    {/*  <div className="text-sm uppercase">Wine Graph Square Client ID</div>*/}
-                    {/*  <div className="text-textPrimary break-all">{token.client_id}</div>*/}
-                    {/*</div>*/}
-                    {/*<div className="sm:col-span-2">*/}
-                    {/*  <div className="text-xs uppercase">Scopes</div>*/}
-                    {/*  <div className="text-textPrimary break-words">{token.scopes?.join(", ")}</div>*/}
-                    {/*</div>*/}
-                    <div>
-                      <div className="text-md uppercase">Expires</div>
-                      <div className="text-textPrimary">{new Date(token.expires_at).toLocaleString()}</div>
-                    </div>
-                  </div>
-                ) : null}
               </div>
-            </SectionCard>
-          </>}
-        </div>
-      )}
+            )}
+          </div>
+        </SectionCard>
+
+        {/* Show Connect Card if not authorized */}
+        {!loading && (notConnected) && <SquareAuth/>}
+        {import.meta.env.DEV ? <AuthDebug/> : null}
+      </div>
     </div>
   );
 };
