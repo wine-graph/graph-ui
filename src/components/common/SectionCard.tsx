@@ -1,8 +1,7 @@
-import React, { type ReactNode } from "react";
-import type { IconType } from "react-icons";
+import React, { type ReactNode, type ElementType } from "react";
 
 type CardHeaderProps = {
-  icon: IconType;
+  icon: ElementType;
   title: string;
 };
 
@@ -19,7 +18,7 @@ const CardHeader: React.FC<CardHeaderProps> = ({
 }) => {
   return (
     <div className="header border-b-2 border-border bg-background rounded-t-lg p-3 flex items-center gap-2">
-      <Icon size={22} className="text-primary" />
+      <Icon className="text-primary w-[22px] h-[22px]" />
       <span className="text-textPrimary font-merriweather font-medium">
         {title}
       </span>

@@ -1,26 +1,25 @@
-import {FaBoxOpen, FaGlobe, FaHome, FaShoppingCart, FaUser} from "react-icons/fa";
-import {FaWineBottle} from "../assets/icons.ts";
-import type {IconType} from "react-icons";
+import {Home, Globe, Store, User, Package} from "lucide-react";
+import type {ElementType} from "react";
 
 export type NavLinkDef = {
   title: string;
-  icon: IconType;
+  icon: ElementType;
   route?: string;
 };
 
 // Base links common to most roles
 const baseLinks: NavLinkDef[] = [
-  {title: "Home", icon: FaHome, route: "/"},
-  {title: "Discover", icon: FaGlobe, route: "/explore"},
-  {title: "Marketplace", icon: FaShoppingCart, route: "/marketplace"},
-  {title: "Profile", icon: FaUser, route: "/profile"},
+  {title: "Home", icon: Home, route: "/"},
+  {title: "Discover", icon: Globe, route: "/explore"},
+  {title: "Marketplace", icon: Store, route: "/marketplace"},
+  {title: "Profile", icon: User, route: "/profile"},
 ];
 
 // Role-specific augmentations
 function retailerLinks(retailerId: string): NavLinkDef[] {
-  const cellar: NavLinkDef = {title: "Cellar", icon: FaBoxOpen, route: `/retailer/${retailerId}/inventory`};
-  const marketplace: NavLinkDef = {title: "Marketplace", icon: FaWineBottle, route: "/retailer/marketplace"};
-  const profile: NavLinkDef = {title: "Profile", icon: FaUser, route: `/retailer/${retailerId}/profile`};
+  const cellar: NavLinkDef = {title: "Cellar", icon: Package, route: `/retailer/${retailerId}/inventory`};
+  const marketplace: NavLinkDef = {title: "Marketplace", icon: Store, route: "/retailer/marketplace"};
+  const profile: NavLinkDef = {title: "Profile", icon: User, route: `/retailer/${retailerId}/profile`};
   return [baseLinks[0], marketplace, cellar, profile];
 }
 

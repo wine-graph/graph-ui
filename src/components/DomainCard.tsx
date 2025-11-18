@@ -1,20 +1,42 @@
-import Button from "./common/Button.tsx";
 import React from "react";
+import {ChevronRight} from "lucide-react";
 
-/**
- * A reusable card for domain objects like Country, Region, Area, Varietal.
- * Pure presentational component – data fetching and iteration are handled by parent lists.
- */
-export const DomainCard: React.FC<{ title: string; desc?: string; onClick?: () => void; className?: string, button: string }> = ({ title, desc, onClick, className, button }) => {
+export const DomainCard: React.FC<{
+  title: string;
+  desc?: string;
+  onClick: () => void;
+  className?: string;
+}> = ({title, desc, onClick, className = ""}) => {
   return (
-    <div className={`border border-border p-3 rounded-xl flex flex-col justify-between shadow bg-gray-50 ${className ?? ""}`}>
-      <header className="mb-8">
-        <h1 className="text-lg font-semibold text-textPrimary-1 mb-2">{title}</h1>
-        {desc ? <p className="text-sm text-textSecondary">{desc}</p> : null}
-      </header>
-      <Button onClick={onClick} className="w-full flex-center bg-gray-700 text-gray-50 py-2">
-        <span className="text-sm">{button}</span>
-      </Button>
-    </div>
+    <button
+      onClick={onClick}
+      className={`
+        w-full text-left p-4 border border-[color:var(--color-border)] 
+        bg-panel-token hover:bg-[color:var(--color-muted)] 
+        hover:border-[color:var(--color-primary)] 
+        transition-all group rounded-none
+        ${className}
+      `}
+    >
+      <div className="flex items-center justify-between gap-3">
+        {/* Left: Title + optional desc */}
+        <div className="min-w-0 flex-1 text-left">
+          <h3
+            className="font-semibold text-[15px] truncate group-hover:text-[color:var(--color-primary)] transition-colors">
+            {title}
+          </h3>
+          {desc && (
+            <p className="text-xs text-[color:var(--color-fg-muted)] mt-1 line-clamp-2">
+              {desc}
+            </p>
+          )}
+        </div>
+
+        {/* Right: Icon + action text */}
+        <div className="btn-minimal text-xs shrink-0">
+          <ChevronRight/>
+        </div>
+      </div>
+    </button>
   );
 };

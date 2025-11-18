@@ -26,7 +26,7 @@ interface MapViewProps {
 
 export const MapView = ({center, zoom = 13, markers = []}: MapViewProps) => {
   return (
-    <MapContainer center={center} zoom={zoom} style={{height: '500px', width: '100%'}}>
+    <MapContainer center={center} zoom={zoom} className="h-full w-full" style={{height: '100%', width: '100%'}}>
       <TileLayer
         attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"

@@ -5,7 +5,7 @@ import {authMachine} from "./authMachine";
 import {useAuthService} from "./useAuthService.ts";
 import {useGoogleOidc} from "./google";
 import {useSquareOAuth} from "./square.ts";
-import {FaSpinner} from "react-icons/fa6";
+import Spinner from "../components/common/Spinner";
 
 export const AuthProvider = ({children}: { children: ReactNode }) => {
 
@@ -31,7 +31,7 @@ export const AuthProvider = ({children}: { children: ReactNode }) => {
   if (state.matches("loading") || google.isProcessing) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <FaSpinner className="animate-spin text-4xl"/>
+        <Spinner label="Authenticating…" />
       </div>
     );
   }

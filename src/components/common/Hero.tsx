@@ -1,32 +1,26 @@
-import { SiWine } from "../../assets/icons.ts";
-
 type HeroProps = {
-  image: string;
   subHeading: string;
   desc: string;
 };
 
-const Hero: React.FC<HeroProps> = ({ image, subHeading, desc }) => {
+const Hero: React.FC<HeroProps> = ({ subHeading, desc }) => {
   return (
-    <div className="flex-center flex-col">
-      <div className="w-52 md:w-72 sm:my-2">
-        <img src={image} alt="Wine Graph" />
-      </div>
-      <h1 className="text-6xl font-semibold text-primary-1 flex-center flex-col text-center font-alan-sans">
-        <p className="text-base font-normal flex-center gap-2 ">
-          <SiWine size={22} className="rotate-y-180" />
-          {subHeading}
-          <SiWine size={22} />
-        </p>
-        <p className="flex-center flex-col gap-2">
-          <span>Welcome to</span>
-          <span>Wine Graph</span>
-        </p>
-      </h1>
-      <p className="text-textPrimary-1 text-center px-5 my-2 font-alan-sans">
-        {desc}
-      </p>
-    </div>
+      <section className="min-h-[85vh] flex items-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full">
+          <div className="text-center max-w-3xl mx-auto">
+          {subHeading ? (
+            <div className="text-heading text-center">
+              {subHeading}
+            </div>
+          ) : null}
+          <p className="text-large text-muted mt-4 mx-auto text-compact">
+            {desc}
+          </p>
+          {/* CTA area intentionally slimmer; when buttons are added, use py-3.5 px-8 and mt-10 */}
+          </div>
+        </div>
+      </section>
+
   );
 };
 

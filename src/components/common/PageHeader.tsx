@@ -1,17 +1,19 @@
 import React from "react";
 
-type PageHeaderProps = { title: string; desc: string };
+type PageHeaderProps = { title: string; desc?: string };
 
 const PageHeader: React.FC<PageHeaderProps> = ({ title, desc }) => {
   return (
-    <div className="mt-7">
+    <div>
       <header>
-        <h1 className="text-3xl font-medium text-textPrimary font-alan-sans">
-          {title}
-        </h1>
-        <p className="text-textSecondary text-md">{desc}</p>
+        <h1 className="text-heading-page">{title}</h1>
+        {desc ? (
+          <p className="text-body font-normal text-muted max-w-3xl text-compact mt-4">
+            {desc}
+          </p>
+        ) : null}
       </header>
-      <div className="separator" />
+      <div className="w-24 h-1 mt-6" style={{ background: "var(--color-primary)" }} />
     </div>
   );
 };

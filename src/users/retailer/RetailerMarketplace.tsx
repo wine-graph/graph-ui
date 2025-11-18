@@ -1,5 +1,5 @@
 import {useEffect, useMemo, useState} from "react";
-import {RetailerCard} from "./RetailerCard.tsx";
+import {RetailerTile} from "./RetailerTile.tsx";
 import {type Retailer} from "./retailer.ts";
 import {useQuery} from "@apollo/client";
 import {RETAILERS_QUERY} from "../../services/retailerGraph.ts";
@@ -13,60 +13,45 @@ export const RetailerMarketplace = () => {
 
   const [position, setPosition] = useState<LatLngExpression | null>(null);
 
-  // Get the user's current location
   useEffect(() => {
-    if (!navigator.geolocation) {
-      console.error("Geolocation not supported by this browser");
-      return;
-    }
-
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const {latitude, longitude} = pos.coords;
-        setPosition([latitude, longitude]);
-      },
-      (err) => {
-        console.error("Error getting location:", err);
-        // fallback position (e.g., New York)
-        setPosition([40.7128, -74.006]);
-      }
+      (pos) => setPosition([pos.coords.latitude, pos.coords.longitude]),
+      () => setPosition([40.7128, -74.0060])
     );
   }, []);
 
-  // Don't render map until we have a position
-  if (!position) return <p>Loading map...</p>;
+  const markers = retailers
+    .filter((r) => r.location?.coordinates)
+    .map((r) => ({
+      position: [r.location!.coordinates!.latitude, r.location!.coordinates!.longitude] as LatLngExpression,
+      label: r.name,
+    }));
 
-  const retailerMarkers =
-    retailers.filter((r) => r.location?.coordinates)
-      .map((r) => {
-        return {
-          position: [r.location?.coordinates?.latitude, r.location?.coordinates?.longitude] as LatLngExpression,
-          label: r.name ?? "Unnamed Retailer",
-        };
-      }) ?? [];
-
-  retailerMarkers.forEach(m => console.log(m.label, m.position));
+  if (!position) return <div className="p-8 text-center">Loading map…</div>;
 
   return (
-    <div className="w-full space-y-6">
-      <div>
-        <h2 className="text-xl font-semibold mb-2">Explore Retailers</h2>
-        <MapView center={position} zoom={13} markers={retailerMarkers}/>
+    <div className="py-2">
+      {/* Compact Retailer List at Top */}
+      <div className="py-6">
+        <h2 className="text-2xl font-bold mb-6">Nearby Retailers</h2>
+
+        {loading ? (
+          <p className="text-center py-12">Loading retailers…</p>
+        ) : retailers.length === 0 ? (
+          <p className="text-center py-12 text-[color:var(--color-fg-muted)]">No retailers found nearby.</p>
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {retailers.map((r) => (
+              <RetailerTile key={r.id} {...r} />
+            ))}
+          </div>
+        )}
       </div>
 
-      {loading ? (
-        <div className="">Loading retailers…</div>
-      ) : retailers.length === 0 ? (
-        <div className="border border-dashed border-border rounded-xl p-8 text-center text-textSecondary">
-          No retailers to display.
-        </div>
-      ) : (
-        <div className="retailers grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {retailers.map((retailer) => (
-            <RetailerCard key={retailer.id} {...retailer} />
-          ))}
-        </div>
-      )}
+      {/* Full-bleed, perfectly filling map */}
+      <div className="relative w-full h-[60vh] sm:h-[70vh] lg:h-[80vh] border-2 border-[color:var(--color-border)] overflow-hidden">
+        <MapView center={position} zoom={13} markers={markers} />
+      </div>
     </div>
   );
-}
+};

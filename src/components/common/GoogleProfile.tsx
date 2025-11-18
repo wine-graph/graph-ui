@@ -1,12 +1,12 @@
 import SectionCard from "./SectionCard.tsx";
-import {FaConnectdevelop} from "../../assets/icons.ts";
 import React from "react";
+import { User } from "lucide-react";
 
 type GoogleProfileProps = { name: string; picture: string; email: string };
 
 const GoogleProfile: React.FC<GoogleProfileProps> = (profile: GoogleProfileProps) => {
   return (
-    <SectionCard cardHeader={{icon: FaConnectdevelop, title: "Your Google Account"}}>
+    <SectionCard cardHeader={{icon: User, title: "Your Google Account"}}>
       <div className="flex items-center gap-4 p-4">
         {profile.picture ? (
           <img
