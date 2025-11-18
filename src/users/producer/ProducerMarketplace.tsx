@@ -3,7 +3,7 @@ import {ProducerCard} from "./ProducerCard.tsx";
 import {useQuery} from "@apollo/client";
 import {PRODUCERS_QUERY} from "../../services/producerGraph.ts";
 import {producerClient} from "../../services/apolloClient.ts";
-import React, {type ReactNode} from "react";
+import React, {type ReactNode, useMemo} from "react";
 import type {Producer} from "./producer.ts";
 
 const Grid: React.FC<{ children: ReactNode }> = ({children}) => (
@@ -15,7 +15,7 @@ const Grid: React.FC<{ children: ReactNode }> = ({children}) => (
 export const ProducerMarketplace = () => {
 
   const {data, loading} = useQuery(PRODUCERS_QUERY, {client: producerClient});
-  const producers = data?.Producer?.producers as Producer[] | [];
+  const producers = useMemo(() => (data?.Producer?.producers as Producer[]) ?? [], [data]);
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 my-4 sm:my-8">
@@ -24,13 +24,13 @@ export const ProducerMarketplace = () => {
         <div className="text-textSecondary">Loading producers...</div>
       ) : (
         <div className="mt-6">
-          {producers?.length === 0 ? (
+          {producers.length === 0 ? (
             <div className="border border-dashed border-border rounded-xl p-8 text-center text-textSecondary">
               No producers to display.
             </div>
           ) : (
             <Grid>
-              {producers?.map((producer) => (
+              {producers.map((producer) => (
                 <ProducerCard
                   key={producer.id}
                   {...producer}

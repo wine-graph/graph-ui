@@ -1,9 +1,8 @@
 import {HomePage} from "../pages/Home.tsx";
-import {useAuth} from "../context/authContext.ts";
+import {useAuth} from "../auth/authContext.ts";
 
 const RoleBasedHome = () => {
-  const {user} = useAuth();
-  const role = user?.user?.role?.value ?? "";
+  const {role} = useAuth();
 
   // Extend this mapping as new roles are added
   if (role === "retailer") {

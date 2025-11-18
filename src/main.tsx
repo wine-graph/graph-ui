@@ -6,30 +6,28 @@ import App from "./App.tsx";
 import {createBrowserRouter, createRoutesFromElements, Outlet, Route, RouterProvider,} from "react-router-dom";
 import {DiscoverPage} from "./pages/Discover.tsx";
 import {ProfilePage} from "./pages/Profile.tsx";
-import {AuthProvider} from "./context/AuthProvider";
+import {AuthProvider} from "./auth/AuthProvider";
 import {RetailerInventory} from "./users/retailer/RetailerInventory.tsx";
 import RoleBasedHome from "./routes/RoleBasedHome";
 import RoleRoute from "./routes/RoleRoute";
 import {MarketplacePage} from "./pages/Marketplace.tsx";
 import {ProducerMarketplace} from "./users/producer/ProducerMarketplace.tsx";
 import {RetailerProfile} from "./users/retailer/RetailerProfile.tsx";
-import {RetailerProvider} from "./context/RetailerProvider.tsx";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path="/" element={
       <AuthProvider>
-        <RetailerProvider>
           <App/>
-        </RetailerProvider>
       </AuthProvider>
     }>
       <Route index element={<RoleBasedHome/>}/>
       <Route path="explore" element={<DiscoverPage/>}/>
+      {/* todo fix routes and navigate throughout */}
       <Route path="marketplace" element={<MarketplacePage/>}/>
-      <Route path="profile" element={<ProfilePage/>}/>
+      {/* RetailerInventory should be 'nested' under Marketplace properly */}
       <Route path=":retailerId/inventory" element={<RetailerInventory/>}/>
-      <Route path="producer/marketplace" element={<ProducerMarketplace/>}/>
+      <Route path="profile" element={<ProfilePage/>}/>
       {/* --- Retailer section --- */}
       <Route path="retailer">
         {/* Retailer-specific routes (require :retailerId) */}
@@ -45,7 +43,7 @@ const router = createBrowserRouter(
         </Route>
         {/* Retailer-wide routes (not tied to ID but still protected) */}
         <Route
-          path="producers"
+          path="marketplace"
           element={
             <RoleRoute allowedRole={"retailer"} redirectPath="/">
               <ProducerMarketplace/>
