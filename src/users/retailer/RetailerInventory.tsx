@@ -1,75 +1,94 @@
 import {useParams} from "react-router-dom";
 import {RETAILER_QUERY} from "../../services/retailerGraph.ts";
 import {useQuery} from "@apollo/client";
-import type {Retailer} from "./retailer.ts";
 import {retailerClient} from "../../services/apolloClient.ts";
-import React, {type ReactNode} from "react";
-import {WineCard} from "../../components/WineCard.tsx";
-import {FaConnectdevelop} from "../../assets/icons.ts";
-import SectionCard from "../../components/common/SectionCard.tsx";
-
-const Grid: React.FC<{ children: ReactNode }> = ({children}) => (
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-    {children}
-  </div>
-);
+import RetailerInventoryTable from "./RetailerInventoryTable.tsx";
+import {Globe, Mail, MapPin, Phone, Store} from "lucide-react";
+import Spinner from "../../components/common/Spinner.tsx";
 
 export const RetailerInventory = () => {
   const {retailerId} = useParams();
-  const {data, loading} = useQuery(RETAILER_QUERY, {variables: {id: retailerId}, client: retailerClient});
+  const {data, loading} = useQuery(RETAILER_QUERY, {
+    variables: {id: retailerId},
+    client: retailerClient,
+  });
 
-  const retailer = data?.Retailer?.retailer as Retailer | undefined;
-  const inventory = Array.isArray(retailer?.inventory) ? retailer!.inventory! : [];
+  const retailer = data?.Retailer?.retailer;
+  const inventory = Array.isArray(retailer?.inventory) ? retailer.inventory : [];
 
-  const totalItems = inventory.length;
+  if (loading) return <Spinner label="Loading retailer…"/>;
 
-  const addressLine = retailer?.location
-    ? `${retailer.location.address}, ${retailer.location.city}, ${retailer.location.zipCode}`
-    : "Not provided";
+  if (!retailer) return <div className="p-8 text-center">Retailer not found.</div>;
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 my-4 sm:my-8">
-      <>
-        {loading ? (
-          <div className="text-textSecondary">Loading inventory…</div>
-        ) : (
-          <>
-            {retailer ? (
-              <SectionCard className="mt-6" cardHeader={{icon: FaConnectdevelop, title: `${retailer.name}`}}>
-                <div className="p-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div>
-                    <div className="text-sm text-textSecondary">Total Inventory</div>
-                    <div className="text-md text-textPrimary">{totalItems}</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-textSecondary">POS Provider</div>
-                    <div className="text-md text-textPrimary">{retailer.pos}</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-textSecondary">Location</div>
-                    <div className="text-md text-textPrimary">{addressLine}</div>
-                  </div>
-                </div>
-              </SectionCard>
-            ) : null}
-            <div className="mt-6">
-              {inventory.length === 0 ? (
-                <div className="border border-dashed border-border rounded-xl p-8 text-center text-textSecondary">
-                  No inventory items to display.
-                </div>
-              ) : (
-                <Grid>
-                  {inventory.map((item) => (
-                    <WineCard
-                      key={item.externalItemId || item.wineId || `${item.name}-${item.vintage}-${item.producer}`}
-                      {...item}
-                    />
-                  ))}
-                </Grid>
-              )}
+    <div className="max-w-7xl mx-auto px-4 sm:px-8 py-8 sm:py-12">
+      {/* Ultra-compact retailer header */}
+      <div className="border-2 border-[color:var(--color-border)] bg-panel-token p-5 mb-8">
+        <div className="flex items-center justify-between gap-6">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-3xl font-black tracking-tight truncate">
+              {retailer.name}
+            </h1>
+            <p className="text-sm text-[color:var(--color-fg-muted)] mt-1">
+              {retailer.location?.city && `${retailer.location.city}, `}
+              {retailer.location?.state}
+              {retailer.location?.zipCode && ` ${retailer.location.zipCode}`}
+            </p>
+          </div>
+          <Store className="w-8 h-8 text-[color:var(--color-primary)] shrink-0"/>
+        </div>
+
+        {/* Tight info row — only the essentials */}
+        <div className="mt-5 flex flex-wrap items-center gap-x-8 gap-y-3 text-sm">
+          {retailer.location?.address && (
+            <div className="flex items-center gap-2.5">
+              <MapPin className="w-4.5 h-4.5 text-[color:var(--color-primary)]"/>
+              <span className="text-[color:var(--color-fg-muted)]">
+                {retailer.location.address}
+              </span>
             </div>
-          </>
+          )}
+
+          {retailer.location?.phone && (
+            <a href={`tel:${retailer.location.phone}`}
+               className="flex items-center gap-2.5 hover:text-[color:var(--color-primary)] transition">
+              <Phone className="w-4.5 h-4.5 text-[color:var(--color-primary)]"/>
+              <span>{retailer.location.phone}</span>
+            </a>
+          )}
+
+          {retailer.location?.contactEmail && (
+            <a href={`mailto:${retailer.location.contactEmail}`}
+               className="flex items-center gap-2.5 hover:text-[color:var(--color-primary)] transition">
+              <Mail className="w-4.5 h-4.5 text-[color:var(--color-primary)]"/>
+              <span className="underline">Email</span>
+            </a>
+          )}
+
+          {retailer.location?.website && (
+            <a href={retailer.location.website} target="_blank" rel="noreferrer"
+               className="flex items-center gap-2.5 hover:text-[color:var(--color-primary)] transition">
+              <Globe className="w-4.5 h-4.5 text-[color:var(--color-primary)]"/>
+              <span className="underline">Website</span>
+            </a>
+          )}
+        </div>
+
+      </div>
+
+      {/* Inventory Table */}
+      <div>
+        <h2 className="text-2xl font-bold mb-6">{inventory.length} Wines Available</h2>
+
+        {inventory.length === 0 ? (
+          <div
+            className="text-center py-16 text-[color:var(--color-fg-muted)] border-2 border-dashed border-[color:var(--color-border)]">
+            No wines in inventory yet.
+          </div>
+        ) : (
+          <RetailerInventoryTable wines={inventory}/>
         )}
-      </>
-    </div>)
-}
+      </div>
+    </div>
+  );
+};

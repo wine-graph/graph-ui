@@ -1,8 +1,7 @@
 import {useAuth} from "../../auth/authContext.ts";
 import {startAuthorization} from "../../auth/authClient.ts";
-import {FaConnectdevelop} from "../../assets/icons.ts";
 import SectionCard from "../../components/common/SectionCard.tsx";
-import Button from "../../components/common/Button.tsx";
+import {Store, QrCode} from "lucide-react";
 
 const SquareAuth = () => {
   const {user} = useAuth();
@@ -13,19 +12,44 @@ const SquareAuth = () => {
   };
 
   return (
-    <SectionCard cardHeader={{icon: FaConnectdevelop, title: "Connect to Square"}}>
-      <div className="my-3 px-4">
-        <p className="text-sm text-textSecondary mb-3">
-          Connect your Square account to sync inventory and sales!
-        </p>
-        <Button
-          onClick={handleConnect}
-          className="bg-textPrimary-1 hover:bg-gray-600 text-white font-medium px-4 py-2 my-5"
-        >
-          <span className="text-sm">Connect with Square</span>
-        </Button>
-      </div>
-    </SectionCard>
+    <button
+      onClick={handleConnect}
+      className="w-full text-left group focus-visible:outline-none"
+    >
+      <SectionCard
+        cardHeader={{
+          icon: Store,
+          title: "Square POS",
+        }}
+        className="border-2 hover:border-[color:var(--color-primary)] hover:bg-[color:var(--color-muted)] hover:shadow-md hover:-translate-y-px transition-all duration-300 focus-visible:border-[color:var(--color-primary)] focus-visible:ring-2 focus-visible:ring-[color:var(--color-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-bg)]"
+      >
+        <div className="flex items-start gap-3 p-6">
+          {/* Large QrCode on the left — clearly clickable */}
+          <div className="flex-shrink-0 mt-1 group-hover:scale-110 transition-transform duration-200">
+            <QrCode className="w-10 h-10" />
+          </div>
+
+          {/* All text to the right */}
+          <div className="flex- 1">
+            <p className="text-body text-fg-muted leading-snug">
+              Connect your Square account to sync inventory and share!
+            </p>
+
+            <div className="mt-4 flex items-center justify-between">
+              <span className="text-xs uppercase tracking-widest font-semibold text-fg-muted">
+                Secure OAuth • Takes ~20 seconds
+              </span>
+
+              {/* Subtle minimal cue on the far right */}
+              <span className="btn-minimal text-xs">
+                Connect
+                <span className="inline-block ml-1.5 group-hover:translate-x-1 transition-transform">→</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </SectionCard>
+    </button>
   );
 };
 

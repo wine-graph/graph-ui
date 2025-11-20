@@ -3,9 +3,10 @@ import {DomainCard} from "../components/DomainCard.tsx";
 import {useQuery} from "@apollo/client";
 import {DOMAIN_QUERY} from "../services/domainGraph.ts";
 import PageHeader from "../components/common/PageHeader.tsx";
-import CrumbButton from "../components/common/CrumbButton.tsx";
+// CrumbButton removed in favor of text-label breadcrumbs per new design spec
 import {domainClient} from "../services/apolloClient.ts";
 import type {Producer} from "../users/producer/producer.ts";
+import Spinner from "../components/common/Spinner.tsx";
 
 type Country = {
   id: string;
@@ -32,7 +33,7 @@ type Area = {
 }
 
 const Grid: React.FC<{ children: ReactNode }> = ({children}) => (
-  <div className="px-3 sm:px-0 sm:ml-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
     {children}
   </div>
 );
@@ -93,49 +94,58 @@ const DomainList = () => {
   return (
     <>
       {loading ? (
-        <div className="">Loading countries…</div>
+        <div className="py-10">
+          <Spinner label="Loading countries…" />
+        </div>
       ) : (
         <>
           {/* Breadcrumbs */}
-          <nav
-            className="mb-4 flex items-center gap-2 text-sm"
-            aria-label="Breadcrumb"
-          >
-            <CrumbButton onClick={resetToCountries} active={showCountries}>
-              Countries
-            </CrumbButton>
-            {selectedCountry ? (
-              <>
-                <span className="text-gray-400">/</span>
-                <CrumbButton onClick={resetToRegions} active={showRegions}>
-                  {selectedCountry.name}
-                </CrumbButton>
-              </>
-            ) : null}
-            {selectedRegion ? (
-              <>
-                <span className="text-gray-400">/</span>
-                <CrumbButton onClick={resetToAreas} active={showAreas}>
-                  {selectedRegion.name}
-                </CrumbButton>
-              </>
-            ) : null}
-            {selectedArea ? (
-              <>
-                <span className="text-gray-400">/</span>
-                <CrumbButton onClick={resetToProducers} active={showProducers}>
-                  {selectedArea.name}
-                </CrumbButton>
-              </>
-            ) : null}
-            {selectedProducer ? (
-              <>
-                <span className="text-gray-400">/</span>
-                <CrumbButton active={showProducers}>
-                  {selectedProducer.name}
-                </CrumbButton>
-              </>
-            ) : null}
+          <nav className="mb-8" aria-label="Breadcrumb">
+            <ol className="flex items-center gap-2 text-label">
+              <li className={showCountries ? "text-foreground" : "text-fg-muted"}>
+                <span onClick={resetToCountries} className="cursor-pointer underline-offset-4 hover:underline">
+                  Countries
+                </span>
+              </li>
+              {selectedCountry ? (
+                <>
+                  <li aria-hidden="true" className="text-fg-muted">/</li>
+                  <li className={showRegions ? "text-foreground" : "text-fg-muted"}>
+                    <span onClick={resetToRegions} className="cursor-pointer underline-offset-4 hover:underline">
+                      {selectedCountry.name}
+                    </span>
+                  </li>
+                </>
+              ) : null}
+              {selectedRegion ? (
+                <>
+                  <li aria-hidden="true" className="text-fg-muted">/</li>
+                  <li className={showAreas ? "text-foreground" : "text-fg-muted"}>
+                    <span onClick={resetToAreas} className="cursor-pointer underline-offset-4 hover:underline">
+                      {selectedRegion.name}
+                    </span>
+                  </li>
+                </>
+              ) : null}
+              {selectedArea ? (
+                <>
+                  <li aria-hidden="true" className="text-fg-muted">/</li>
+                  <li className={showProducers ? "text-foreground" : "text-fg-muted"}>
+                    <span onClick={resetToProducers} className="cursor-pointer underline-offset-4 hover:underline">
+                      {selectedArea.name}
+                    </span>
+                  </li>
+                </>
+              ) : null}
+              {selectedProducer ? (
+                <>
+                  <li aria-hidden="true" className="text-fg-muted">/</li>
+                  <li className="text-foreground">
+                    {selectedProducer.name}
+                  </li>
+                </>
+              ) : null}
+            </ol>
           </nav>
 
           <Grid>
@@ -145,7 +155,6 @@ const DomainList = () => {
                   key={c.id}
                   title={c.name}
                   desc={c.description}
-                  button={`Explore ${c.name}`}
                   onClick={() => {
                     setSelectedCountryId(c.id);
                     setSelectedRegionId(null);
@@ -159,7 +168,6 @@ const DomainList = () => {
                   key={r.id}
                   title={r.name}
                   desc={r.description}
-                  button={`Explore ${r.name}`}
                   onClick={() => setSelectedRegionId(r.id)}
                 />
               ))}
@@ -170,13 +178,12 @@ const DomainList = () => {
                   key={a.id}
                   title={a.name}
                   desc={a.description}
-                  button={`Explore ${a.name}`}
                   onClick={() => setSelectedAreaId(a.id)}
                 />
               ))}
             {showProducers &&
               selectedArea?.producers?.map((p: Producer) => (
-                <DomainCard key={p.id} title={p.name} button={`Explore ${p.name} Wines`} onClick={() => setSelectedProducerId(p.id)}
+                <DomainCard key={p.id} title={p.name} onClick={() => setSelectedProducerId(p.id)}
                 />
               ))}
           </Grid>
@@ -188,14 +195,14 @@ const DomainList = () => {
 
 export const DiscoverPage = () => {
   return (
-    <>
-      <div className="w-full mx-auto">
-        <PageHeader
-          title="Explore Wines"
-          desc="Discover wines from around the world by region, varietal, or producer."
-        />
+    <div className="max-w-7xl mx-auto px-4 sm:px-8 py-8 sm:py-12">
+      <PageHeader
+        title="Explore Wines"
+        desc="Discover wines from around the world by region, varietal, or producer."
+      />
+      <div className="mt-8 sm:mt-12">
+        <DomainList/>
       </div>
-      <DomainList/>
-    </>
+    </div>
   );
 };

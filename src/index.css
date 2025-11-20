@@ -1,55 +1,168 @@
-@import url("https://fonts.googleapis.com/css2?family=Alan+Sans:wght@300..900&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400..700;1,400..700&family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto+Slab:wght@100..900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+/* Single modern font */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap");
 @import "tailwindcss";
 
+/* Light Mode Design Tokens (no dark mode) */
+:root {
+  /* brand */
+  --color-primary: #7b2c3b; /* deep wine red */
+  --color-accent: #e6b17e; /* golden beige */
+
+  /* surface */
+  --color-bg: #fbf8f3; /* clean cream background */
+  --color-panel: #ffffff; /* cards/panels */
+  --color-muted: #f4efe8; /* subtle background accents */
+  --color-border: #1f2937; /* strong borders (near-gray-800) */
+
+  /* text */
+  --color-fg: #111111; /* high-contrast text */
+  --color-fg-muted: #5b6070; /* secondary text */
+
+  /* states */
+  --color-success: #16a34a;
+  --color-danger: #dc2626;
+
+  /* typography */
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
+    Noto Sans, Ubuntu, Cantarell, Helvetica Neue, Arial, "Apple Color Emoji",
+    "Segoe UI Emoji";
+
+  /* radii */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+
+  /* spacing (augment Tailwind) */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+}
+
+/* Expose tokens to Tailwind via @theme (TW v4) */
 @theme {
-  /* Base Theme */
-  --color-primary: #7b2c3b; /*Deep Wine Red*/
-  --color-primary-1: #5c0f1e; /*Deep Wine Red*/
-  --color-secondary: #e6b17e; /* Golden Beige*/
-  --color-background: #faf7f5; /* Soft Cream White*/
-  --color-card: #ffffff; /* White*/
-  --color-textPrimary: #2b2b2b; /* Charcoal Black*/
-  --color-textPrimary-1: #374151; /* Gray*/
-  --color-textSecondary: #5c5c5c; /* Gray*/
-  --color-border: #e0dfdc; /* Neutral Gray*/
-  --color-border-light: #9ca3af; /* Neutral Gray*/
-  --color-success: #4caf50; /* Stock Available*/
-  --color-error: #e74c3c; /* Alerts*/
-  --color-icon: #8b2236; /* icon*/
-  --color-purple: #7c3aed;
-  --color-hoverPurple: #6d28d9;
+  --font-sans: var(--font-sans);
 
-  /* Role based */
-  --color-visitor: #a7a7a7; /* Neutral Gray*/
-  --color-enthusiast: #a8324c; /* Burgundy*/
-  --color-retailer: #556b2f; /* Olive Green*/
-  --color-producer: #2c3e50; /* Deep Navy*/
+  --color-background: var(--color-bg);
+  --color-foreground: var(--color-fg);
+  --color-muted: var(--color-muted);
+  --color-panel: var(--color-panel);
+  --color-border: var(--color-border);
+  --color-primary: var(--color-primary);
+  --color-accent: var(--color-accent);
+  --color-success: var(--color-success);
+  --color-danger: var(--color-danger);
 
-  /* Buttons */
-  --color-buttonHover: #9c3a4e; /* Hover state for primary button*/
-  --color-disabledBg: #e0dfdc; /* Disabled background*/
-  --color-disabledText: #a7a7a7; /* Disabled text*/
-
-  /* Tables & UI */
-  --color-tableRow: #f5f2f0; /* Striped row background*/
-  --color-tableHover: #fff3f5; /* Row hover effect*/
-  --color-tooltipBg: #fff9f5; /* Tooltip background*/
-  --color-tooltipBorder: #e6b17e; /* Tooltip border*/
-
-  /*font family*/
-  --font-alan-sans: "Alan Sans", sans-serif;
-  --font-libre-baskerville: "Libre Baskerville", serif;
-  --font-lora: "Lora", serif;
-  --font-merriweather: "Merriweather", serif;
-  --font-poppins: "Poppins", sans-serif;
-  --font-roboto-slab: "Roboto Slab", serif;
-  --font-roboto: "Roboto", sans-serif;
+  --radius-xs: var(--radius-xs);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
 }
 
-.flex-center {
-  @apply flex items-center justify-center;
+/* Base resets aligned with tokens */
+@layer base {
+  html, body, #root { height: 100%; }
+  html {
+    background: var(--color-bg);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--color-accent) 35%, transparent);
+    color: var(--color-fg);
+  }
+  a { color: inherit; }
 }
 
-.separator {
-  @apply h-[1px] my-3 border-none bg-gray-200;
+/* Utilities */
+@layer utilities {
+  .flex-center { @apply flex items-center justify-center; }
+  .container-max { @apply max-w-7xl mx-auto px-4 sm:px-6; }
+  .divider { height: 2px; background: var(--color-border); width: 100%; }
+
+  /* Typography scale (use these exclusively) */
+  /* Hero/primary heading */
+  .text-heading { @apply text-[44px] sm:text-[56px] font-black leading-[1.05]; }
+  /* Slightly smaller heading for PageHeader specifically (keeps Hero large) */
+  .text-heading-page { @apply text-[24px] sm:text-[48px] font-black leading-[1.05]; }
+  .text-title { @apply text-[28px] sm:text-[32px] font-semibold leading-tight; }
+  .text-large { @apply text-[19px] leading-snug; }
+  .text-body { @apply text-[15px] leading-snug; }
+  .text-label { @apply text-xs uppercase tracking-widest font-semibold; }
+  .text-muted { color: var(--color-fg-muted); }
+
+  /* Compact line-height utility */
+  .text-compact { line-height: 1.35; }
+
+  .btn {
+    @apply inline-flex items-center gap-2 uppercase tracking-wide text-[12px] font-semibold transition-colors duration-150 border focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2;
+    border-color: var(--color-border);
+    border-width: 2px;
+    border-radius: var(--radius-sm);
+    padding: 0.6rem 0.9rem;
+    background: transparent;
+    color: var(--color-fg);
+  }
+  .btn-primary {
+    background: var(--color-primary);
+    color: #ffffff;
+    border-color: var(--color-primary);
+  }
+  .btn-primary:hover { filter: saturate(115%) brightness(1.02); }
+  .btn-secondary {
+    background: transparent;
+    color: var(--color-fg);
+    border-color: var(--color-border);
+  }
+  .btn-secondary:hover { background: var(--color-muted); }
+  .btn-ghost:hover { background: var(--color-muted); }
+  .kbd { @apply px-2 py-[2px] border rounded-sm text-[11px] uppercase tracking-wider; border-color: var(--color-border); color: var(--color-fg-muted); }
+
+  /* Tokens as utilities to avoid inline styles */
+  .bg-token { background: var(--color-bg); }
+  .panel-token { background: var(--color-panel); }
+  .muted-token { background: var(--color-muted); }
+  .border-token { border-color: var(--color-border); }
+  .text-token { color: var(--color-fg); }
+
+  /* Focus ring color uses accent by default */
+  .focus-accent { @apply focus-visible:ring-[color:var(--color-accent)] focus-visible:ring-offset-[color:var(--color-bg)]; }
+}
+
+@layer base {
+  /* Default paragraph size tightened */
+  p { @apply text-[15px] leading-snug; }
+}
+
+@layer components {
+  /* SINGLE PRIMARY BUTTON — used for ALL important actions */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-3
+           px-7 py-3.5
+           bg-[color:var(--color-primary)]
+           border-2 border-[color:var(--color-primary)]
+           text-white
+           font-semibold uppercase tracking-wider text-xs
+           transition-all duration-150
+           hover:bg-[#5c0f1e] hover:border-[#5c0f1e]
+           active:scale-98
+           min-h-11 min-w-11;
+  }
+
+  /* Icon sizing — every primary button MUST have a Lucide icon on the left */
+  .btn-primary > svg:first-child {
+    @apply w-4.5 h-4.5 -ml-1; /* slight left nudge for optical balance */
+  }
+
+  /* Optional right arrow */
+  .btn-primary > svg:last-child {
+    @apply w-4 h-4 ml-2;
+  }
 }
