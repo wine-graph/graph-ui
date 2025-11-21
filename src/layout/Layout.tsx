@@ -5,14 +5,29 @@ import {type NavLinkDef, resolveNavLinksByRole, toPath} from "../nav/roleNavConf
 import {Menu, X, LogIn, Search} from "lucide-react";
 
 const Layout = () => {
-  const {role, isAuthenticated, user} = useAuth();
+  const {role, isAuthenticated, user, pos} = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
 
-  const links: NavLinkDef[] = useMemo(
-    () => resolveNavLinksByRole(role, user?.user?.role.id),
-    [role, user?.user?.role.id]
+  // Retailer ID is NOT the Google user id. Prefer the POS merchant id when available,
+  // otherwise fall back to the role.id (which represents the retailer/merchant id in our user model).
+  const retailerId = useMemo(
+    () => pos.square?.merchant_id ?? user?.user?.role.id,
+    [pos.square?.merchant_id, user?.user?.role.id]
   );
+
+  const links: NavLinkDef[] = useMemo(
+    () => resolveNavLinksByRole(role, retailerId),
+    [role, retailerId]
+  );
+
+  // Dynamic profile path: route avatar to the correct profile page based on role
+  const profilePath = useMemo(() => {
+    if (role === "retailer" && retailerId) {
+      return `/retailer/${retailerId}/profile`;
+    }
+    return "/profile";
+  }, [role, retailerId]);
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -89,22 +104,28 @@ const Layout = () => {
             {!isAuthenticated ? (
               <NavLink to="/profile">
                 <button className="btn-minimal">
-                  <LogIn aria-hidden="true" />
+                  <LogIn
+                    className="hover:bg-green-50 hover:text-green-600 active:scale-[0.98]
+                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500/60
+                     dark:hover:bg-green-900/20 group"
+                    aria-hidden="true" />
                 </button>
               </NavLink>
             ) : (
-              <button
-                className="size-9 rounded-full border border-token overflow-hidden"
-                aria-label="User menu"
-              >
-                {user?.user?.picture ? (
-                  <img src={user.user.picture} alt={user?.user?.name || "User"} className="w-full h-full object-cover"/>
-                ) : (
-                  <span className="text-sm">
-                    {user?.user?.name?.charAt(0)?.toUpperCase() || user?.user?.email?.charAt(0)?.toUpperCase() || "U"}
-                  </span>
-                )}
-              </button>
+              <NavLink to={profilePath} aria-label="Profile">
+                <button
+                  className="size-9 rounded-full border border-token overflow-hidden"
+                  aria-label="User avatar"
+                >
+                  {user?.user?.picture ? (
+                    <img src={user.user.picture} alt={user?.user?.name || "User"} className="w-full h-full object-cover"/>
+                  ) : (
+                    <span className="text-sm">
+                      {user?.user?.name?.charAt(0)?.toUpperCase() || user?.user?.email?.charAt(0)?.toUpperCase() || "U"}
+                    </span>
+                  )}
+                </button>
+              </NavLink>
             )}
           </div>
         </div>

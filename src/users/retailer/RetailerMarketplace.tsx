@@ -20,12 +20,21 @@ export const RetailerMarketplace = () => {
     );
   }, []);
 
+  // Build map markers, guarding against missing or null coordinates (allow 0 values)
   const markers = retailers
-    .filter((r) => r.location?.coordinates)
-    .map((r) => ({
-      position: [r.location!.coordinates!.latitude, r.location!.coordinates!.longitude] as LatLngExpression,
-      label: r.name,
-    }));
+    .filter((r) =>
+      r.location?.coordinates?.latitude !== undefined &&
+      r.location?.coordinates?.latitude !== null &&
+      r.location?.coordinates?.longitude !== undefined &&
+      r.location?.coordinates?.longitude !== null
+    )
+    .map((r) => {
+      const {latitude, longitude} = r.location!.coordinates!;
+      return {
+        position: [latitude as number, longitude as number] as LatLngExpression,
+        label: r.name,
+      };
+    });
 
   if (!position) return <div className="p-8 text-center">Loading map…</div>;
 
@@ -49,8 +58,9 @@ export const RetailerMarketplace = () => {
       </div>
 
       {/* Full-bleed, perfectly filling map */}
-      <div className="relative w-full h-[60vh] sm:h-[70vh] lg:h-[80vh] border-2 border-[color:var(--color-border)] overflow-hidden">
-        <MapView center={position} zoom={13} markers={markers} />
+      <div
+        className="relative w-full h-[60vh] sm:h-[70vh] lg:h-[80vh] border-2 border-[color:var(--color-border)] overflow-hidden">
+        <MapView center={position} zoom={13} markers={markers}/>
       </div>
     </div>
   );

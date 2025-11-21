@@ -3,7 +3,8 @@ import PageHeader from "../../components/common/PageHeader.tsx";
 import {useAuth} from "../../auth/authContext.ts";
 import SquareAuth from "./SquareAuth.tsx";
 import {AuthDebug} from "../../auth/AuthDebug.tsx";
-import {AlertCircle, CheckCircle2, RefreshCcw, Store, User} from "lucide-react";
+import {AlertCircle, CheckCircle2, RefreshCcw, Store} from "lucide-react";
+import GoogleProfile from "../../components/common/GoogleProfile.tsx";
 
 export const RetailerProfile = () => {
   const {user, isRetailer, pos, refreshPos} = useAuth();
@@ -32,21 +33,7 @@ export const RetailerProfile = () => {
 
       <div className="mt-10 grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Left: Google Profile — now wrapped in matching SectionCard */}
-        <SectionCard cardHeader={{icon: User, title: "Your Google Account"}}>
-          <div className="flex items-center gap-4 p-4">
-            {user?.user.picture ? (
-              <img
-                src={user?.user.picture}
-                alt={user?.user.name ?? "User"}
-                className="w-18 h-18 rounded-full object-cover border"
-              />
-            ) : null}
-            <div className="flex flex-col">
-              <span className="text-textPrimary text-lg font-medium">{user?.user.name ?? "Unknown User"}</span>
-              <span className="text-textSecondary text-sm">{user?.user.email ?? "No email on file"}</span>
-            </div>
-          </div>
-        </SectionCard>
+        <GoogleProfile name={user?.user.name ?? ""} picture={user?.user.picture ?? ""} email={user?.user.email ?? ""}/>
 
         {/* Right: POS Status + Connect Card */}
         <div className="space-y-6">

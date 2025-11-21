@@ -17,9 +17,11 @@ const baseLinks: NavLinkDef[] = [
 
 // Role-specific augmentations
 function retailerLinks(retailerId: string): NavLinkDef[] {
+  // Use dynamic retailerId paths to match router: /retailer/:retailerId/...
   const cellar: NavLinkDef = {title: "Cellar", icon: Package, route: `/retailer/${retailerId}/inventory`};
   const marketplace: NavLinkDef = {title: "Marketplace", icon: Store, route: "/retailer/marketplace"};
   const profile: NavLinkDef = {title: "Profile", icon: User, route: `/retailer/${retailerId}/profile`};
+  // Keep Home as the first item for consistency
   return [baseLinks[0], marketplace, cellar, profile];
 }
 
@@ -39,7 +41,6 @@ export function resolveNavLinksByRole(role: string, userId?: string): NavLinkDef
   const normalized = (role || "visitor").toLowerCase();
   switch (normalized) {
     case "retailer":
-      console.log("Resolving links for Retailer:", userId);
       return userId ? retailerLinks(userId) : baseLinks;
     case "enthusiast":
       return enthusiastLinks();
