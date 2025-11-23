@@ -12,7 +12,6 @@ type RetailerInventory = {
   description: string;
   externalItemId: string;
   name: string;
-  price?: string;
   producer: string;
   retailerId: string;
   source: string;
