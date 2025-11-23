@@ -20,33 +20,40 @@ const GoogleProfile: React.FC<GoogleProfileProps> = (profile: GoogleProfileProps
 
   return (
     <SectionCard cardHeader={{icon: User, title: "Your Google Account"}}>
-      <div className="flex items-center gap-4 p-4">
-        {profile.picture ? (
-          <img
-            src={profile.picture}
-            alt={profile.name ?? "User"}
-            className="w-18 h-18 rounded-full object-cover border"
-          />
-        ) : null}
-        <div className="flex flex-col">
+      <div className="p-4 space-y-4">
+        {/* Top row: avatar (left) + logout (right) */}
+        <div className="flex items-center justify-between gap-4">
+          {profile.picture ? (
+            <img
+              src={profile.picture}
+              alt={profile.name ?? "User"}
+              className="w-[72px] h-[72px] rounded-full object-cover border"
+            />
+          ) : (
+            <div className="w-[72px] h-[72px] rounded-full border bg-[color:var(--color-muted)]" aria-hidden="true" />
+          )}
+
+          {/* Logout button (moved up for clearer affordance) */}
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="ml-auto btn-minimal tap-target flex items-center gap-2 rounded-md px-2 py-2 transition
+                       hover:bg-red-50 hover:text-red-600 active:scale-[0.98]
+                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/60
+                       dark:hover:bg-red-900/20 group"
+            aria-label="Log out"
+            title="Log out"
+          >
+            <LogOut className="w-7 h-7 transition-transform duration-150 group-hover:scale-110"/>
+          </button>
+        </div>
+
+        {/* Bottom: name and email to better fill space */}
+        <div className="flex flex-col pt-1">
           <span className="text-textPrimary text-lg font-medium">{profile.name ?? "Unknown User"}</span>
           <span className="text-textSecondary text-sm">{profile.email ?? "No email on file"}</span>
         </div>
       </div>
-
-      {/* Logout button */}
-      <button
-        type="button"
-        onClick={handleLogout}
-        className="ml-auto btn-minimal tap-target flex items-center gap-2 rounded-md px-2 py-2 transition
-                     hover:bg-red-50 hover:text-red-600 active:scale-[0.98]
-                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/60
-                     dark:hover:bg-red-900/20 group"
-        aria-label="Log out"
-        title="Log out"
-      >
-        <LogOut className="w-5 h-5 transition-transform duration-150 group-hover:scale-110"/>
-      </button>
     </SectionCard>
   )
 }
