@@ -1,5 +1,5 @@
 import PageHeader from "../components/common/PageHeader.tsx";
-import GoogleButton from "react-google-button";
+import GoogleSignIn from "../components/common/GoogleSignIn.tsx";
 import {useAuth} from "../auth/authContext.ts";
 import GoogleProfile from "../components/common/GoogleProfile.tsx";
 import SquareAuth from "../users/retailer/SquareAuth.tsx";
@@ -29,13 +29,11 @@ export const ProfilePage = () => {
 
       <div className="mt-10">
         {!isAuthenticated ? (
-          <div className="flex justify-center">
-            <GoogleButton
-              type="light"
-              label="Sign in with Google"
-              onClick={startAuthentication}
-            />
-          </div>
+          <GoogleSignIn
+            onClick={startAuthentication}
+            className="w-full sm:w-auto"
+            size="lg" //default is lg
+          />
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Left: Google Profile */}

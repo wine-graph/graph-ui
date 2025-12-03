@@ -5,8 +5,6 @@ type Wine = {
   producer: string;
   name: string;
   varietal?: string;
-  price?: number | string;
-  quantity?: number;
 };
 
 type Props = {
@@ -16,13 +14,6 @@ type Props = {
 
 // A dead-simple, reusable inventory table with responsive stacked rows on mobile
 const RetailerInventoryTable: React.FC<Props> = ({ wines, onRowClick }) => {
-  const showQty = wines.some((w) => typeof w.quantity === "number");
-
-  const renderPrice = (p: Wine["price"]) => {
-    if (p == null || p === "") return "—";
-    if (typeof p === "number") return `$${p.toFixed(2)}`;
-    return p;
-  };
 
   // Desktop table (≥768px)
   const TableDesktop = (
@@ -35,8 +26,6 @@ const RetailerInventoryTable: React.FC<Props> = ({ wines, onRowClick }) => {
               <th className="text-left py-3 px-4">Producer</th>
               <th className="text-left py-3 px-4">Wine Name</th>
               <th className="text-left py-3 px-4">Varietal</th>
-              <th className="text-left py-3 px-4">Price</th>
-              {showQty && <th className="text-left py-3 px-4">Qty</th>}
             </tr>
           </thead>
           <tbody>
@@ -52,8 +41,6 @@ const RetailerInventoryTable: React.FC<Props> = ({ wines, onRowClick }) => {
                   <td className="py-3 px-4">{w.producer}</td>
                   <td className="py-3 px-4"><span className="text-[15px] font-semibold">{w.name}</span></td>
                   <td className="py-3 px-4">{w.varietal ?? "—"}</td>
-                  <td className="py-3 px-4">{renderPrice(w.price)}</td>
-                  {showQty && <td className="py-3 px-4">{typeof w.quantity === "number" ? w.quantity : "—"}</td>}
                 </tr>
               );
             })}
@@ -81,13 +68,6 @@ const RetailerInventoryTable: React.FC<Props> = ({ wines, onRowClick }) => {
               <div className="text-[14px] text-[color:var(--color-fg-muted)]">
                 {w.varietal ?? "—"}
                 <span className="mx-2">•</span>
-                {renderPrice(w.price)}
-                {showQty && (
-                  <>
-                    <span className="mx-2">•</span>
-                    {typeof w.quantity === "number" ? w.quantity : "—"}
-                  </>
-                )}
               </div>
             </li>
           );
