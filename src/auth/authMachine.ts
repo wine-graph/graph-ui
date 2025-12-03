@@ -107,8 +107,8 @@ export const authMachine = setup({
         const e: any = event ?? {};
         const output = (e.output as PosToken | null) ?? null;
 
-        console.log("[auth] setPosFromOutput → before:", context.pos);
-        console.log("[auth] setPosFromOutput → output:", output);
+        console.debug("[auth] setPosFromOutput → before:", context.pos);
+        console.debug("[auth] setPosFromOutput → output:", output);
 
         const next = {
           square: output,             // set Square explicitly

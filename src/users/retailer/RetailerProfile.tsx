@@ -5,20 +5,29 @@ import SquareAuth from "./SquareAuth.tsx";
 import {AuthDebug} from "../../auth/AuthDebug.tsx";
 import {AlertCircle, CheckCircle2, RefreshCcw, Store} from "lucide-react";
 import GoogleProfile from "../../components/common/GoogleProfile.tsx";
+import useRetailerOnboarding from "./useRetailerOnboarding.ts";
 
 export const RetailerProfile = () => {
   const {user, isRetailer, pos, refreshPos} = useAuth();
-
-  if (!isRetailer) {
-    return <div className="p-8 text-center text-danger">Access denied. Retailer only.</div>;
-  }
 
   const square = pos.square;
   const loading = pos.loading;
   const error = pos.error;
   const isAuthorized = !!square && new Date(square.expires_at).getTime() > Date.now();
-  const notConnected = !square || !isAuthorized;
   const retailerId = user?.user.role.id ?? "";
+
+  // Secondary safety net: trigger onboarding if authorized and not already done
+  useRetailerOnboarding({
+    retailerId,
+    merchantId: square?.merchant_id ?? null,
+    isAuthorized,
+  });
+
+  if (!isRetailer) {
+    return <div className="p-8 text-center text-danger">Access denied. Retailer only.</div>;
+  }
+
+  const notConnected = !square || !isAuthorized;
 
   const handleRefresh = async () => {
     await refreshPos("square", retailerId);

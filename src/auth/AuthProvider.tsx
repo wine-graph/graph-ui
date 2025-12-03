@@ -6,6 +6,7 @@ import {useAuthService} from "./useAuthService.ts";
 import {useGoogleOidc} from "./google";
 import {useSquareOAuth} from "./square.ts";
 import Spinner from "../components/common/Spinner";
+import useRetailerOnboarding from "../users/retailer/useRetailerOnboarding.ts";
 
 export const AuthProvider = ({children}: { children: ReactNode }) => {
 
@@ -26,6 +27,13 @@ export const AuthProvider = ({children}: { children: ReactNode }) => {
 
     square.authenticate();
   }, [square]);
+
+  // Implicit retailer onboarding: runs once when Square is authorized
+  const squareToken = auth.pos.square;
+  const isAuthorized = !!squareToken && new Date(squareToken.expires_at).getTime() > Date.now();
+  const retailerId = auth.user?.user.role.id ?? null;
+  const merchantId = squareToken?.merchant_id ?? null;
+  useRetailerOnboarding({retailerId, merchantId, isAuthorized});
 
   // CORRECT: matches({ authenticated: "idle" })
   if (state.matches("loading") || google.isProcessing) {
