@@ -16,7 +16,6 @@ type UserRole = {
 export type SessionUser = {
   user: User;
   token: string;
-  permissions: string[];
 };
 
 export type PosToken = {
@@ -40,6 +39,7 @@ export type AuthContextValue = {
   login: (data: SessionUser) => void;
   logout: () => void;
   fetchUser: () => Promise<SessionUser | null>;
+  updateRole: (role: Role) => void;
   role: Role;
   isVisitor: boolean;
   isRetailer: boolean;
