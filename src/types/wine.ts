@@ -1,6 +1,7 @@
 export type Wine = {
     id: string;
     name: string;
+    slug: string;
     vintage: number;
     varietal: string;
     size: number;
@@ -17,7 +18,6 @@ export type Wine = {
     subarea?: string;
     weblink?: string;
     wineComponents?: WineGrape[];
-    pricePerBottle?: number;
 }
 
 type WineGrape = {

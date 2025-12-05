@@ -1,0 +1,189 @@
+type Fermentation {
+  days: Int
+  temperature: Float
+}
+
+type Maceration {
+  days: Int
+  temperature: Float
+}
+
+"Mutation root"
+type Mutation {
+  Producer: ProducerMutation
+  Wine: WineMutation
+}
+
+type Producer {
+  description: String
+  email: String
+  id: ID
+  name: String
+  phone: String
+  slug: String
+  website: String
+  "Get wines for the given producer"
+  wines: [Wine]
+}
+
+type ProducerMutation {
+  addProducer(producer: ProducerInput!): Producer
+}
+
+type ProducerQuery {
+  "Get all producers"
+  all: [Producer]
+  "Get a producer by its ID"
+  producer(id: ID!): Producer
+  "Get producers for a given area"
+  producers(areaId: ID!): [Producer]
+}
+
+"Query root"
+type Query {
+  Producer: ProducerQuery
+  Wine: WineQuery
+}
+
+type Wine {
+  acid: Float
+  alcohol: Float
+  bottleAging: Int
+  closure: String
+  color: String
+  description: String
+  id: ID
+  name: String
+  pH: Float
+  producer: String
+  shape: String
+  size: Float
+  slug: String
+  subarea: String
+  type: String
+  "Can be a single varietal (grape) or blend"
+  varietal: String
+  vintage: Int
+  weblink: String
+  "Get a wines components"
+  wineComponents: [WineGrape]
+}
+
+type WineGrape {
+  fermentation: Fermentation
+  grapeId: ID
+  grapeName: String
+  harvestBegin: String
+  harvestEnd: String
+  maceration: Maceration
+  percentage: Float
+}
+
+type WineMutation {
+  "Add a new wine to a producer"
+  addWine(input: WineInput!): Wine
+  "Add grape and barrel components to a wine"
+  addWineComponents(input: WineComponentInput!): [WineGrape]
+}
+
+type WineQuery {
+  "Get a wine by its ID"
+  wine(id: ID!): Wine
+}
+
+enum Closure {
+  NATURAL_CORK
+  OTHER
+  SCREW_CAP
+  SYNTHETIC_CORK
+  TECHNICAL_CORK
+  VALVE
+  VINO_SEAL
+  ZORK
+}
+
+enum Color {
+  ORANGE
+  RED
+  ROSE
+  WHITE
+}
+
+enum Shape {
+  ALSACE
+  BORDEAUX
+  BOX
+  BURGUNDY
+  CALIFORNIA
+  CHAMPAGNE
+  OTHER
+  RHONE
+}
+
+enum Type {
+  FRIZZANTE
+  SPARKLING
+  STILL
+}
+
+input FermentationInput {
+  days: Int
+  temperature: Float
+}
+
+input MacerationInput {
+  days: Int
+  temperature: Float
+}
+
+input ProducerInput {
+  areaId: ID!
+  description: String
+  email: String
+  fax: String
+  name: String!
+  phone: String
+  website: String
+}
+
+input WineComponentInput {
+  fermentation: FermentationInput
+  grape: String
+  harvestBegin: Date
+  harvestEnd: Date
+  maceration: MacerationInput
+  percentage: Float
+}
+
+input WineInput {
+  "Total acidity level (e.g. '5.6')"
+  acid: Float
+  "Alcohol content as a percent string (e.g. '13.5')"
+  alcohol: Float
+  "Bottle aging duration in months (e.g. '12')"
+  bottleAging: Int
+  "Closure type (e.g. CORK, SCREWCAP)"
+  closure: Closure
+  "Color of the wine (e.g. RED, WHITE, ROSE)"
+  color: Color
+  "Optional general description of the wine"
+  description: String
+  "Wine name or label (e.g. 'Château Margaux')"
+  name: String!
+  "pH value of the wine (e.g. '3.4')"
+  pH: Float
+  "ID of the producer this wine will belong to"
+  producerId: ID!
+  "Shape of the bottle (e.g. BORDEAUX, BURGUNDY)"
+  shape: Shape
+  "Bottle size in milliliters (e.g. '0.75 or 1.0')"
+  size: Float
+  "Optional subarea or vineyard designation (e.g. 'Howell Mountain')"
+  subarea: String
+  "Wine type (e.g. STILL, SPARKLING)"
+  type: Type
+  "Can be a single varietal (grape) or a blend"
+  varietal: String!
+  "Vintage year of the wine (e.g. '2020')"
+  vintage: Int!
+}
