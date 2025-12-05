@@ -2,7 +2,7 @@ import {useSelector} from "@xstate/react";
 import type {ActorRefFrom} from "xstate";
 import {authMachine} from "./authMachine";
 import type {Role, SessionUser} from "./types";
-import {fetchCurrentUser} from "./authClient.ts";
+import {fetchCurrentUser, saveRole} from "./authClient.ts";
 
 type AuthService = ActorRefFrom<typeof authMachine>;
 
@@ -50,6 +50,39 @@ export const useAuthService = (service: AuthService) => {
     },
     refreshPos: async (provider: "square" | "clover", merchantId: string): Promise<void> => {
       send({type: "POS.REFRESH", provider, merchantId});
+    },
+    updateRole: (nextRole: Role) => {
+      // Disallow setting non-selectable roles from UI
+      if (nextRole === "visitor" || nextRole === "admin") {
+        console.warn("[role] blocked attempt to set disallowed role", { nextRole });
+        return;
+      }
+      // Persist to backend and rehydrate session user
+      (async () => {
+        try {
+          console.info("[role] updating role →", { from: role, to: nextRole });
+          const updated = await saveRole(nextRole as any);
+          const newRole = (updated?.user?.role?.value ?? "visitor") as Role;
+          console.info("[role] role updated ✔", { from: role, to: newRole, userId: updated?.user?.id });
+          send({type: "LOGGED_IN", data: updated});
+
+          // After a successful role change, redirect to role-specific profile when applicable
+          const normalized = String(newRole).toLowerCase() as Role;
+          if (normalized === "retailer") {
+            const retailerId = updated?.user?.role?.id;
+            if (retailerId) {
+              const targetPath = `/retailer/${retailerId}/profile`;
+              if (window.location.pathname !== targetPath) {
+                window.location.assign(targetPath);
+              }
+            } else {
+              console.warn("[role] retailer selected but missing role.id; staying on current page");
+            }
+          }
+        } catch (e) {
+          console.error("[role] update failed ✖", e);
+        }
+      })();
     },
     role,
     isVisitor: role === "visitor",

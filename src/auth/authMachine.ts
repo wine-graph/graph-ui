@@ -35,7 +35,8 @@ export const authMachine = setup({
       | { type: "LOGGED_IN"; data: SessionUser }
       | { type: "LOGGED_OUT" }
       | { type: "POS.LOAD"; provider: PosProvider; merchantId: string }
-      | { type: "POS.REFRESH"; provider: PosProvider; merchantId: string },
+      | { type: "POS.REFRESH"; provider: PosProvider; merchantId: string }
+      | { type: "ROLE.SET"; role: import('./types').Role },
   },
   actors: {
 
@@ -70,6 +71,15 @@ export const authMachine = setup({
 
         if (payload) {
           const user = payload as SessionUser;
+          try {
+            const prevRole = context.user?.user?.role?.value ?? "visitor";
+            const nextRole = user?.user?.role?.value ?? "visitor";
+            if (prevRole !== nextRole) {
+              console.info("[role] machine saveUser role transition", { from: prevRole, to: nextRole, reason: e?.type ?? "unknown" });
+            }
+          } catch (err) {
+            console.warn("[role] saveUser transition logging failed", err);
+          }
           storage.setUser(user);
           return user;
         }
@@ -91,6 +101,26 @@ export const authMachine = setup({
         loading: false,
         error: null,
       }),
+    }),
+
+    // Client-only: set role in local user and persist
+    setRole: assign({
+      user: ({context, event}) => {
+        const e = event as { type: string; role?: import('./types').Role };
+        if (!context.user || !e.role) return context.user;
+        const next = {
+          ...context.user,
+          user: {
+            ...context.user.user,
+            role: {
+              ...context.user.user.role,
+              value: e.role,
+            },
+          },
+        } as SessionUser;
+        storage.setUser(next);
+        return next;
+      },
     }),
 
     setPosLoading: assign({
@@ -211,7 +241,10 @@ export const authMachine = setup({
         },
         LOGGED_IN: {
           actions: "saveUser"
-        }
+        },
+        "ROLE.SET": {
+          actions: "setRole",
+        },
       },
       // Nested state for authenticated
       states: {

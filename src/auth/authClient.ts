@@ -58,6 +58,21 @@ export const fetchCurrentUser = async (): Promise<SessionUser> => {
   return data;
 };
 
+// === Update role (server is the source of truth) ===
+export const saveRole = async (
+  role: "retailer" | "producer" | "enthusiast"
+): Promise<SessionUser> => {
+  const token = storage.getToken();
+  // Backend expects RoleEnum, which is typically uppercase. Send uppercase to avoid 400.
+  const body = { role: role.toUpperCase() } as unknown as { role: string };
+  const {data} = await api.patch(
+    "/session/user",
+    body,
+    {headers: {Authorization: `Bearer ${token}`, "Content-Type": "application/json"}}
+  );
+  return data;
+};
+
 export const startAuthorization = (userId: string): void => {
   if (!userId) {
     console.warn("Cannot start Square OAuth: missing userId");
