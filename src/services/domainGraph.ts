@@ -15,10 +15,6 @@ const DOMAIN_QUERY = gql(`
             id
             name
             description
-            producers {
-              id
-              name
-            }
           }
         }
       }

@@ -1,0 +1,66 @@
+type Area {
+  description: String
+  id: ID
+  name: String
+  "Get producers for the given area"
+  producers: [Producer]
+}
+
+type Country {
+  description: String
+  flag: String
+  id: ID
+  name: String
+  "Get regions for the given country"
+  regions: [Region]
+  weblink: String
+}
+
+type DomainQuery {
+  "Get an Area by its ID"
+  area(areaId: ID!): Area
+  "Countries that have wine producing regions so far..."
+  countries: [Country]
+  "Get a country by its ID"
+  country(id: ID!): Country
+  grapes: [Grape]
+  "Get a region by its ID"
+  region(id: ID!): Region
+}
+
+type Grape {
+  color: String
+  description: String
+  id: String
+  name: String
+}
+
+type Producer {
+  id: String
+  name: String
+  slug: String
+  "Get wines for the given producer"
+  wines: [Wine]
+}
+
+"Query root"
+type Query {
+  Domain: DomainQuery
+}
+
+type Region {
+  "Get areas for the given region"
+  areas: [Area]
+  description: String
+  id: ID
+  name: String
+  weblink: String
+}
+
+type Wine {
+  id: String
+  name: String
+  slug: String
+  varietal: String
+  vintage: String
+}

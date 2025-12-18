@@ -2,11 +2,13 @@ import React, {type ReactNode, useMemo, useState} from "react";
 import {DomainCard} from "../components/DomainCard.tsx";
 import {useQuery} from "@apollo/client";
 import {DOMAIN_QUERY} from "../services/domainGraph.ts";
+import {PRODUCERS_BY_AREA} from "../services/producerGraph.ts";
 import PageHeader from "../components/common/PageHeader.tsx";
 // CrumbButton removed in favor of text-label breadcrumbs per new design spec
-import {domainClient} from "../services/apolloClient.ts";
+import {domainClient, producerClient} from "../services/apolloClient.ts";
 import type {Producer} from "../users/producer/producer.ts";
 import Spinner from "../components/common/Spinner.tsx";
+import {ProducerCard} from "../users/producer/ProducerCard.tsx";
 
 type Country = {
   id: string;
@@ -46,6 +48,13 @@ const DomainList = () => {
   const [selectedAreaId, setSelectedAreaId] = useState<string | null>(null);
   const [selectedProducerId, setSelectedProducerId] = useState<string | null>(null);
 
+  const {data: producersData, loading: producersLoading} = useQuery(PRODUCERS_BY_AREA, {
+    client: producerClient,
+    variables: {areaId: selectedAreaId as string | undefined},
+    skip: !selectedAreaId,
+  });
+  const producers = useMemo(() => (producersData?.Producer?.producers as Producer[]) ?? [], [producersData]);
+
   const countries = useMemo(() => (data?.Domain?.countries as Country[]) ?? [], [
     data,
   ]);
@@ -66,8 +75,8 @@ const DomainList = () => {
   );
 
   const selectedProducer = useMemo(() =>
-      selectedArea?.producers?.find((p: Producer) => p.id === selectedProducerId) ?? null,
-    [selectedArea, selectedProducerId]
+      producers.find((p: Producer) => p.id === selectedProducerId) ?? null,
+    [producers, selectedProducerId]
   );
 
   const showCountries = !selectedCountry;
@@ -181,11 +190,25 @@ const DomainList = () => {
                   onClick={() => setSelectedAreaId(a.id)}
                 />
               ))}
-            {showProducers &&
-              selectedArea?.producers?.map((p: Producer) => (
-                <DomainCard key={p.id} title={p.name} onClick={() => setSelectedProducerId(p.id)}
-                />
-              ))}
+            {showProducers && (
+              producersLoading ? (
+                <div className="py-10 col-span-full">
+                  <Spinner label="Loading producers…" />
+                </div>
+              ) : (
+                producers.map((p: Producer) => (
+                  <ProducerCard
+                    key={p.id}
+                    id={p.id}
+                    slug={p.slug}
+                    name={p.name}
+                    email={p.email}
+                    website={p.website}
+                    description={p.description}
+                    wines={p.wines}/>
+                ))
+              )
+            )}
           </Grid>
         </>
       )}

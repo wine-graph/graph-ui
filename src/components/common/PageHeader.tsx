@@ -13,7 +13,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({ title, desc }) => {
           </p>
         ) : null}
       </header>
-      <div className="w-24 h-1 mt-6" style={{ background: "var(--color-primary)" }} />
+      <div className="w-24 h-[2px] mt-6 bg-[color:var(--color-border)]" />
     </div>
   );
 };

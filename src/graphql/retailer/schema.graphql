@@ -1,0 +1,88 @@
+type Coordinates {
+  latitude: Float
+  longitude: Float
+}
+
+"Mutation root"
+type Mutation {
+  Retailer: RetailerMutation
+}
+
+"Query root"
+type Query {
+  Retailer: RetailerQuery
+}
+
+type Retailer {
+  "Merchant ID from POS"
+  id: ID
+  "Get current (persisted) inventory"
+  inventory: [RetailerInventory]
+  location: RetailerLocation
+  logoUrl: String
+  name: String
+  "Point-of-sale system"
+  pos: String
+}
+
+type RetailerInventory {
+  description: String
+  id: ID
+  name: String
+  "For POS linking"
+  originId: String
+  price: String
+  producer: String
+  "External source system"
+  source: WineSource
+  varietal: String
+  vintage: Int
+  "Get canonical wine matches for the given retailers inventory"
+  wineMatches: [RetailerInventoryMatch]
+}
+
+type RetailerInventoryMatch {
+  name: String
+  producer: String
+  varietal: String
+  vintage: Int
+  wineId: String
+}
+
+type RetailerLocation {
+  address: String
+  city: String
+  contactEmail: String
+  coordinates: Coordinates
+  id: ID
+  phone: String
+  state: String
+  website: String
+  zipCode: String
+}
+
+type RetailerMutation {
+  "Onboard a Retailer from their POS"
+  onboard(
+    "Merchant ID issued by POS"
+    merchantId: ID!,
+    pos: WineSource!
+  ): Retailer
+  "Sync inventory from Retailer's POS."
+  syncInventory(
+    "Merchant ID issued by POS"
+    merchantId: ID!
+  ): [RetailerInventory]
+}
+
+type RetailerQuery {
+  retailer(retailerId: ID!): Retailer
+  retailers: [Retailer]
+}
+
+enum WineSource {
+  CANONICAL
+  CLOVER
+  SHOPIFY
+  SQUARE
+}

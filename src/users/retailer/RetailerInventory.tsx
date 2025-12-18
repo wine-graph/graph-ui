@@ -6,7 +6,7 @@ import RetailerInventoryTable from "./RetailerInventoryTable.tsx";
 import {Globe, Mail, MapPin, Phone, Store, RefreshCcw} from "lucide-react";
 import Spinner from "../../components/common/Spinner.tsx";
 import {useAuth} from "../../auth/authContext.ts";
-import {useMemo, useState} from "react";
+import {useEffect, useMemo, useRef, useState} from "react";
 
 export const RetailerInventory = () => {
   const {user, isRetailer, pos} = useAuth();
@@ -24,6 +24,11 @@ export const RetailerInventory = () => {
 
   const retailer = data?.Retailer?.retailer;
   const inventory = Array.isArray(retailer?.inventory) ? retailer.inventory : [];
+
+  // Local UI state for List + Detail pattern
+  const [query, setQuery] = useState("");
+  const [selected, setSelected] = useState<any | null>(null);
+  const lastFocusedRowRef = useRef<HTMLElement | null>(null);
 
   const canSync = useMemo(() => {
     const square = pos.square;
@@ -47,6 +52,33 @@ export const RetailerInventory = () => {
     }
   };
 
+  // Keyboard: close drawer with Esc
+  useEffect(() => {
+    if (!selected) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setSelected(null);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [selected]);
+
+  // Filtered rows based on search query (name/varietal/vintage)
+  const filteredInventory = useMemo(() => {
+    if (!query.trim()) return inventory;
+    const q = query.toLowerCase();
+    return inventory.filter((w: any) => {
+      const vintage = w.vintage ? String(w.vintage) : "";
+      return (
+        (w.name?.toLowerCase?.() ?? "").includes(q) ||
+        (w.varietal?.toLowerCase?.() ?? "").includes(q) ||
+        vintage.toLowerCase().includes(q)
+      );
+    });
+  }, [inventory, query]);
+
   if (loading) return <Spinner label="Loading retailer…"/>;
 
   if (!retailer) return <div className="p-8 text-center">Retailer not found.</div>;
@@ -67,7 +99,7 @@ export const RetailerInventory = () => {
             </p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <Store className="w-8 h-8 text-[color:var(--color-primary)]"/>
+            <Store className="w-8 h-8 text-neutral-900"/>
           </div>
         </div>
 
@@ -76,7 +108,7 @@ export const RetailerInventory = () => {
           {/* Street address: show on md+, hide on smaller screens to reduce clutter */}
           {retailer.location?.address && (
             <div className="hidden md:flex items-center gap-2.5">
-              <MapPin className="w-4.5 h-4.5 text-[color:var(--color-primary)]"/>
+              <MapPin className="w-4.5 h-4.5 text-neutral-900"/>
               <span className="text-[color:var(--color-fg-muted)]">
                 {retailer.location.address}
               </span>
@@ -86,8 +118,8 @@ export const RetailerInventory = () => {
           {/* Keep phone visible on mobile for quick action */}
           {retailer.location?.phone && (
             <a href={`tel:${retailer.location.phone}`}
-               className="flex items-center gap-2.5 hover:text-[color:var(--color-primary)] transition">
-              <Phone className="w-4.5 h-4.5 text-[color:var(--color-primary)]"/>
+               className="flex items-center gap-2.5 transition">
+              <Phone className="w-4.5 h-4.5 text-neutral-900"/>
               <span>{retailer.location.phone}</span>
             </a>
           )}
@@ -95,8 +127,8 @@ export const RetailerInventory = () => {
           {/* Email: hide on mobile, show from md+ */}
           {retailer.location?.contactEmail && (
             <a href={`mailto:${retailer.location.contactEmail}`}
-               className="hidden md:flex items-center gap-2.5 hover:text-[color:var(--color-primary)] transition">
-              <Mail className="w-4.5 h-4.5 text-[color:var(--color-primary)]"/>
+               className="hidden md:flex items-center gap-2.5 transition">
+              <Mail className="w-4.5 h-4.5 text-neutral-900"/>
               <span className="underline">Email</span>
             </a>
           )}
@@ -104,8 +136,8 @@ export const RetailerInventory = () => {
           {/* Website: hide on mobile, show from md+ */}
           {retailer.location?.website && (
             <a href={retailer.location.website} target="_blank" rel="noreferrer"
-               className="hidden md:flex items-center gap-2.5 hover:text-[color:var(--color-primary)] transition">
-              <Globe className="w-4.5 h-4.5 text-[color:var(--color-primary)]"/>
+               className="hidden md:flex items-center gap-2.5 transition">
+              <Globe className="w-4.5 h-4.5 text-neutral-900"/>
               <span className="underline">Website</span>
             </a>
           )}
@@ -124,7 +156,7 @@ export const RetailerInventory = () => {
                 aria-label="Sync Inventory"
               >
                 <RefreshCcw className={`w-4 h-4 ${syncing ? "animate-spin" : ""}`}/>
-                <span>{syncing ? "Syncing inventory…" : "Sync Inventory from Square"}</span>
+                <span>{syncing ? "Syncing inventory…" : "Sync inventory from Square"}</span>
               </button>
               <div className="mt-2 text-[12px] leading-snug text-[color:var(--color-fg-muted)]">
                 {syncing ? "Please wait, this may take up to a minute." : ""}
@@ -142,7 +174,7 @@ export const RetailerInventory = () => {
               >
                 <RefreshCcw className={`w-4 h-4 ${syncing ? "animate-spin" : ""}`}/>
                 <span className="text-sm">
-                  {syncing ? "Syncing inventory…" : "Sync Inventory"}
+                  {syncing ? "Syncing inventory…" : "Sync inventory"}
                 </span>
               </button>
               <div className="mt-1 text-[11px] leading-snug text-[color:var(--color-fg-muted)]">
@@ -154,35 +186,122 @@ export const RetailerInventory = () => {
 
       </div>
 
-      {/* Inventory Table */}
+      {/* Inventory: List + Detail pattern */}
       <div>
-        <div className="flex items-center justify-between gap-4 mb-6">
-          <h2 className="text-2xl font-bold">{inventory.length} Wines Available</h2>
+        {/* Screen header: title + actions */}
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-4">
+          <div>
+            <h2 className="text-2xl font-bold">Inventory</h2>
+            <p className="text-sm text-[color:var(--color-fg-muted)] mt-0.5">{inventory.length} wines available</p>
+          </div>
+        </div>
+
+        {/* Controls row: search above table */}
+        <div className="mb-4">
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search inventory…"
+            className="w-full h-10 px-3 border-2 border-[color:var(--color-border)] bg-[color:var(--color-panel)] placeholder-[color:var(--color-fg-muted)]"
+            aria-label="Search inventory"
+          />
         </div>
 
         {banner && (
           <div
-            className={`mb-4 border-2 px-4 py-3 text-sm ${
-              banner.type === "success"
-                ? "border-green-600/40 bg-green-500/10 text-green-700"
-                : "border-red-600/40 bg-red-500/10 text-red-700"
-            }`}
+            className={`mb-4 border-2 border-[color:var(--color-border)] bg-[color:var(--color-panel)] px-4 py-3 text-sm text-[color:var(--color-fg)]`}
             role="status"
             aria-live="polite"
           >
+            <span className="font-medium mr-1">{banner.type === "success" ? "Success:" : "Error:"}</span>
             {banner.message}
           </div>
         )}
 
-        {inventory.length === 0 ? (
+        {filteredInventory.length === 0 ? (
           <div
             className="text-center py-16 text-[color:var(--color-fg-muted)] border-2 border-dashed border-[color:var(--color-border)]">
-            No wines in inventory yet.
+            {inventory.length === 0 ? (
+              <>
+                <div>No wines in inventory yet.</div>
+                {canSync && (
+                  <div className="mt-4">
+                    <button
+                      onClick={handleSync}
+                      disabled={syncing}
+                      className={`h-10 px-3 border-2 border-[color:var(--color-fg)] bg-[color:var(--color-fg)] text-[color:var(--color-bg)] ${syncing ? "opacity-80 cursor-not-allowed" : ""}`}
+                    >
+                      {syncing ? "Syncing…" : "Sync inventory"}
+                    </button>
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                <div>No inventory matches your search.</div>
+                <button className="mt-3 underline" onClick={() => setQuery("")}>Clear search</button>
+              </>
+            )}
           </div>
         ) : (
-          <RetailerInventoryTable wines={inventory}/>
+          <RetailerInventoryTable
+            wines={filteredInventory}
+            onRowClick={(w) => setSelected(w)}
+            // capture the focused row to restore focus when closing drawer
+            onRowFocus={(el) => { lastFocusedRowRef.current = el; }}
+          />
         )}
       </div>
+
+      {/* Detail drawer */}
+      {selected && (
+        <div role="dialog" aria-modal className="fixed inset-0 z-40">
+          {/* scrim */}
+          <button
+            className="absolute inset-0 bg-black/30"
+            aria-label="Close"
+            onClick={() => setSelected(null)}
+          />
+          <aside className="absolute right-0 top-0 h-full w-full sm:w-[520px] bg-[color:var(--color-bg)] border-l-2 border-[color:var(--color-border)] shadow-xl">
+            <div className="h-12 px-4 border-b-2 border-[color:var(--color-border)] flex items-center justify-between">
+              <div className="font-medium truncate">{selected?.name ?? "Item"}</div>
+              <button className="underline" onClick={() => setSelected(null)}>Close</button>
+            </div>
+            <div className="p-4 space-y-6">
+              <section>
+                <h3 className="text-sm font-medium mb-2">Summary</h3>
+                <div className="text-sm space-y-1">
+                  <div><span className="text-[color:var(--color-fg-muted)]">Producer:</span> {selected?.producer ?? "—"}</div>
+                  <div><span className="text-[color:var(--color-fg-muted)]">Name:</span> {selected?.name ?? "—"}</div>
+                  <div><span className="text-[color:var(--color-fg-muted)]">Vintage:</span> {selected?.vintage ?? "—"}</div>
+                  <div><span className="text-[color:var(--color-fg-muted)]">Varietal:</span> {selected?.varietal ?? "—"}</div>
+                </div>
+              </section>
+              <section>
+                <h3 className="text-sm font-medium mb-2">Matching info</h3>
+                <div className="text-sm">Not matched yet. Matching runs periodically in the background.</div>
+              </section>
+              <div className="pt-2">
+                <button className="h-10 px-3 border-2 border-[color:var(--color-border)] bg-[color:var(--color-panel)]">View in matches</button>
+              </div>
+            </div>
+          </aside>
+        </div>
+      )}
+
+      {/* Restore focus to triggering row when drawer closes */}
+      {!selected && lastFocusedRowRef.current && (
+        <FocusRestorer target={lastFocusedRowRef.current} />
+      )}
     </div>
   );
+};
+
+// Utility component to restore focus after drawer close
+const FocusRestorer = ({target}: {target: HTMLElement}) => {
+  useEffect(() => {
+    target?.focus?.();
+  }, [target]);
+  return null;
 };

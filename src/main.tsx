@@ -5,7 +5,6 @@ import "leaflet/dist/leaflet.css";
 import App from "./App.tsx";
 import {createBrowserRouter, createRoutesFromElements, Outlet, Route, RouterProvider,} from "react-router-dom";
 import {AuthProvider} from "./auth/AuthProvider";
-import RoleBasedHome from "./routes/RoleBasedHome";
 import RoleRoute from "./routes/RoleRoute";
 import Spinner from "./components/common/Spinner";
 
@@ -15,6 +14,9 @@ const MarketplacePage = lazy(() => import("./pages/Marketplace.tsx").then(m => (
 const ProducerMarketplace = lazy(() => import("./users/producer/ProducerMarketplace.tsx").then(m => ({ default: m.ProducerMarketplace })));
 const RetailerInventory = lazy(() => import("./users/retailer/RetailerInventory.tsx").then(m => ({ default: m.RetailerInventory })));
 const RetailerProfile = lazy(() => import("./users/retailer/RetailerProfile.tsx").then(m => ({ default: m.RetailerProfile })));
+const GraphFeed = lazy(() => import("./pages/./GraphFeed.tsx"));
+const ProducerPage = lazy(() => import("./pages/ProducerPage.tsx"));
+const WinePage = lazy(() => import("./pages/WinePage.tsx"));
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -23,13 +25,18 @@ const router = createBrowserRouter(
           <App/>
       </AuthProvider>
     }>
-      <Route index element={<RoleBasedHome/>}/>
+      {/* Default main page for all users: Feed (coming soon) */}
+      <Route index element={(<GraphFeed/>)} />
+      {/* Dashboard route for signed-in users */}
       <Route path="explore" element={(<DiscoverPage/>)} />
       {/* todo fix routes and navigate throughout */}
       <Route path="marketplace" element={(<MarketplacePage/>)} />
       {/* RetailerInventory should be 'nested' under Marketplace properly */}
       <Route path=":retailerId/inventory" element={(<RetailerInventory/>)} />
       <Route path="profile" element={(<ProfilePage/>)} />
+      {/* Public graph detail routes: human-readable slugs in path; IDs used for data queries */}
+      <Route path="producer/:slug/:id" element={(<ProducerPage/>)} />
+      <Route path="wine/:slug/:id" element={(<WinePage/>)} />
       {/* --- Retailer section --- */}
       <Route path="retailer">
         {/* Retailer-specific routes (require :retailerId) */}

@@ -10,10 +10,12 @@ type Wine = {
 type Props = {
   wines: Wine[];
   onRowClick?: (wine: Wine) => void;
+  // Called when a row/card receives focus so caller can restore focus after closing drawer
+  onRowFocus?: (el: HTMLElement, wine: Wine) => void;
 };
 
 // A dead-simple, reusable inventory table with responsive stacked rows on mobile
-const RetailerInventoryTable: React.FC<Props> = ({ wines, onRowClick }) => {
+const RetailerInventoryTable: React.FC<Props> = ({ wines, onRowClick, onRowFocus }) => {
 
   // Desktop table (≥768px)
   const TableDesktop = (
@@ -34,8 +36,17 @@ const RetailerInventoryTable: React.FC<Props> = ({ wines, onRowClick }) => {
               return (
                 <tr
                   key={key}
-                  className="even:bg-[color:var(--color-muted)]/10 hover:bg-[color:var(--color-muted)]/20 cursor-pointer"
+                  className="even:bg-[color:var(--color-muted)]/10 hover:bg-[color:var(--color-muted)]/40 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black hover:shadow-[inset_3px_0_0_0_var(--color-fg)] focus-visible:shadow-[inset_3px_0_0_0_var(--color-fg)] transition-colors"
+                  tabIndex={0}
+                  role="button"
                   onClick={() => onRowClick?.(w)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      onRowClick?.(w);
+                    }
+                  }}
+                  onFocus={(e) => onRowFocus?.(e.currentTarget as HTMLElement, w)}
                 >
                   <td className="py-3 px-4">{w.vintage ?? "—"}</td>
                   <td className="py-3 px-4">{w.producer}</td>
@@ -59,8 +70,17 @@ const RetailerInventoryTable: React.FC<Props> = ({ wines, onRowClick }) => {
           return (
             <li
               key={key}
-              className="py-3 px-4 even:bg-[color:var(--color-muted)]/10 hover:bg-[color:var(--color-muted)]/20 cursor-pointer"
+              className="py-3 px-4 even:bg-[color:var(--color-muted)]/10 hover:bg-[color:var(--color-muted)]/40 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black hover:shadow-[inset_3px_0_0_0_var(--color-fg)] focus-visible:shadow-[inset_3px_0_0_0_var(--color-fg)] transition-colors"
+              tabIndex={0}
+              role="button"
               onClick={() => onRowClick?.(w)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onRowClick?.(w);
+                }
+              }}
+              onFocus={(e) => onRowFocus?.(e.currentTarget as HTMLElement, w)}
             >
               <div className="font-semibold">
                 {w.vintage ? `[${w.vintage}] ` : ""}{w.producer} – {w.name}

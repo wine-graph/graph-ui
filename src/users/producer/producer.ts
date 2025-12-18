@@ -1,6 +1,7 @@
 export type Producer = {
   id: string;
   name: string;
+  slug: string;
   email?: string;
   phone?: string;
   website?: string;
