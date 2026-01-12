@@ -8,10 +8,12 @@ export type User = {
   role: UserRole;
 };
 
-type UserRole = {
+export type UserRole = {
   id: string;
   value: Role;
-}
+  // System provider identifier provided by backend (single POS per retailer)
+  system?: PosProvider;
+};
 
 export type SessionUser = {
   user: User;
@@ -19,35 +21,32 @@ export type SessionUser = {
 };
 
 export type PosToken = {
-  client_id: string;
-  merchant_id: string;
-  scopes: string[];
-  expires_at: string;
+  merchantId: string;
+  expiry: number | null;
+  token?: string;
 };
 
+export type PosProvider = "square" | "clover" | "shopify";
+
+// New flatter shape — we enforce single active POS
 export type PosState = {
-  square?: PosToken | null;
-  clover?: PosToken | null;
+  provider: PosProvider | null;
+  token: PosToken | null;
   loading: boolean;
   error: string | null;
 };
 
-export type AuthContextValue = {
-  user: SessionUser | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  login: (data: SessionUser) => void;
-  logout: () => void;
-  fetchUser: () => Promise<SessionUser | null>;
-  updateRole: (role: Role) => void;
-  role: Role;
-  isVisitor: boolean;
-  isRetailer: boolean;
-  isProducer: boolean;
-  isEnthusiast: boolean;
-  isAdmin: boolean;
-  hasRole: (needle: string) => boolean;
-  pos: PosState;
-  loadPos: (provider: "square" | "clover", merchantId: string) => Promise<void>;
-  refreshPos: (provider: "square" | "clover", merchantId: string) => Promise<void>;
-};
+// Helper to derive role cleanly (used in UI + machine)
+export function deriveRole(rawValue: string | undefined): Role {
+  if (!rawValue) return "visitor";
+  const lower = rawValue.toLowerCase();
+  if (lower.includes("admin")) return "admin";
+  if (lower.includes("retailer")) return "retailer";
+  if (lower.includes("producer")) return "producer";
+  if (lower.includes("enthusiast")) return "enthusiast";
+  return "visitor";
+}
+
+export function hasRole(user: SessionUser | null, needle: Role): boolean {
+  return deriveRole(user?.user.role.value) === needle;
+}

@@ -1,0 +1,416 @@
+---
+openapi: 3.1.0
+components:
+  schemas:
+    GraphUser:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        picture:
+          type: string
+        role:
+          $ref: "#/components/schemas/Role"
+    Instant:
+      type: string
+      format: date-time
+      examples:
+        - 2022-03-10T16:15:50Z
+    PosToken:
+      type: object
+      properties:
+        expiresAt:
+          $ref: "#/components/schemas/Instant"
+        expiresAtMs:
+          type: integer
+          format: int64
+        expiresInSeconds:
+          type: integer
+          format: int64
+        merchantId:
+          type: string
+    Role:
+      type: object
+      properties:
+        value:
+          type: string
+        id:
+          type: string
+        system:
+          type: string
+    RoleEnum:
+      type: string
+      enum:
+        - VISITOR
+        - ADMIN
+        - RETAILER
+        - PRODUCER
+        - ENTHUSIAST
+    SessionUser:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/GraphUser"
+        token:
+          type: string
+    SessionUserRequest:
+      type: object
+      properties:
+        role:
+          $ref: "#/components/schemas/RoleEnum"
+    TokenResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+        expires_in:
+          type: integer
+          format: int32
+        refresh_token:
+          type: string
+        refresh_token_expires_in:
+          type: integer
+          format: int32
+        scope:
+          type: string
+    TokenRevokeResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+  securitySchemes:
+    SecurityScheme:
+      description: Authentication
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+paths:
+  /clover/authorize:
+    get:
+      parameters:
+        - name: userId
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json: {}
+      summary: Authorize
+      tags:
+        - Clover Token Resource
+  /clover/callback:
+    get:
+      parameters:
+        - name: client_id
+          in: query
+          schema:
+            type: string
+        - name: code
+          in: query
+          schema:
+            type: string
+        - name: merchant_id
+          in: query
+          schema:
+            type: string
+        - name: state
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json: {}
+      summary: Callback
+      tags:
+        - Clover Token Resource
+  /clover/refresh:
+    post:
+      parameters:
+        - name: merchant_id
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PosToken"
+      summary: Refresh Token
+      tags:
+        - Clover Token Resource
+  /clover/token:
+    post:
+      parameters:
+        - name: merchant_id
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PosToken"
+      summary: Token
+      tags:
+        - Clover Token Resource
+  /session/authenticate:
+    get:
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json: {}
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      summary: Authenticate
+      tags:
+        - User Session Resource
+      security:
+        - SecurityScheme: []
+  /session/complete:
+    get:
+      parameters:
+        - name: state
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionUser"
+      summary: Complete
+      tags:
+        - User Session Resource
+  /session/user:
+    get:
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionUser"
+      summary: User
+      tags:
+        - User Session Resource
+    patch:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SessionUserRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionUser"
+      summary: Update User
+      tags:
+        - User Session Resource
+  /shopify/authorize:
+    get:
+      parameters:
+        - name: shop
+          in: query
+          schema:
+            type: string
+        - name: user_id
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json: {}
+      summary: Authorize
+      tags:
+        - Shopify Token Resource
+  /shopify/callback:
+    get:
+      parameters:
+        - name: code
+          in: query
+          schema:
+            type: string
+        - name: hmac
+          in: query
+          schema:
+            type: string
+        - name: host
+          in: query
+          schema:
+            type: string
+        - name: shop
+          in: query
+          schema:
+            type: string
+        - name: state
+          in: query
+          schema:
+            type: string
+        - name: timestamp
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json: {}
+      summary: Callback
+      tags:
+        - Shopify Token Resource
+  /shopify/refresh:
+    post:
+      parameters:
+        - name: shop
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenResponse"
+      summary: Refresh
+      tags:
+        - Shopify Token Resource
+  /shopify/token:
+    get:
+      parameters:
+        - name: shop
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenResponse"
+      summary: Token
+      tags:
+        - Shopify Token Resource
+  /square/authorize:
+    get:
+      parameters:
+        - name: user_id
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json: {}
+      summary: Authorize
+      tags:
+        - Square Token Resource
+  /square/callback:
+    get:
+      parameters:
+        - name: code
+          in: query
+          schema:
+            type: string
+        - name: error
+          in: query
+          schema:
+            type: string
+        - name: error_description
+          in: query
+          schema:
+            type: string
+        - name: state
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json: {}
+      summary: Callback
+      tags:
+        - Square Token Resource
+  /square/refresh:
+    post:
+      parameters:
+        - name: merchant_id
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PosToken"
+      summary: Refresh Token
+      tags:
+        - Square Token Resource
+  /square/revoke:
+    post:
+      parameters:
+        - name: merchant_id
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenRevokeResponse"
+      summary: Revoke Token
+      tags:
+        - Square Token Resource
+  /square/token:
+    get:
+      parameters:
+        - name: merchant_id
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PosToken"
+      summary: Status
+      tags:
+        - Square Token Resource
+info:
+  title: Graph User Session API
+  version: 1.0.0-SNAPSHOT
+  description: Security API to manage user sessions and tokens
+servers:
+  - url: localhost:8082

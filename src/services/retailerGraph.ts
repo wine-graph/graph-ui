@@ -55,9 +55,9 @@ const RETAILERS_QUERY = gql(`
 `)
 
 const RETAILER_ONBOARDING_MUTATION = gql(`
-  mutation OnboardRetailer($merchantId: ID!) {
+  mutation OnboardRetailer($merchantId: ID!, $pos: WineSource!) {
     Retailer {
-      onboard(merchantId: $merchantId, pos: SQUARE) {
+      onboard(merchantId: $merchantId, pos: $pos) {
         id
         pos
         name
@@ -76,7 +76,7 @@ const RETAILER_ONBOARDING_MUTATION = gql(`
   }
 `)
 
-// Triggers a backend sync of inventory for the given Square merchant
+// Triggers a backend sync of inventory for the given merchant/provider
 // Note: despite the name, this is a mutation (kept for backward compatibility)
 const RETAILER_INVENTORY_MUTATION = gql(`
   mutation SyncRetailerInventory($merchantId: ID!) {

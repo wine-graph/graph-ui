@@ -12,4 +12,8 @@ export type Producer = {
 type Wine = {
   id: string;
   name: string;
+  slug: string;
+  description?: string;
+  vintage? : string;
+  varietal?: string;
 }

@@ -7,9 +7,10 @@ import {Globe, Mail, MapPin, Phone, Store, RefreshCcw} from "lucide-react";
 import Spinner from "../../components/common/Spinner.tsx";
 import {useAuth} from "../../auth/authContext.ts";
 import {useEffect, useMemo, useRef, useState} from "react";
+import useRetailerOnboarding from "./useRetailerOnboarding.ts";
 
 export const RetailerInventory = () => {
-  const {user, isRetailer, pos} = useAuth();
+  const {user, isRetailer, currentProvider, currentPosToken, isAuthorized} = useAuth();
   const {retailerId} = useParams();
   const {data, loading, refetch} = useQuery(RETAILER_QUERY, {
     variables: {id: retailerId},
@@ -23,7 +24,17 @@ export const RetailerInventory = () => {
   const [banner, setBanner] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   const retailer = data?.Retailer?.retailer;
-  const inventory = Array.isArray(retailer?.inventory) ? retailer.inventory : [];
+  const inventory = Array.isArray(retailer?.inventory) ? retailer.inventory : null;
+
+  // Initialize implicit onboarding when a retailer page is visited but the retailer record is not found
+  const merchantId = retailerId ?? retailer.id;
+  const shouldOnboard = !retailer;
+  useRetailerOnboarding({
+    merchantId,
+    isAuthorized: Boolean(isAuthorized && shouldOnboard),
+    provider: currentProvider?.toUpperCase() ?? null,
+    token: currentPosToken ?? null,
+  });
 
   // Local UI state for List + Detail pattern
   const [query, setQuery] = useState("");
@@ -31,15 +42,13 @@ export const RetailerInventory = () => {
   const lastFocusedRowRef = useRef<HTMLElement | null>(null);
 
   const canSync = useMemo(() => {
-    const square = pos.square;
-    const isAuthorized = !!square && new Date(square.expires_at).getTime() > Date.now();
     const ownsPage = user?.user?.role?.id && retailerId && user.user.role.id === retailerId;
-    return Boolean(isRetailer && ownsPage && isAuthorized && square?.merchant_id);
-  }, [isRetailer, pos.square, retailerId, user?.user?.role?.id]);
+    return Boolean(isRetailer && ownsPage && isAuthorized && currentProvider && currentPosToken);
+  }, [currentPosToken, currentProvider, isAuthorized, isRetailer, retailerId, user?.user.role.id]);
 
   const handleSync = async () => {
     setBanner(null);
-    const merchantId = pos.square?.merchant_id;
+    const merchantId = user?.user.role.id;
     if (!merchantId) return;
     try {
       await syncInventory({
@@ -156,10 +165,10 @@ export const RetailerInventory = () => {
                 aria-label="Sync Inventory"
               >
                 <RefreshCcw className={`w-4 h-4 ${syncing ? "animate-spin" : ""}`}/>
-                <span>{syncing ? "Syncing inventory…" : "Sync inventory from Square"}</span>
+                <span>{syncing ? "Syncing inventory…" : "Sync inventory"}</span>
               </button>
               <div className="mt-2 text-[12px] leading-snug text-[color:var(--color-fg-muted)]">
-                {syncing ? "Please wait, this may take up to a minute." : ""}
+                {syncing ? "Please wait, this may take up to a minute." : (currentProvider ? `Provider: ${retailer?.pos}` : "")}
               </div>
             </div>
 
@@ -178,7 +187,7 @@ export const RetailerInventory = () => {
                 </span>
               </button>
               <div className="mt-1 text-[11px] leading-snug text-[color:var(--color-fg-muted)]">
-                {syncing ? "Please wait, this may take up to a minute." : ""}
+                {syncing ? "Please wait, this may take up to a minute." : (currentProvider ? `Provider: ${retailer?.pos}` : "")}
               </div>
             </div>
           </>
@@ -225,17 +234,17 @@ export const RetailerInventory = () => {
             {inventory.length === 0 ? (
               <>
                 <div>No wines in inventory yet.</div>
-                {canSync && (
-                  <div className="mt-4">
-                    <button
-                      onClick={handleSync}
-                      disabled={syncing}
-                      className={`h-10 px-3 border-2 border-[color:var(--color-fg)] bg-[color:var(--color-fg)] text-[color:var(--color-bg)] ${syncing ? "opacity-80 cursor-not-allowed" : ""}`}
-                    >
-                      {syncing ? "Syncing…" : "Sync inventory"}
-                    </button>
-                  </div>
-                )}
+                {/*{canSync && (*/}
+                {/*  <div className="mt-4">*/}
+                {/*    <button*/}
+                {/*      onClick={handleSync}*/}
+                {/*      disabled={syncing}*/}
+                {/*      className={`h-10 px-3 border-2 border-[color:var(--color-fg)] bg-[color:var(--color-fg)] text-[color:var(--color-bg)] ${syncing ? "opacity-80 cursor-not-allowed" : ""}`}*/}
+                {/*    >*/}
+                {/*      {syncing ? "Syncing…" : "Sync inventory"}*/}
+                {/*    </button>*/}
+                {/*  </div>*/}
+                {/*)}*/}
               </>
             ) : (
               <>
@@ -249,7 +258,9 @@ export const RetailerInventory = () => {
             wines={filteredInventory}
             onRowClick={(w) => setSelected(w)}
             // capture the focused row to restore focus when closing drawer
-            onRowFocus={(el) => { lastFocusedRowRef.current = el; }}
+            onRowFocus={(el) => {
+              lastFocusedRowRef.current = el;
+            }}
           />
         )}
       </div>
@@ -263,7 +274,8 @@ export const RetailerInventory = () => {
             aria-label="Close"
             onClick={() => setSelected(null)}
           />
-          <aside className="absolute right-0 top-0 h-full w-full sm:w-[520px] bg-[color:var(--color-bg)] border-l-2 border-[color:var(--color-border)] shadow-xl">
+          <aside
+            className="absolute right-0 top-0 h-full w-full sm:w-[520px] bg-[color:var(--color-bg)] border-l-2 border-[color:var(--color-border)] shadow-xl">
             <div className="h-12 px-4 border-b-2 border-[color:var(--color-border)] flex items-center justify-between">
               <div className="font-medium truncate">{selected?.name ?? "Item"}</div>
               <button className="underline" onClick={() => setSelected(null)}>Close</button>
@@ -272,10 +284,13 @@ export const RetailerInventory = () => {
               <section>
                 <h3 className="text-sm font-medium mb-2">Summary</h3>
                 <div className="text-sm space-y-1">
-                  <div><span className="text-[color:var(--color-fg-muted)]">Producer:</span> {selected?.producer ?? "—"}</div>
+                  <div><span className="text-[color:var(--color-fg-muted)]">Producer:</span> {selected?.producer ?? "—"}
+                  </div>
                   <div><span className="text-[color:var(--color-fg-muted)]">Name:</span> {selected?.name ?? "—"}</div>
-                  <div><span className="text-[color:var(--color-fg-muted)]">Vintage:</span> {selected?.vintage ?? "—"}</div>
-                  <div><span className="text-[color:var(--color-fg-muted)]">Varietal:</span> {selected?.varietal ?? "—"}</div>
+                  <div><span className="text-[color:var(--color-fg-muted)]">Vintage:</span> {selected?.vintage ?? "—"}
+                  </div>
+                  <div><span className="text-[color:var(--color-fg-muted)]">Varietal:</span> {selected?.varietal ?? "—"}
+                  </div>
                 </div>
               </section>
               <section>
@@ -283,7 +298,10 @@ export const RetailerInventory = () => {
                 <div className="text-sm">Not matched yet. Matching runs periodically in the background.</div>
               </section>
               <div className="pt-2">
-                <button className="h-10 px-3 border-2 border-[color:var(--color-border)] bg-[color:var(--color-panel)]">View in matches</button>
+                <button
+                  className="h-10 px-3 border-2 border-[color:var(--color-border)] bg-[color:var(--color-panel)]">View
+                  in matches
+                </button>
               </div>
             </div>
           </aside>
@@ -292,14 +310,14 @@ export const RetailerInventory = () => {
 
       {/* Restore focus to triggering row when drawer closes */}
       {!selected && lastFocusedRowRef.current && (
-        <FocusRestorer target={lastFocusedRowRef.current} />
+        <FocusRestorer target={lastFocusedRowRef.current}/>
       )}
     </div>
   );
 };
 
 // Utility component to restore focus after drawer close
-const FocusRestorer = ({target}: {target: HTMLElement}) => {
+const FocusRestorer = ({target}: { target: HTMLElement }) => {
   useEffect(() => {
     target?.focus?.();
   }, [target]);

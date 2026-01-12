@@ -1,32 +1,21 @@
-import {assign, fromPromise, setup} from "xstate";
-import {getPosToken, refreshPosToken} from "./authClient";
-import {storage} from "./storage";
-import type {PosToken, SessionUser} from "./types";
-
-type PosProvider = "square" | "clover";
+import { assign, fromPromise, setup } from "xstate";
+import { getPosToken, refreshPosToken } from "./authClient";
+import { storage } from "./storage";
+import type { PosProvider, PosToken, SessionUser } from "./types";
+import { deriveRole } from "./types";
 
 interface PosInput {
   provider: PosProvider;
   merchantId: string;
 }
 
-/**
- * authMachine responsibilities:
- * - Hydrate user from localStorage on boot
- * - Hold current SessionUser in context.user
- * - Hold POS status in context.pos (square/clover, loading, error)
- * - React to:
- *    - LOGGED_IN: set user + persist
- *    - LOGGED_OUT: clear user + POS
- *    - POS.LOAD/POS.REFRESH: load POS token from backend
- */
 export const authMachine = setup({
   types: {
     context: {} as {
       user: SessionUser | null;
       pos: {
-        square: PosToken | null;
-        clover: PosToken | null;
+        provider: PosProvider | null;
+        token: PosToken | null;
         loading: boolean;
         error: string | null;
       };
@@ -35,136 +24,102 @@ export const authMachine = setup({
       | { type: "LOGGED_IN"; data: SessionUser }
       | { type: "LOGGED_OUT" }
       | { type: "POS.LOAD"; provider: PosProvider; merchantId: string }
-      | { type: "POS.REFRESH"; provider: PosProvider; merchantId: string }
-      | { type: "ROLE.SET"; role: import('./types').Role },
+      | { type: "POS.REFRESH"; provider: PosProvider; merchantId: string },
   },
-  actors: {
 
-    loadPosToken: fromPromise<PosToken | null, PosInput>(async ({input}) => {
+  actors: {
+    loadPosToken: fromPromise<
+      { provider: PosProvider; token: PosToken | null },
+      PosInput
+    >(async ({ input }) => {
       const data = await getPosToken(input.provider, input.merchantId);
-      console.debug("[auth] POS token loaded for:", input.merchantId);
-      return data ?? null;
+      console.debug("[auth] POS token loaded:", input.provider, input.merchantId);
+      return { provider: input.provider, token: data ?? null };
     }),
 
-    refreshPosToken: fromPromise<PosToken | null, PosInput>(async ({input}) => {
+    refreshPosToken: fromPromise<
+      { provider: PosProvider; token: PosToken | null },
+      PosInput
+    >(async ({ input }) => {
       const data = await refreshPosToken(input.provider, input.merchantId);
-      console.debug("[auth] POS token refreshed for:", input.merchantId);
-      return data ?? null;
+      console.debug("[auth] POS token refreshed:", input.provider, input.merchantId);
+      return { provider: input.provider, token: data ?? null };
     }),
   },
 
   actions: {
-    // Boot: hydrate user from localStorage only
     hydrateUserFromStorage: assign({
       user: () => {
         const u = storage.getUser();
-        console.debug("[auth] user hydrated from storage →", u?.user.id);
+        console.debug("[auth] hydrated user from storage →", u?.user.id);
         return u;
       },
     }),
 
-    // Save user from events / invokes, but DON'T clobber context.user when payload is empty
     saveUser: assign({
-      user: ({context, event}) => {
-        const e: any = event ?? {};
-        const payload = e?.data ?? e?.output ?? null;
+      user: ({ context, event }) => {
+        const payload = (event as any)?.data ?? (event as any)?.output ?? null;
+        if (!payload) return context.user;
 
-        if (payload) {
-          const user = payload as SessionUser;
-          try {
-            const prevRole = context.user?.user?.role?.value ?? "visitor";
-            const nextRole = user?.user?.role?.value ?? "visitor";
-            if (prevRole !== nextRole) {
-              console.info("[role] machine saveUser role transition", { from: prevRole, to: nextRole, reason: e?.type ?? "unknown" });
-            }
-          } catch (err) {
-            console.warn("[role] saveUser transition logging failed", err);
+        const user = payload as SessionUser;
+        try {
+          const prev = deriveRole(context.user?.user.role.value);
+          const next = deriveRole(user?.user.role.value);
+          if (prev !== next) {
+            console.info("[role] transition", { from: prev, to: next });
           }
-          storage.setUser(user);
-          return user;
-        }
-
-        // No payload (e.g. entry into authenticated): keep existing user
-        return context.user;
+        } catch {}
+        storage.setUser(user);
+        return user;
       },
     }),
 
     clearUser: assign({
       user: () => {
-        console.debug("[auth] clearUser called");
+        console.debug("[auth] clearing user");
         storage.clear();
         return null;
       },
       pos: () => ({
-        square: null,
-        clover: null,
+        provider: null,
+        token: null,
         loading: false,
         error: null,
       }),
     }),
 
-    // Client-only: set role in local user and persist
-    setRole: assign({
-      user: ({context, event}) => {
-        const e = event as { type: string; role?: import('./types').Role };
-        if (!context.user || !e.role) return context.user;
-        const next = {
-          ...context.user,
-          user: {
-            ...context.user.user,
-            role: {
-              ...context.user.user.role,
-              value: e.role,
-            },
-          },
-        } as SessionUser;
-        storage.setUser(next);
-        return next;
-      },
-    }),
-
     setPosLoading: assign({
-      pos: ({context}) => ({
+      pos: ({ context }) => ({
         ...context.pos,
         loading: true,
         error: null,
       }),
     }),
 
-    // POS success after load/refresh – robust against event being undefined
-    setPosFromOutput: assign({
-      pos: ({context, event}) => {
-        const e: any = event ?? {};
-        const output = (e.output as PosToken | null) ?? null;
+    setPosSuccess: assign({
+      pos: ({ context, event }) => {
+        const output = (event as any).output as
+          | { provider: PosProvider; token: PosToken | null }
+          | undefined;
+        if (!output?.token) return context.pos;
 
-        console.debug("[auth] setPosFromOutput → before:", context.pos);
-        console.debug("[auth] setPosFromOutput → output:", output);
+        const { provider, token } = output;
 
-        const next = {
-          square: output,             // set Square explicitly
-          clover: context.pos.clover, // keep clover as-is for now
+        return {
+          provider,
+          token,
           loading: false,
           error: null,
         };
-
-        console.log("[auth] setPosFromOutput → after:", next);
-        return next;
       },
     }),
 
-    // POS error handler – robust against event being undefined
     setPosError: assign({
-      pos: ({context, event}) => {
-        const e: any = event ?? {};
-        const err =
-          (e.error as Error | undefined)?.message ??
-          String(e.error ?? "Unknown POS error");
-
-        console.error("[auth] setPosError:", err);
-
+      pos: ({ context, event }) => {
+        const err = (event as any)?.error?.message ?? "Unknown POS error";
+        console.error("[auth] POS error:", err);
         return {
           ...context.pos,
-          square: null,
           loading: false,
           error: err,
         };
@@ -173,14 +128,24 @@ export const authMachine = setup({
   },
 
   guards: {
-    hasUserInContext: ({context}) => context.user != null,
-    isRetailer: ({context}) => context.user?.user.role.value === 'retailer',
-    isRetailerEvent: ({context, event}) => {
-      const e = event as { data?: SessionUser };
-      const next = e.data ?? context.user;
-      if (!next) return false;
-      return next.user.role.value === 'retailer';
-    }
+    hasUser: ({ context }) => !!context.user,
+
+    shouldRehydratePos: ({ context }) => {
+      // Only retailers with a system provider can auto-load
+      if (deriveRole(context.user?.user.role.value) !== "retailer") return false;
+      // Already have a valid token loaded? Skip
+      if (context.pos.token && context.pos.provider) return false;
+
+      const system = (context.user?.user.role as any)?.system as PosProvider | null | undefined;
+      const hasMerchantId = !!context.user?.user.role?.id;
+
+      return !!system && hasMerchantId;
+    },
+
+    hasPosInput: ({ event }) => {
+      const e = event as any;
+      return !!e?.provider && !!e?.merchantId;
+    },
   },
 }).createMachine({
   id: "auth",
@@ -188,76 +153,70 @@ export const authMachine = setup({
   context: {
     user: null,
     pos: {
-      square: null,
-      clover: null,
+      provider: null,
+      token: null,
       loading: false,
       error: null,
     },
   },
 
+  on: {
+    LOGGED_OUT: {
+      target: ".unauthenticated",
+      actions: "clearUser",
+    },
+  },
+
   states: {
-    // Boot: hydrate user from storage, no network calls
     loading: {
       entry: "hydrateUserFromStorage",
       always: [
-        {
-          target: "authenticated.loadingPos",
-          guard: "isRetailer"
-        },
-        {
-          target: "authenticated",
-          guard: "hasUserInContext",
-        },
-        {
-          target: "unauthenticated",
-        },
+        { target: "authenticated", guard: "hasUser" },
+        { target: "unauthenticated" },
       ],
     },
 
     unauthenticated: {
-      // don't clear storage on just being unauth'd
+      id: "unauthenticated",
       on: {
-        LOGGED_IN: [
-          {
-            guard: "isRetailerEvent",
-            target: "authenticated.loadingPos",
-            actions: "saveUser"
-          },
-          {
-            target: "authenticated",
-            actions: "saveUser"
-          }
-        ]
+        LOGGED_IN: {
+          target: "authenticated",
+          actions: "saveUser",
+        },
       },
     },
 
     authenticated: {
       entry: "saveUser",
       initial: "idle",
+      // Allow updating the stored user (e.g., role change) without leaving the
+      // authenticated state. Previously, LOGGED_IN events sent while already
+      // authenticated were ignored, so localStorage (graph_user) was not updated.
       on: {
-        LOGGED_OUT: {
-          target: "unauthenticated",
-          actions: "clearUser",
-        },
         LOGGED_IN: {
-          actions: "saveUser"
-        },
-        "ROLE.SET": {
-          actions: "setRole",
+          actions: "saveUser",
         },
       },
-      // Nested state for authenticated
-      states: {
 
+      states: {
         idle: {
+          always: [
+            {
+              guard: "shouldRehydratePos",
+              target: "loadingPos",
+              actions: "setPosLoading",
+            },
+          ],
           on: {
             "POS.LOAD": {
-              actions: "setPosLoading",
               target: "loadingPos",
+              actions: "setPosLoading",
+              guard: "hasPosInput",
             },
             "POS.REFRESH": {
-              actions: "setPosLoading",
               target: "refreshingPos",
+              actions: "setPosLoading",
+              guard: "hasPosInput",
             },
           },
         },
@@ -265,33 +224,26 @@ export const authMachine = setup({
         loadingPos: {
           invoke: {
             src: "loadPosToken",
-            input: ({context, event}) => {
-              // If called from an explicit POS.LOAD event, use that
-              const maybeEvent = event as { provider?: PosProvider; merchantId?: string };
-              if (maybeEvent.provider && maybeEvent.merchantId) {
-                return {
-                  provider: maybeEvent.provider,
-                  merchantId: maybeEvent.merchantId,
-                };
+            input: ({ context, event }) => {
+              const e = event as any;
+
+              // Explicit call takes priority
+              if (e?.provider && e?.merchantId) {
+                return { provider: e.provider, merchantId: e.merchantId };
               }
 
-              // Auto-load on boot: use user role id as merchantId
-              const user = context.user?.user;
-              if (!user) {
-                throw new Error("No user in context when loading POS");
+              // Auto-rehydrate from role.system (backend source of truth)
+              const system = (context.user?.user.role as any)?.system as PosProvider | undefined;
+              const rid = context.user?.user.role?.id;
+              if (system && rid) {
+                return { provider: system, merchantId: rid };
               }
 
-              const merchantId = user.role.id; // <- role id as merchantId
-
-              // Choose your provider here (or derive from user if you store it)
-              // todo make this dynamic based on the PosProvider values
-              const provider: PosProvider = "square";
-
-              return {provider, merchantId};
+              throw new Error("Cannot load POS: no provider/merchantId available");
             },
             onDone: {
               target: "idle",
-              actions: "setPosFromOutput",
+              actions: "setPosSuccess",
             },
             onError: {
               target: "idle",
@@ -303,8 +255,8 @@ export const authMachine = setup({
         refreshingPos: {
           invoke: {
             src: "refreshPosToken",
-            input: ({event}) => {
-              const e = event as { provider: PosProvider; merchantId: string };
+            input: ({ event }) => {
+              const e = event as any;
               return {
                 provider: e.provider,
                 merchantId: e.merchantId,
@@ -312,7 +264,7 @@ export const authMachine = setup({
             },
             onDone: {
               target: "idle",
-              actions: "setPosFromOutput",
+              actions: "setPosSuccess",
             },
             onError: {
               target: "idle",
