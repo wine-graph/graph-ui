@@ -6,15 +6,15 @@ import {Menu, X, LogIn, Search} from "lucide-react";
 import logoUrl from "../public/winegraph.png";
 
 const Layout = () => {
-  const {role, isAuthenticated, user, pos} = useAuth();
+  const {role, isAuthenticated, user, currentPosToken} = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
 
   // Retailer ID is NOT the Google user id. Prefer the POS merchant id when available,
   // otherwise fall back to the role.id (which represents the retailer/merchant id in our user model).
   const retailerId = useMemo(
-    () => pos.square?.merchant_id ?? user?.user?.role.id,
-    [pos.square?.merchant_id, user?.user?.role.id]
+    () => currentPosToken?.merchantId ?? user?.user?.role.id,
+    [currentPosToken?.merchantId, user?.user?.role.id]
   );
 
   const links: NavLinkDef[] = useMemo(

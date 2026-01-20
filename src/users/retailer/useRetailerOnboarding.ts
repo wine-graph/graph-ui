@@ -1,13 +1,17 @@
-import {useEffect, useRef} from "react";
+import {useEffect} from "react";
 import {useMutation} from "@apollo/client";
 import {retailerClient} from "../../services/apolloClient.ts";
 import {RETAILER_ONBOARDING_MUTATION} from "../../services/retailerGraph.ts";
+import type {PosToken} from "../../auth/types.ts";
 
 type Params = {
-  retailerId?: string | null;
   merchantId?: string | null;
   isAuthorized: boolean;
+  provider?: string | null;
+  token?: PosToken | null;
 };
+
+// todo figure out when how to trigger this easily and only once
 
 /**
  * Implicit, idempotent retailer onboarding.
@@ -15,43 +19,31 @@ type Params = {
  * for the authenticated retailer. Uses localStorage to avoid duplicate calls within the same
  * browser, and should be safe to repeat thanks to backend idempotency.
  */
-export const useRetailerOnboarding = ({retailerId, merchantId, isAuthorized}: Params) => {
-  const firedRef = useRef(false);
+export const useRetailerOnboarding = ({merchantId, isAuthorized, provider, token}: Params) => {
 
   const [onboard] = useMutation(RETAILER_ONBOARDING_MUTATION, {
     client: retailerClient,
   });
 
   useEffect(() => {
-    // Require a valid, non-expired authorization and a Square merchant id
+    // Basic guards
     if (!isAuthorized) return;
     if (!merchantId) return;
+    if (!provider) return; // must have provider enum for mutation
+    if (!token) return; // ensure we truly have a token for this provider
 
-    const rid = retailerId ?? "unknown";
-    const key = `onboarded:${rid}:${merchantId}`;
-
-    if (firedRef.current) return;
-    if (localStorage.getItem(key)) return;
-
-    firedRef.current = true;
+    const rid = merchantId ?? "unknown";
 
     onboard({
-      variables: {merchantId},
+      variables: {merchantId, pos: provider},
     })
       .then(() => {
-        console.debug("[onboarding] Retailer onboarding completed for", {retailerId: rid, merchantId});
-        try {
-          localStorage.setItem(key, String(Date.now()));
-        } catch {
-          // ignore storage errors
-        }
+        console.debug("[onboarding] Retailer onboarding completed for", {retailerId: rid, merchantId, provider});
       })
       .catch((e) => {
         console.error("[onboarding] Retailer onboarding failed", e);
-        // allow retry on next mount/refresh
-        firedRef.current = false;
       });
-  }, [isAuthorized, merchantId, onboard, retailerId]);
+  }, [isAuthorized, merchantId, onboard, provider, token]);
 };
 
 export default useRetailerOnboarding;

@@ -5,8 +5,9 @@ import {authMachine} from "./authMachine";
 import {useAuthService} from "./useAuthService.ts";
 import {useGoogleOidc} from "./google";
 import {useSquareOAuth} from "./square.ts";
+import {useCloverOAuth} from "./clover.ts";
+import {useShopifyOAuth} from "./shopify.ts";
 import Spinner from "../components/common/Spinner";
-import useRetailerOnboarding from "../users/retailer/useRetailerOnboarding.ts";
 
 export const AuthProvider = ({children}: { children: ReactNode }) => {
 
@@ -28,12 +29,23 @@ export const AuthProvider = ({children}: { children: ReactNode }) => {
     square.authenticate();
   }, [square]);
 
-  // Implicit retailer onboarding: runs once when Square is authorized
-  const squareToken = auth.pos.square;
-  const isAuthorized = !!squareToken && new Date(squareToken.expires_at).getTime() > Date.now();
-  const retailerId = auth.user?.user.role.id ?? null;
-  const merchantId = squareToken?.merchant_id ?? null;
-  useRetailerOnboarding({retailerId, merchantId, isAuthorized});
+  // Handle Clover OAuth
+  const clover = useCloverOAuth({auth});
+  useEffect(() => {
+    const pending = sessionStorage.getItem("clover_oauth_pending");
+    if (!pending) return;
+    clover.authenticate();
+  }, [clover]);
+
+  // Handle Shopify OAuth
+  const shopify = useShopifyOAuth({auth});
+  useEffect(() => {
+    const pending = sessionStorage.getItem("shopify_oauth_pending");
+    if (!pending) return;
+    shopify.authenticate();
+  }, [shopify]);
+
+  // NOTE: Do not trigger onboarding automatically on page load. Onboarding is a one-time, explicit flow.
 
   // CORRECT: matches({ authenticated: "idle" })
   if (state.matches("loading") || google.isProcessing) {

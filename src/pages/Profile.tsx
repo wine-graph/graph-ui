@@ -2,7 +2,6 @@ import PageHeader from "../components/common/PageHeader.tsx";
 import GoogleSignIn from "../components/common/GoogleSignIn.tsx";
 import {useAuth} from "../auth/authContext.ts";
 import GoogleProfile from "../components/common/GoogleProfile.tsx";
-import SquareAuth from "../users/retailer/SquareAuth.tsx";
 import {startAuthentication} from "../auth/authClient.ts";
 import type {Role} from "../auth/types.ts";
 import React, {useState} from "react";
@@ -66,35 +65,6 @@ export const ProfilePage = () => {
               ) : (
                 <CurrentRoleSummary role={role} />
               )}
-
-              <div className="mt-6">
-                {role === "retailer" && (
-                  <div>
-                    <SectionHeading title="Retailer Tools" desc="Access POS and inventory management flows." />
-                    <div className="mt-4">
-                      <SquareAuth />
-                    </div>
-                  </div>
-                )}
-
-                {role === "producer" && (
-                  <div>
-                    <SectionHeading title="Producer Onboarding" desc="Set up your producer profile and manage your offerings." />
-                    <div className="mt-4 rounded-md border border-dashed p-4 text-sm text-slate-600">
-                      Producer onboarding placeholder. Coming soon.
-                    </div>
-                  </div>
-                )}
-
-                {role === "enthusiast" && (
-                  <div>
-                    <SectionHeading title="Discovery Mode" desc="Browse and discover wines and retailers. Read-only for now." />
-                    <div className="mt-4 rounded-md border border-dashed p-4 text-sm text-slate-600">
-                      Enthusiast discovery surfaces placeholder.
-                    </div>
-                  </div>
-                )}
-              </div>
             </div>
           </div>
         )}
@@ -182,13 +152,6 @@ const RolePicker: React.FC<{ currentRole: Role; onChange: (r: Role) => void; dis
     </form>
   );
 };
-
-const SectionHeading: React.FC<{ title: string; desc?: string }> = ({title, desc}) => (
-  <div>
-    <h3 className="text-lg font-semibold">{title}</h3>
-    {desc && <p className="text-sm text-slate-600">{desc}</p>}
-  </div>
-);
 
 const RolesOverview = () => {
   const items = [

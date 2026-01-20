@@ -1,10 +1,10 @@
 import {useAuth} from "./authContext.ts";
 
 export const AuthDebug = () => {
-  const {user, pos, isAuthenticated} = useAuth();
+  const {user, currentProvider, currentPosToken, isAuthenticated} = useAuth();
   return (
     <pre className="text-xs">
-      {JSON.stringify({ isAuthenticated, user, pos }, null, 2)}
+      {JSON.stringify({ isAuthenticated, user, currentProvider, currentPosToken }, null, 2)}
     </pre>
   );
 }
