@@ -1,7 +1,7 @@
 import {Link, useParams} from "react-router-dom";
 import {useMemo, useRef} from "react";
 import {useQuery} from "@apollo/client";
-import {WINE_BY_ID} from "../services/producerGraph.ts";
+import {WINE_BY_ID} from "../services/wineGraph.ts";
 import {producerClient} from "../services/apolloClient.ts";
 
 type Wine = {

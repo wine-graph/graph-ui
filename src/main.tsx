@@ -7,6 +7,7 @@ import {createBrowserRouter, createRoutesFromElements, Outlet, Route, RouterProv
 import {AuthProvider} from "./auth/AuthProvider";
 import RoleRoute from "./routes/RoleRoute";
 import Spinner from "./components/common/Spinner";
+import {RetailerMarketplace} from "./users/retailer/RetailerMarketplace.tsx";
 
 const DiscoverPage = lazy(() => import("./pages/Discover.tsx").then(m => ({ default: m.DiscoverPage })));
 const ProfilePage = lazy(() => import("./pages/Profile.tsx").then(m => ({ default: m.ProfilePage })));
@@ -14,7 +15,9 @@ const MarketplacePage = lazy(() => import("./pages/Marketplace.tsx").then(m => (
 const ProducerMarketplace = lazy(() => import("./users/producer/ProducerMarketplace.tsx").then(m => ({ default: m.ProducerMarketplace })));
 const RetailerInventory = lazy(() => import("./users/retailer/RetailerInventory.tsx").then(m => ({ default: m.RetailerInventory })));
 const RetailerProfile = lazy(() => import("./users/retailer/RetailerProfile.tsx").then(m => ({ default: m.RetailerProfile })));
+const ProducerProfile = lazy(() => import("./users/producer/ProducerProfile.tsx").then(m => ({ default: m.ProducerProfile })));
 const GraphFeed = lazy(() => import("./pages/./GraphFeed.tsx"));
+const ProducerInventory = lazy(() => import("./users/producer/ProducerInventory.tsx"));
 const ProducerPage = lazy(() => import("./pages/ProducerPage.tsx"));
 const WinePage = lazy(() => import("./pages/WinePage.tsx"));
 
@@ -61,6 +64,31 @@ const router = createBrowserRouter(
         />
       </Route>
       {/* --- End Retailer section --- */}
+
+      {/* --- Producer section --- */}
+      <Route path="producer">
+        <Route
+          path=":producerId"
+          element={
+            <RoleRoute allowedRole={"producer"} redirectPath="/">
+              <Outlet/>
+            </RoleRoute>
+          }
+        >
+          <Route path="profile" element={(<ProducerProfile/>)} />
+          {/* Producer Inventory (includes CSV Import component) */}
+          <Route path="inventory" element={(<ProducerInventory/>)} />
+        </Route>
+        <Route
+          path="marketplace"
+          element={
+            <RoleRoute allowedRole={"producer"} redirectPath="/">
+              {(<RetailerMarketplace/>)}
+            </RoleRoute>
+          }
+        />
+      </Route>
+      {/* --- End Producer section --- */}
 
       {/* */}
       {/* */}

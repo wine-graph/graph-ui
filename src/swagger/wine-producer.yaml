@@ -1,0 +1,71 @@
+---
+openapi: 3.1.0
+components:
+  schemas:
+    Wine:
+      type: object
+      properties:
+        name:
+          type: string
+        vintage:
+          type: integer
+          format: int32
+        varietals:
+          type: array
+          items:
+            type: string
+        description:
+          type: string
+    WineExtraction:
+      type: object
+      properties:
+        producerId:
+          type: string
+        wines:
+          type: array
+          items:
+            $ref: "#/components/schemas/Wine"
+  securitySchemes:
+    SecurityScheme:
+      description: Authentication
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+paths:
+  /producer/{producerId}/wines/upload:
+    put:
+      parameters:
+      - name: producerId
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WineExtraction"
+      summary: Upload
+      tags:
+      - Onboarding Resource
+info:
+  title: Wine Upload API
+  version: 1.0.0-SNAPSHOT
+  description: API to manage data upload for wine producers
+servers:
+- url: http://localhost:8080
+  description: Auto generated value
+- url: http://0.0.0.0:8080
+  description: Auto generated value

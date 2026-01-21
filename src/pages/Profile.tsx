@@ -4,11 +4,24 @@ import {useAuth} from "../auth/authContext.ts";
 import GoogleProfile from "../components/common/GoogleProfile.tsx";
 import {startAuthentication} from "../auth/authClient.ts";
 import type {Role} from "../auth/types.ts";
-import React, {useState} from "react";
-import { Send } from "lucide-react";
+import React, {useEffect, useState} from "react";
+import {Send} from "lucide-react";
+import {useNavigate} from "react-router-dom";
 
 export const ProfilePage = () => {
-  const {isAuthenticated, user, isLoading, role, updateRole} = useAuth();
+  const navigate = useNavigate();
+  const {isAuthenticated, user, isLoading, role, setLocalRole} = useAuth();
+
+  // After login, redirect users to the correct inventory route based on role + role.id
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const roleId = user?.user.role.id;
+    if (!roleId) return;
+    if (role === "producer") {
+      navigate(`/producer/${roleId}/profile`, { replace: true });
+      return;
+    }
+  }, [isAuthenticated, role, user?.user.role.id, navigate]);
 
   if (isLoading) {
     return (
@@ -43,7 +56,7 @@ export const ProfilePage = () => {
 
             {/* Right: Roles overview (non-interactive pre-auth) */}
             <div className="order-2">
-              <RolesOverview />
+              <RolesOverview/>
               <p className="mt-2 text-xs text-slate-500">Sign in to choose your role and unlock the relevant tools.</p>
             </div>
           </div>
@@ -61,9 +74,23 @@ export const ProfilePage = () => {
             {/* Right: Role selection (only if no role yet) + gated flows */}
             <div className="order-2 lg:order-2">
               {role === "visitor" ? (
-                <RolePicker currentRole={role} onChange={updateRole} />
+                <RolePicker
+                  currentRole={role}
+                  onChange={(next) => {
+                    // Local-first role selection (no backend call)
+                    setLocalRole(next);
+                    // Navigate immediately to placeholder route using Google user.id
+                    const userId = user?.user.id;
+                    if (!userId) return;
+                    if (next === "producer") {
+                      navigate(`/producer/${userId}/profile`, { replace: true });
+                    } else if (next === "retailer") {
+                      navigate(`/retailer/${userId}/profile`, { replace: true });
+                    }
+                  }}
+                />
               ) : (
-                <CurrentRoleSummary role={role} />
+                <CurrentRoleSummary role={role}/>
               )}
             </div>
           </div>
@@ -75,7 +102,11 @@ export const ProfilePage = () => {
   );
 };
 
-const RolePicker: React.FC<{ currentRole: Role; onChange: (r: Role) => void; disabled?: boolean }> = ({currentRole, onChange, disabled = false}) => {
+const RolePicker: React.FC<{ currentRole: Role; onChange: (r: Role) => void; disabled?: boolean }> = ({
+                                                                                                        currentRole,
+                                                                                                        onChange,
+                                                                                                        disabled = false
+                                                                                                      }) => {
   const options: { value: Role; label: string; desc: string }[] = [
     {value: "retailer", label: "Retailer", desc: "Manage POS integrations and inventory."},
     {value: "producer", label: "Producer", desc: "Onboard as a producer and manage your wines."},
@@ -94,7 +125,7 @@ const RolePicker: React.FC<{ currentRole: Role; onChange: (r: Role) => void; dis
   const handleConfirm = (e: React.FormEvent) => {
     e.preventDefault();
     if (canConfirm && pendingRole) {
-      console.info("[role] confirm selection", { from: currentRole, to: pendingRole });
+      console.info("[role] confirm selection", {from: currentRole, to: pendingRole});
       onChange(pendingRole);
     }
   };
@@ -102,7 +133,8 @@ const RolePicker: React.FC<{ currentRole: Role; onChange: (r: Role) => void; dis
   return (
     <form onSubmit={handleConfirm} className={`rounded-lg border p-4 ${disabled ? 'opacity-60' : ''}`}>
       <h3 className="text-lg font-semibold">Choose your role</h3>
-      <p className="text-sm text-slate-600 mb-3">Select one, then tap Confirm to apply. This helps prevent accidental changes.</p>
+      <p className="text-sm text-slate-600 mb-3">Select one, then tap Confirm to apply. This helps prevent accidental
+        changes.</p>
       <div className="space-y-2">
         {options.map((opt) => (
           <label
@@ -116,7 +148,7 @@ const RolePicker: React.FC<{ currentRole: Role; onChange: (r: Role) => void; dis
               checked={pendingRole === opt.value}
               onChange={() => {
                 if (disabled) return;
-                console.debug("[role] pending selection set", { value: opt.value });
+                console.debug("[role] pending selection set", {value: opt.value});
                 setPendingRole(opt.value);
               }}
               disabled={disabled}
@@ -142,7 +174,7 @@ const RolePicker: React.FC<{ currentRole: Role; onChange: (r: Role) => void; dis
           aria-label="Confirm role selection"
           title={canConfirm ? 'Confirm selection' : 'Select a role to enable confirm'}
         >
-          <Send className={`w-6 h-6 transition-transform duration-150 ${canConfirm ? 'group-hover:scale-110' : ''}`} />
+          <Send className={`w-6 h-6 transition-transform duration-150 ${canConfirm ? 'group-hover:scale-110' : ''}`}/>
           <span className="sr-only">Confirm role selection</span>
         </button>
         {!canConfirm && (
@@ -155,9 +187,9 @@ const RolePicker: React.FC<{ currentRole: Role; onChange: (r: Role) => void; dis
 
 const RolesOverview = () => {
   const items = [
-    { title: "Retailer", desc: "Connect POS and manage inventory." },
-    { title: "Producer", desc: "Onboard your winery and manage your portfolio." },
-    { title: "Enthusiast", desc: "Discover wines and retailers (read-only)." },
+    {title: "Retailer", desc: "Connect POS and manage inventory."},
+    {title: "Producer", desc: "Onboard your winery and manage your portfolio."},
+    {title: "Enthusiast", desc: "Discover wines and retailers (read-only)."},
   ];
   return (
     <div className="rounded-lg border p-4">
@@ -175,7 +207,7 @@ const RolesOverview = () => {
   );
 };
 
-const CurrentRoleSummary: React.FC<{ role: Role }> = ({ role }) => (
+const CurrentRoleSummary: React.FC<{ role: Role }> = ({role}) => (
   <div className="rounded-lg border p-4">
     <h3 className="text-lg font-semibold">Current role</h3>
     <p className="text-sm text-slate-600 capitalize">{role}</p>
