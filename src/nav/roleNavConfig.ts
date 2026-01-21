@@ -1,10 +1,8 @@
 import {
-  Activity,
   BarChart3,
   Globe,
   MessageCircleQuestion,
   Package,
-  Settings,
   Store,
   User
 } from "lucide-react";
@@ -16,11 +14,11 @@ export type NavLinkDef = {
   route?: string;
 };
 
-const genericLinks: NavLinkDef[] = [
-  {title: "Activity", icon: Activity, route: "/activity"},
-  {title: "Analytics", icon: BarChart3, route: "/analytics"},
-  {title: "Settings", icon: Settings, route: "/"},
-];
+// const genericLinks: NavLinkDef[] = [
+//   {title: "Activity", icon: Activity, route: "/activity"},
+//   {title: "Analytics", icon: BarChart3, route: "/analytics"},
+//   {title: "Settings", icon: Settings, route: "/"},
+// ];
 
 // Base links common to most roles
 const baseLinks: NavLinkDef[] = [
@@ -29,7 +27,7 @@ const baseLinks: NavLinkDef[] = [
   {title: "Marketplace", icon: Store, route: "/marketplace"},
   {title: "Profile", icon: User, route: "/profile"},
   {title: "Help", icon: MessageCircleQuestion, route: "/"},
-  ...genericLinks,
+  //...genericLinks,
 ];
 
 // Role-specific augmentations
@@ -38,7 +36,7 @@ function retailerLinks(retailerId: string): NavLinkDef[] {
   const cellar: NavLinkDef = {title: "Cellar", icon: Package, route: `/retailer/${retailerId}/inventory`};
   const marketplace: NavLinkDef = {title: "Marketplace", icon: Store, route: "/retailer/marketplace"};
   //const profile: NavLinkDef = {title: "Profile", icon: User, route: `/retailer/${retailerId}/profile`};
-  return [baseLinks[0], marketplace, cellar, baseLinks[4], genericLinks[2]];
+  return [baseLinks[0], marketplace, cellar, baseLinks[4]];
 }
 
 function visitorLinks(): NavLinkDef[] {
@@ -49,8 +47,10 @@ function enthusiastLinks(): NavLinkDef[] {
   return baseLinks;
 }
 
-function producerLinks(): NavLinkDef[] {
-  return genericLinks;
+function producerLinks(producerId: string): NavLinkDef[] {
+  const cellar: NavLinkDef = {title: "Cellar", icon: Package, route: `/producer/${producerId}/inventory`};
+  const marketplace: NavLinkDef = {title: "Marketplace", icon: Store, route: "/retailer/marketplace"};
+  return [baseLinks[0], marketplace, cellar, baseLinks[4]];
 }
 
 export function resolveNavLinksByRole(role: string, userId?: string): NavLinkDef[] {
@@ -61,7 +61,7 @@ export function resolveNavLinksByRole(role: string, userId?: string): NavLinkDef
     case "enthusiast":
       return enthusiastLinks();
     case "producer":
-      return producerLinks();
+      return userId ? producerLinks(userId) : baseLinks;
     default:
       return visitorLinks();
   }

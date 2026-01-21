@@ -22,4 +22,19 @@ const DOMAIN_QUERY = gql(`
   }
 `);
 
-export {DOMAIN_QUERY};
+const AREAS_QUERY = gql(`
+  query {
+    Domain {
+      countries {
+        regions {
+          areas {
+            id
+            name
+          }
+        }
+      }
+    }
+  }
+`)
+
+export {DOMAIN_QUERY, AREAS_QUERY};

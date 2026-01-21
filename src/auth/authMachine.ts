@@ -1,8 +1,8 @@
-import { assign, fromPromise, setup } from "xstate";
-import { getPosToken, refreshPosToken } from "./authClient";
-import { storage } from "./storage";
-import type { PosProvider, PosToken, SessionUser } from "./types";
-import { deriveRole } from "./types";
+import {assign, fromPromise, setup} from "xstate";
+import {getPosToken, refreshPosToken} from "./authClient";
+import {storage} from "./storage";
+import type {PosProvider, PosToken, SessionUser} from "./types";
+import {deriveRole} from "./types";
 
 interface PosInput {
   provider: PosProvider;
@@ -13,6 +13,11 @@ export const authMachine = setup({
   types: {
     context: {} as {
       user: SessionUser | null;
+      // When true, we are performing a backend attach of role/value+id.
+      // During this window we should ignore stale LOGGED_IN updates and
+      // pause side-effects like POS rehydration.
+      attachInFlight?: boolean;
+      pendingRoleAttach?: { role?: string; roleId?: string } | null;
       pos: {
         provider: PosProvider | null;
         token: PosToken | null;
@@ -24,26 +29,29 @@ export const authMachine = setup({
       | { type: "LOGGED_IN"; data: SessionUser }
       | { type: "LOGGED_OUT" }
       | { type: "POS.LOAD"; provider: PosProvider; merchantId: string }
-      | { type: "POS.REFRESH"; provider: PosProvider; merchantId: string },
+      | { type: "POS.REFRESH"; provider: PosProvider; merchantId: string }
+      | { type: "ROLE.ATTACH_START"; role?: string; roleId?: string }
+      | { type: "ROLE.ATTACH_DONE" }
+      | { type: "ROLE.ATTACH_ERROR" },
   },
 
   actors: {
     loadPosToken: fromPromise<
       { provider: PosProvider; token: PosToken | null },
       PosInput
-    >(async ({ input }) => {
+    >(async ({input}) => {
       const data = await getPosToken(input.provider, input.merchantId);
       console.debug("[auth] POS token loaded:", input.provider, input.merchantId);
-      return { provider: input.provider, token: data ?? null };
+      return {provider: input.provider, token: data ?? null};
     }),
 
     refreshPosToken: fromPromise<
       { provider: PosProvider; token: PosToken | null },
       PosInput
-    >(async ({ input }) => {
+    >(async ({input}) => {
       const data = await refreshPosToken(input.provider, input.merchantId);
       console.debug("[auth] POS token refreshed:", input.provider, input.merchantId);
-      return { provider: input.provider, token: data ?? null };
+      return {provider: input.provider, token: data ?? null};
     }),
   },
 
@@ -57,20 +65,38 @@ export const authMachine = setup({
     }),
 
     saveUser: assign({
-      user: ({ context, event }) => {
+      user: ({context, event}) => {
         const payload = (event as any)?.data ?? (event as any)?.output ?? null;
         if (!payload) return context.user;
 
-        const user = payload as SessionUser;
+        const incoming = payload as SessionUser;
+
+        // If a role attach is currently in flight, ignore stale LOGGED_IN
+        // updates that don't change role value or id. This avoids overwriting
+        // the soon-to-be authoritative attach response with an older fetch.
+        if (context.attachInFlight) {
+          const prevRoleVal = context.user?.user.role?.value ?? "";
+          const prevRoleId = context.user?.user.role?.id ?? "";
+          const nextRoleVal = incoming?.user?.role?.value ?? "";
+          const nextRoleId = incoming?.user?.role?.id ?? "";
+          const roleChanged = prevRoleVal !== nextRoleVal || prevRoleId !== nextRoleId;
+          if (!roleChanged) {
+            console.debug("[auth] saveUser ignored (attachInFlight, no role change)");
+            return context.user;
+          }
+        }
+
         try {
           const prev = deriveRole(context.user?.user.role.value);
-          const next = deriveRole(user?.user.role.value);
+          const next = deriveRole(incoming?.user?.role?.value);
           if (prev !== next) {
-            console.info("[role] transition", { from: prev, to: next });
+            console.info("[role] transition", {from: prev, to: next});
           }
-        } catch {}
-        storage.setUser(user);
-        return user;
+        } catch {
+          console.warn("[role] failed to derive role", incoming?.user?.role?.value);
+        }
+        storage.setUser(incoming);
+        return incoming;
       },
     }),
 
@@ -89,7 +115,7 @@ export const authMachine = setup({
     }),
 
     setPosLoading: assign({
-      pos: ({ context }) => ({
+      pos: ({context}) => ({
         ...context.pos,
         loading: true,
         error: null,
@@ -97,13 +123,13 @@ export const authMachine = setup({
     }),
 
     setPosSuccess: assign({
-      pos: ({ context, event }) => {
+      pos: ({context, event}) => {
         const output = (event as any).output as
           | { provider: PosProvider; token: PosToken | null }
           | undefined;
         if (!output?.token) return context.pos;
 
-        const { provider, token } = output;
+        const {provider, token} = output;
 
         return {
           provider,
@@ -115,7 +141,7 @@ export const authMachine = setup({
     }),
 
     setPosError: assign({
-      pos: ({ context, event }) => {
+      pos: ({context, event}) => {
         const err = (event as any)?.error?.message ?? "Unknown POS error";
         console.error("[auth] POS error:", err);
         return {
@@ -125,13 +151,28 @@ export const authMachine = setup({
         };
       },
     }),
+
+    setAttachStart: assign({
+      attachInFlight: () => true,
+      pendingRoleAttach: (_ctx, ev: any) => ({role: ev?.role, roleId: ev?.roleId}),
+    }),
+
+    setAttachDone: assign({
+      attachInFlight: () => false,
+      pendingRoleAttach: () => null,
+    }),
+
+    setAttachError: assign({
+      attachInFlight: () => false,
+    }),
   },
 
   guards: {
-    hasUser: ({ context }) => !!context.user,
+    hasUser: ({context}) => !!context.user,
 
-    shouldRehydratePos: ({ context }) => {
+    shouldRehydratePos: ({context}) => {
       // Only retailers with a system provider can auto-load
+      if (context.attachInFlight) return false;
       if (deriveRole(context.user?.user.role.value) !== "retailer") return false;
       // Already have a valid token loaded? Skip
       if (context.pos.token && context.pos.provider) return false;
@@ -142,7 +183,7 @@ export const authMachine = setup({
       return !!system && hasMerchantId;
     },
 
-    hasPosInput: ({ event }) => {
+    hasPosInput: ({event}) => {
       const e = event as any;
       return !!e?.provider && !!e?.merchantId;
     },
@@ -165,14 +206,23 @@ export const authMachine = setup({
       target: ".unauthenticated",
       actions: "clearUser",
     },
+    "ROLE.ATTACH_START": {
+      actions: "setAttachStart",
+    },
+    "ROLE.ATTACH_DONE": {
+      actions: "setAttachDone",
+    },
+    "ROLE.ATTACH_ERROR": {
+      actions: "setAttachError",
+    },
   },
 
   states: {
     loading: {
       entry: "hydrateUserFromStorage",
       always: [
-        { target: "authenticated", guard: "hasUser" },
-        { target: "unauthenticated" },
+        {target: "authenticated", guard: "hasUser"},
+        {target: "unauthenticated"},
       ],
     },
 
@@ -224,19 +274,19 @@ export const authMachine = setup({
         loadingPos: {
           invoke: {
             src: "loadPosToken",
-            input: ({ context, event }) => {
+            input: ({context, event}) => {
               const e = event as any;
 
               // Explicit call takes priority
               if (e?.provider && e?.merchantId) {
-                return { provider: e.provider, merchantId: e.merchantId };
+                return {provider: e.provider, merchantId: e.merchantId};
               }
 
               // Auto-rehydrate from role.system (backend source of truth)
               const system = (context.user?.user.role as any)?.system as PosProvider | undefined;
               const rid = context.user?.user.role?.id;
               if (system && rid) {
-                return { provider: system, merchantId: rid };
+                return {provider: system, merchantId: rid};
               }
 
               throw new Error("Cannot load POS: no provider/merchantId available");
@@ -255,7 +305,7 @@ export const authMachine = setup({
         refreshingPos: {
           invoke: {
             src: "refreshPosToken",
-            input: ({ event }) => {
+            input: ({event}) => {
               const e = event as any;
               return {
                 provider: e.provider,

@@ -60,25 +60,21 @@ const PRODUCERS_BY_AREA = gql(`
   }
 `)
 
-const WINE_BY_ID = gql(`
-  query($id: ID!) {
-    Wine {
-      wine(id: $id) {
+// Create a new producer (onboarding) — matches schema ProducerMutation.addProducer
+const ADD_PRODUCER = gql(`
+  mutation AddProducer($producer: ProducerInput!) {
+    Producer {
+      addProducer(producer: $producer) {
         id
-        name
         slug
+        name
         description
-        varietal
-        vintage
-        alcohol
-        producer
-        color
-        closure
-        type
-        shape
+        email
+        phone
+        website
       }
     }
   }
 `)
 
-export {PRODUCERS_QUERY, PRODUCER_BY_ID, WINE_BY_ID, PRODUCERS_BY_AREA}
+export {PRODUCERS_QUERY, PRODUCER_BY_ID, PRODUCERS_BY_AREA, ADD_PRODUCER}

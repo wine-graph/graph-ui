@@ -19,6 +19,8 @@ const GoogleProfile: React.FC<GoogleProfileProps> = (profile: GoogleProfileProps
         sessionStorage.removeItem("square_oauth_pending");
         sessionStorage.removeItem("clover_oauth_pending");
         sessionStorage.removeItem("shopify_oauth_pending");
+        // Clear local role override used during onboarding
+        sessionStorage.removeItem("wg_local_role");
       } catch {
         // ignore storage errors
       }

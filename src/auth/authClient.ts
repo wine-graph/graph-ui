@@ -1,5 +1,5 @@
 import axios from "axios";
-import type {SessionUser} from "./types.ts";
+import type {Role, SessionUser} from "./types.ts";
 import {storage} from "./storage.ts";
 
 const BASE_URL = import.meta.env.DEV
@@ -59,16 +59,17 @@ export const fetchCurrentUser = async (): Promise<SessionUser> => {
 };
 
 // === Update role (server is the source of truth) ===
-export const saveRole = async (
-  role: "retailer" | "producer" | "enthusiast"
+export const updateRole = async (
+  role: Role,
+  roleId: string
 ): Promise<SessionUser> => {
   const token = storage.getToken();
   // Backend expects RoleEnum, which is typically uppercase. Send uppercase to avoid 400.
-  const body = {role: role.toUpperCase()} as unknown as { role: string };
+  const body = { role: role.toUpperCase(), id: roleId } as unknown as { role: string };
   const {data} = await api.patch(
     "/session/user",
     body,
-    {headers: {Authorization: `Bearer ${token}`, "Content-Type": "application/json"}}
+    { headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } }
   );
   return data;
 };

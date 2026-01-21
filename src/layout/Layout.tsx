@@ -1,4 +1,4 @@
-import {NavLink, Outlet, useLocation} from "react-router-dom";
+import {NavLink, Outlet, useLocation, useNavigate} from "react-router-dom";
 import {useEffect, useMemo, useState} from "react";
 import {useAuth} from "../auth/authContext";
 import {type NavLinkDef, resolveNavLinksByRole, toPath} from "../nav/roleNavConfig";
@@ -6,9 +6,10 @@ import {Menu, X, LogIn, Search} from "lucide-react";
 import logoUrl from "../public/winegraph.png";
 
 const Layout = () => {
-  const {role, isAuthenticated, user, currentPosToken} = useAuth();
+  const {role, isAuthenticated, user, currentPosToken, attachInFlight} = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   // Retailer ID is NOT the Google user id. Prefer the POS merchant id when available,
   // otherwise fall back to the role.id (which represents the retailer/merchant id in our user model).
@@ -17,18 +18,27 @@ const Layout = () => {
     [currentPosToken?.merchantId, user?.user?.role.id]
   );
 
-  const links: NavLinkDef[] = useMemo(
-    () => resolveNavLinksByRole(role, retailerId),
-    [role, retailerId]
-  );
+  const producerId = user?.user.role.value === "producer" ? user?.user.role.id : "";
+
+  const links: NavLinkDef[] | undefined = useMemo(() => {
+    if (role === "retailer" && retailerId) {
+      return resolveNavLinksByRole(role, retailerId);
+    }
+    if (role === "producer") {
+      return resolveNavLinksByRole(role, producerId);
+    }
+  }, [retailerId, producerId, role]);
 
   // Dynamic profile path: route avatar to the correct profile page based on role
-  const profilePath = useMemo(() => {
+  const profilePath: string = useMemo(() => {
     if (role === "retailer" && retailerId) {
       return `/retailer/${retailerId}/profile`;
     }
+    if (role === "producer") {
+      return `/producer/${producerId}/profile`;
+    }
     return "/profile";
-  }, [role, retailerId]);
+  }, [role, retailerId, producerId]);
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -46,6 +56,35 @@ const Layout = () => {
       document.body.style.overflow = "";
     };
   }, [mobileOpen]);
+
+  // Centralized auto-redirect: placeholder (user.id) -> definitive (role.id)
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    if (attachInFlight) return; // avoid redirecting mid-attach
+
+    const googleId = user?.user?.id;
+    const roleId = user?.user?.role?.id;
+    if (!googleId || !roleId) return;
+    if (googleId === roleId) return;
+
+    const path = location.pathname;
+
+    if (role === "producer") {
+      const placeholder = `/producer/${googleId}/profile`;
+      if (path === placeholder) {
+        const target = `/producer/${roleId}/profile`;
+        if (target !== path) navigate(target, { replace: true });
+      }
+    }
+
+    if (role === "retailer") {
+      const placeholder = `/retailer/${googleId}/profile`;
+      if (path === placeholder) {
+        const target = `/retailer/${roleId}/profile`;
+        if (target !== path) navigate(target, { replace: true });
+      }
+    }
+  }, [isAuthenticated, attachInFlight, role, user?.user?.id, user?.user?.role?.id, location.pathname, navigate]);
 
   return (
     <div className="min-h-screen flex flex-col bg-token text-token">
@@ -75,7 +114,7 @@ const Layout = () => {
               onSubmit={(e) => e.preventDefault()}
             >
               <label htmlFor="header-search" className="sr-only">Search</label>
-              <Search className="w-6 h-6 mx-3" aria-hidden="true" />
+              <Search className="w-6 h-6 mx-3" aria-hidden="true"/>
               <input
                 id="header-search"
                 type="search"
@@ -85,7 +124,7 @@ const Layout = () => {
             </form>
 
             {/* Mobile (<sm): icon button opens a compact search bar */}
-            <MobileHeaderSearch />
+            <MobileHeaderSearch/>
           </div>
           {/* Right: profile/sign-in (mobile) + logo */}
           <div className="ml-auto flex items-center gap-2">
@@ -95,10 +134,12 @@ const Layout = () => {
               title={isAuthenticated ? "Profile" : "Sign in"}
               aria-label={isAuthenticated ? "Profile" : "Sign in"}
               className="md:hidden inline-flex items-center justify-center tap-target border border-token rounded-[var(--radius-sm)]"
-           >
+            >
               {isAuthenticated ? (
                 user?.user?.picture ? (
-                  <span className="w-8 h-8 inline-flex items-center justify-center rounded-full overflow-hidden border border-token" aria-hidden="true">
+                  <span
+                    className="w-8 h-8 inline-flex items-center justify-center rounded-full overflow-hidden border border-token"
+                    aria-hidden="true">
                     <img
                       src={user?.user.picture}
                       alt={user?.user.name ?? "Profile"}
@@ -107,12 +148,13 @@ const Layout = () => {
                     />
                   </span>
                 ) : (
-                  <span className="w-8 h-8 inline-flex items-center justify-center rounded-full border border-token text-[12px]">
-                    {(user?.user?.name ?? "").slice(0,1).toUpperCase() || "U"}
+                  <span
+                    className="w-8 h-8 inline-flex items-center justify-center rounded-full border border-token text-[12px]">
+                    {(user?.user?.name ?? "").slice(0, 1).toUpperCase() || "U"}
                   </span>
                 )
               ) : (
-                <LogIn className="w-5 h-5" aria-hidden="true" />
+                <LogIn className="w-5 h-5" aria-hidden="true"/>
               )}
               <span className="sr-only">{isAuthenticated ? "Profile" : "Sign in"}</span>
             </NavLink>
@@ -127,7 +169,7 @@ const Layout = () => {
               />
             </NavLink>
           </div>
-          
+
         </div>
       </header>
 
@@ -140,7 +182,7 @@ const Layout = () => {
         >
           <nav id="primary-navigation" className="py-2">
             <ul className="flex flex-col gap-1">
-              {links.filter(l => l.title !== "Profile").map((nav, i) => {
+              {links?.filter(l => l.title !== "Profile").map((nav, i) => {
                 const Icon = nav.icon;
                 return (
                   <li key={i}>
@@ -175,7 +217,9 @@ const Layout = () => {
                 >
                   {isAuthenticated ? (
                     user?.user?.picture ? (
-                      <span className="w-8 h-8 inline-flex items-center justify-center rounded-full overflow-hidden border border-token" aria-hidden="true">
+                      <span
+                        className="w-8 h-8 inline-flex items-center justify-center rounded-full overflow-hidden border border-token"
+                        aria-hidden="true">
                         <img
                           src={user?.user.picture}
                           alt={user?.user.name ?? "Profile"}
@@ -184,8 +228,9 @@ const Layout = () => {
                         />
                       </span>
                     ) : (
-                      <span className="w-8 h-8 inline-flex items-center justify-center rounded-full border border-token text-[12px]">
-                        {(user?.user?.name ?? "").slice(0,1).toUpperCase() || "U"}
+                      <span
+                        className="w-8 h-8 inline-flex items-center justify-center rounded-full border border-token text-[12px]">
+                        {(user?.user?.name ?? "").slice(0, 1).toUpperCase() || "U"}
                       </span>
                     )
                   ) : (
@@ -225,7 +270,7 @@ const Layout = () => {
             </button>
             <nav aria-label="Primary">
               <ul className="flex flex-col">
-                {links.map((nav, i) => (
+                {links?.map((nav, i) => (
                   <li key={i}>
                     <NavLink
                       to={toPath(nav)}
@@ -267,14 +312,16 @@ const MobileHeaderSearch = () => {
         className="inline-flex items-center justify-center tap-target border border-token rounded-[var(--radius-sm)]"
         onClick={() => setOpen(true)}
       >
-        <Search className="w-5 h-5" />
+        <Search className="w-5 h-5"/>
       </button>
       {open && (
         <div className="fixed inset-x-0 top-11 z-[1250] px-3 py-2 bg-token border-b border-token">
-          <form role="search" aria-label="Global search" className="flex items-center border border-token rounded-[var(--radius-sm)] panel-token overflow-hidden" onSubmit={onSubmit}>
+          <form role="search" aria-label="Global search"
+                className="flex items-center border border-token rounded-[var(--radius-sm)] panel-token overflow-hidden"
+                onSubmit={onSubmit}>
             <label htmlFor="mobile-header-search" className="sr-only">Search</label>
             <div className="px-3 py-2 border-r border-token">
-              <Search className="w-4 h-4" aria-hidden="true" />
+              <Search className="w-4 h-4" aria-hidden="true"/>
             </div>
             <input
               id="mobile-header-search"
@@ -289,7 +336,7 @@ const MobileHeaderSearch = () => {
               className="px-3 py-2 border-l border-token"
               onClick={() => setOpen(false)}
             >
-              <X className="w-4 h-4" />
+              <X className="w-4 h-4"/>
             </button>
           </form>
         </div>
