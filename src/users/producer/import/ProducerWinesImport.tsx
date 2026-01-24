@@ -29,7 +29,7 @@ const ProducerWinesImport: React.FC<Props> = ({producerId}) => {
 
   // Overlay copy
   const overlay = useMemo(() => {
-    if (machine.state === "uploading") return { title: "Our AI sommelier is parsing your data…", sub: "This usually takes ~30 seconds. Please be patient." };
+    if (machine.state === "uploading") return { title: "Our AI sommelier is parsing your data…", sub: "This takes a few moments so please be patient." };
     if (machine.state === "confirming") return { title: "Saving wines to your catalog…", sub: undefined };
     return null;
   }, [machine.state]);

@@ -4,8 +4,8 @@ import {useMachine} from "@xstate/react";
 import type {ImportContext, ImportResult, ImportState, Wine, WineExtraction} from "./types";
 import {uploadProducerWinesCsv} from "./client";
 import {producerClient} from "../../../services/apolloClient.ts";
-import {PRODUCER_BY_ID} from "../../../services/producerGraph.ts";
-import {ADD_WINE_MUTATION} from "../../../services/wineGraph.ts";
+import {PRODUCER_BY_ID} from "../../../services/producer/producerGraph.ts";
+import {ADD_WINE_MUTATION} from "../../../services/producer/wineGraph.ts";
 
 // XState machine for the import flow
 const importMachine = setup({

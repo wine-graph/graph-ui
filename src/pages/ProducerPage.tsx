@@ -2,8 +2,7 @@ import {Link, useParams} from "react-router-dom";
 import {useMemo} from "react";
 import {useQuery} from "@apollo/client";
 import {producerClient} from "../services/apolloClient";
-import {PRODUCER_BY_ID} from "../services/producerGraph";
-import type {Wine} from "../types/wine.ts";
+import {PRODUCER_BY_ID} from "../services/producer/producerGraph.ts";
 
 type Producer = {
   id: string;
@@ -18,6 +17,27 @@ type Producer = {
   retailers: { name: string; location?: string }[];
   metrics?: { wines?: number; retailers?: number; regions?: number; updatedAt?: string };
 };
+
+type Wine = {
+  id: string;
+  name: string;
+  slug: string;
+  vintage: number;
+  varietal: string;
+  size: number;
+  producer: string;
+  color: "RED" | "WHITE" | "ROSE" | "ORANGE";
+  closure: "NATURAL_CORK" | "SCREW_CAP" | "SYNTHETIC_CORK" | "TECHNICAL_CORK" | "VALVE" | "VINO_SEAL" | "ZORK" | "OTHER";
+  shape: "ALSACE" | "BORDEAUX" | "BURGUNDY" | "CALIFORNIA" | "CHAMPAGNE" | "RHONE" | "BOX" | "OTHER";
+  type: "STILL" | "SPARKLING" | "FRIZZANTE";
+  description?: string;
+  alcohol?: number;
+  acid?: number;
+  pH?: number;
+  bottleAging?: number;
+  subarea?: string;
+  weblink?: string;
+}
 
 function SkeletonRow() {
   return (

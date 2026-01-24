@@ -1,5 +1,5 @@
 import {Link} from "react-router-dom";
-import {useAuth} from "../auth/authContext";
+import {useAuth} from "../auth";
 
 const GraphFeed = () => {
   const {isRetailer, isProducer} = useAuth();

@@ -1,5 +1,5 @@
 import { RefreshCcw } from "lucide-react";
-import type { PosToken } from "../../../auth/types";
+import type { PosToken } from "../../../auth";
 import { getProviderStatus, formatExpiry, type Provider } from "../posStatus";
 
 type Props = {

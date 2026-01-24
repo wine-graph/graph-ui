@@ -1,8 +1,8 @@
 import SectionCard from "./SectionCard.tsx";
 import React from "react";
-import { LogOut, User } from "lucide-react";
-import { useAuth } from "../../auth/authContext.ts";
-import { useNavigate } from "react-router-dom";
+import {LogOut, User} from "lucide-react";
+import {useAuth} from "../../auth";
+import {useNavigate} from "react-router-dom";
 
 type GoogleProfileProps = { name: string; picture: string; email: string };
 
@@ -10,7 +10,7 @@ type GoogleProfileProps = { name: string; picture: string; email: string };
 // Logout clears auth state via the auth machine and removes any pending POS OAuth flags.
 const GoogleProfile: React.FC<GoogleProfileProps> = (profile: GoogleProfileProps) => {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const {logout} = useAuth();
 
   const handleLogout = () => {
     try {
@@ -21,12 +21,13 @@ const GoogleProfile: React.FC<GoogleProfileProps> = (profile: GoogleProfileProps
         sessionStorage.removeItem("shopify_oauth_pending");
         // Clear local role override used during onboarding
         sessionStorage.removeItem("wg_local_role");
+
       } catch {
         // ignore storage errors
       }
       logout();
     } finally {
-      navigate("/", { replace: true });
+      navigate("/", {replace: true});
     }
   };
 
@@ -42,7 +43,7 @@ const GoogleProfile: React.FC<GoogleProfileProps> = (profile: GoogleProfileProps
               className="w-[72px] h-[72px] rounded-full object-cover border"
             />
           ) : (
-            <div className="w-[72px] h-[72px] rounded-full border bg-[color:var(--color-muted)]" aria-hidden="true" />
+            <div className="w-[72px] h-[72px] rounded-full border bg-[color:var(--color-muted)]" aria-hidden="true"/>
           )}
 
           {/* Logout button (moved up for clearer affordance) */}

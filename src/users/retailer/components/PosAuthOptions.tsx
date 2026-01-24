@@ -1,7 +1,7 @@
 import React, {useCallback, useState} from "react";
 import SectionCard from "../../../components/common/SectionCard.tsx";
 import PosConnectButton from "./PosConnectButton.tsx";
-import {startAuthorization} from "../../../auth/authClient.ts";
+import {startAuthorization} from "../../../auth";
 import squarePng from "../../../public/pos/square.png";
 import cloverPng from "../../../public/pos/clover.png";
 import shopifyPng from "../../../public/pos/shopify.png";

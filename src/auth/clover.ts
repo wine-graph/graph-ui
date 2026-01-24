@@ -1,5 +1,6 @@
 import {useCallback} from "react";
 import {useNavigate} from "react-router-dom";
+import type {AuthContextValue} from "./authContext.ts";
 
 /**
  * Clover callback flow mirrors Square:
@@ -8,14 +9,14 @@ import {useNavigate} from "react-router-dom";
  * 3. We call auth.refreshUser() to pick up new retailer role
  * 4. We navigate to /retailer/{roleId}/profile
  */
-export const useCloverOAuth = ({auth}: { auth: ReturnType<typeof import("./useAuthService.ts").useAuthService> }) => {
+export const useCloverOAuth = ({auth}: { auth: AuthContextValue}) => {
   const navigate = useNavigate();
 
-  const retailerId = auth.currentProvider === "clover" ? auth.user?.user.role.id : null;
+  const retailerId = auth.pos.provider === "clover" ? auth.user?.user.role.id : null;
 
   const refreshPos = useCallback(async () => {
     if (!retailerId) return;
-    await auth.refreshPos("clover", retailerId);
+    auth.pos.refresh("clover", retailerId);
   }, [auth, retailerId]);
 
   const authenticate = useCallback(async () => {
@@ -32,7 +33,7 @@ export const useCloverOAuth = ({auth}: { auth: ReturnType<typeof import("./useAu
       if (error) throw new Error("Clover denied access");
       if (!merchantId) throw new Error("Missing merchant ID");
 
-      await auth.loadPos("clover", merchantId);
+      auth.pos.load("clover", merchantId);
 
       const updatedUser = await auth.fetchUser();
 

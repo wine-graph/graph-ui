@@ -49,7 +49,7 @@ function enthusiastLinks(): NavLinkDef[] {
 
 function producerLinks(producerId: string): NavLinkDef[] {
   const cellar: NavLinkDef = {title: "Cellar", icon: Package, route: `/producer/${producerId}/inventory`};
-  const marketplace: NavLinkDef = {title: "Marketplace", icon: Store, route: "/retailer/marketplace"};
+  const marketplace: NavLinkDef = {title: "Marketplace", icon: Store, route: "/producer/marketplace"};
   return [baseLinks[0], marketplace, cellar, baseLinks[4]];
 }
 

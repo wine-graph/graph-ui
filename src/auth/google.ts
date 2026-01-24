@@ -1,8 +1,9 @@
 import {useCallback, useState} from "react";
 import {completeGoogleAuth} from "./authClient";
 import {useNavigate} from "react-router-dom";
+import type {AuthContextValue} from "./authContext.ts";
 
-export const useGoogleOidc = ({auth}: { auth: ReturnType<typeof import("./useAuthService.ts").useAuthService> }) => {
+export const useGoogleOidc = ({auth}: { auth: AuthContextValue}) => {
   const navigate = useNavigate();
   // backend sends state param to redirect back to this page and use for confirmation after login
   const [isProcessing, setIsProcessing] = useState(() => {
