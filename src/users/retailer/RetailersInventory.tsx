@@ -1,15 +1,16 @@
 import {useParams} from "react-router-dom";
-import {RETAILER_QUERY, RETAILER_INVENTORY_MUTATION} from "../../services/retailer/retailerGraph.ts";
+import {RETAILER_INVENTORY_MUTATION, RETAILER_QUERY} from "../../services/retailer/retailerGraph.ts";
 import {useMutation, useQuery} from "@apollo/client";
 import {retailerClient} from "../../services/apolloClient.ts";
 import RetailerInventoryTable from "./RetailerInventoryTable.tsx";
-import {Globe, Mail, MapPin, Phone, Store, RefreshCcw} from "lucide-react";
-import Spinner from "../../components/common/Spinner.tsx";
+import {Globe, Mail, MapPin, Phone, RefreshCcw, Store} from "lucide-react";
+import Spinner from "../../components/Spinner.tsx";
 import {useAuth} from "../../auth";
-import {useEffect, useMemo, useRef, useState} from "react";
+import {useMemo, useState} from "react";
 import useRetailerOnboarding from "./useRetailerOnboarding.ts";
+import type {Retailer, RetailerInventory} from "./retailer.ts";
 
-export const RetailerInventory = () => {
+export const RetailersInventory = () => {
   const {user, isRetailer, pos} = useAuth();
   const {retailerId} = useParams();
   const {data, loading, refetch} = useQuery(RETAILER_QUERY, {
@@ -23,11 +24,14 @@ export const RetailerInventory = () => {
 
   const [banner, setBanner] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
-  const retailer = data?.Retailer?.retailer;
-  const inventory = Array.isArray(retailer?.inventory) ? retailer.inventory : null;
+  const retailer = data?.Retailer?.retailer as Retailer | undefined;
+  const inventory = useMemo(() => {
+    const inv = retailer?.inventory as RetailerInventory[] | undefined;
+    return Array.isArray(inv) ? inv : [];
+  }, [retailer]);
 
   // Initialize implicit onboarding when a retailer page is visited but the retailer record is not found
-  const merchantId = retailerId ?? retailer.id;
+  const merchantId = retailerId ?? retailer?.id ?? null;
   const shouldOnboard = !retailer;
   useRetailerOnboarding({
     merchantId,
@@ -36,19 +40,18 @@ export const RetailerInventory = () => {
     token: pos.token ?? null,
   });
 
-  // Local UI state for List + Detail pattern
+  // Local UI state for Inventory search
   const [query, setQuery] = useState("");
-  const [selected, setSelected] = useState<any | null>(null);
-  const lastFocusedRowRef = useRef<HTMLElement | null>(null);
 
   const canSync = useMemo(() => {
-    const ownsPage = user?.user?.role?.id && retailerId && user.user.role.id === retailerId;
+    const roleId = user?.user?.role?.id;
+    const ownsPage = Boolean(roleId && retailerId && roleId === retailerId);
     return Boolean(isRetailer && ownsPage && pos.isAuthorized && pos.provider && pos.token);
-  }, [pos, isRetailer, retailerId, user?.user.role.id]);
+  }, [pos, isRetailer, retailerId, user?.user?.role?.id]);
 
   const handleSync = async () => {
     setBanner(null);
-    const merchantId = user?.user.role.id;
+    const merchantId = user?.user?.role?.id;
     if (!merchantId) return;
     try {
       await syncInventory({
@@ -61,24 +64,11 @@ export const RetailerInventory = () => {
     }
   };
 
-  // Keyboard: close drawer with Esc
-  useEffect(() => {
-    if (!selected) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        setSelected(null);
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [selected]);
-
   // Filtered rows based on search query (name/varietal/vintage)
   const filteredInventory = useMemo(() => {
     if (!query.trim()) return inventory;
     const q = query.toLowerCase();
-    return inventory.filter((w: any) => {
+    return inventory?.filter((w: RetailerInventory) => {
       const vintage = w.vintage ? String(w.vintage) : "";
       return (
         (w.name?.toLowerCase?.() ?? "").includes(q) ||
@@ -228,10 +218,10 @@ export const RetailerInventory = () => {
           </div>
         )}
 
-        {filteredInventory.length === 0 ? (
+        {filteredInventory?.length === 0 ? (
           <div
             className="text-center py-16 text-[color:var(--color-fg-muted)] border-2 border-dashed border-[color:var(--color-border)]">
-            {inventory.length === 0 ? (
+            {inventory?.length === 0 ? (
               <>
                 <div>No wines in inventory yet.</div>
                 {/*{canSync && (*/}
@@ -256,70 +246,10 @@ export const RetailerInventory = () => {
         ) : (
           <RetailerInventoryTable
             wines={filteredInventory}
-            onRowClick={(w) => setSelected(w)}
-            // capture the focused row to restore focus when closing drawer
-            onRowFocus={(el) => {
-              lastFocusedRowRef.current = el;
-            }}
           />
         )}
       </div>
 
-      {/* Detail drawer */}
-      {selected && (
-        <div role="dialog" aria-modal className="fixed inset-0 z-40">
-          {/* scrim */}
-          <button
-            className="absolute inset-0 bg-black/30"
-            aria-label="Close"
-            onClick={() => setSelected(null)}
-          />
-          <aside
-            className="absolute right-0 top-0 h-full w-full sm:w-[520px] bg-[color:var(--color-bg)] border-l-2 border-[color:var(--color-border)] shadow-xl">
-            <div className="h-12 px-4 border-b-2 border-[color:var(--color-border)] flex items-center justify-between">
-              <div className="font-medium truncate">{selected?.name ?? "Item"}</div>
-              <button className="underline" onClick={() => setSelected(null)}>Close</button>
-            </div>
-            <div className="p-4 space-y-6">
-              <section>
-                <h3 className="text-sm font-medium mb-2">Summary</h3>
-                <div className="text-sm space-y-1">
-                  <div><span className="text-[color:var(--color-fg-muted)]">Producer:</span> {selected?.producer ?? "—"}
-                  </div>
-                  <div><span className="text-[color:var(--color-fg-muted)]">Name:</span> {selected?.name ?? "—"}</div>
-                  <div><span className="text-[color:var(--color-fg-muted)]">Vintage:</span> {selected?.vintage ?? "—"}
-                  </div>
-                  <div><span className="text-[color:var(--color-fg-muted)]">Varietal:</span> {selected?.varietal ?? "—"}
-                  </div>
-                </div>
-              </section>
-              <section>
-                <h3 className="text-sm font-medium mb-2">Matching info</h3>
-                <div className="text-sm">Not matched yet. Matching runs periodically in the background.</div>
-              </section>
-              <div className="pt-2">
-                <button
-                  className="h-10 px-3 border-2 border-[color:var(--color-border)] bg-[color:var(--color-panel)]">View
-                  in matches
-                </button>
-              </div>
-            </div>
-          </aside>
-        </div>
-      )}
-
-      {/* Restore focus to triggering row when drawer closes */}
-      {!selected && lastFocusedRowRef.current && (
-        <FocusRestorer target={lastFocusedRowRef.current}/>
-      )}
     </div>
   );
-};
-
-// Utility component to restore focus after drawer close
-const FocusRestorer = ({target}: { target: HTMLElement }) => {
-  useEffect(() => {
-    target?.focus?.();
-  }, [target]);
-  return null;
 };

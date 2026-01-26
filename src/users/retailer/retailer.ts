@@ -1,5 +1,4 @@
 export type Retailer = {
-  contactEmail: string;
   id: string;
   location?: RetailerLocation;
   logoUrl?: string;
@@ -8,23 +7,19 @@ export type Retailer = {
   inventory?: RetailerInventory[];
 }
 
-type RetailerInventory = {
-  description: string;
-  externalItemId: string;
+export type RetailerInventory = {
+  canonicalId: string;
   name: string;
-  producer: string;
-  retailerId: string;
-  source: string;
-  vintage: number;
+  vintage: string;
   varietal: string;
-  wineId: string;
-  matched?: boolean;
+  slug: string;
+  id: string;
 }
 
-type RetailerLocation = {
+export type RetailerLocation = {
+  id: string;
   address: string;
   city: string;
-  country?: string;
   state: string;
   zipCode: string;
   website: string;
@@ -33,7 +28,7 @@ type RetailerLocation = {
   coordinates: LocationCoordinates;
 }
 
-type LocationCoordinates = {
+export type LocationCoordinates = {
   latitude: number;
   longitude: number;
 }

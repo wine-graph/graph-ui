@@ -3,11 +3,11 @@ import {DomainCard} from "../components/DomainCard.tsx";
 import {useQuery} from "@apollo/client";
 import {DOMAIN_QUERY} from "../services/domain/domainGraph.ts";
 import {PRODUCERS_BY_AREA} from "../services/producer/producerGraph.ts";
-import PageHeader from "../components/common/PageHeader.tsx";
+import PageHeader from "../components/PageHeader.tsx";
 // CrumbButton removed in favor of text-label breadcrumbs per new design spec
 import {domainClient, producerClient} from "../services/apolloClient.ts";
 import type {Producer} from "../users/producer/producer.ts";
-import Spinner from "../components/common/Spinner.tsx";
+import Spinner from "../components/Spinner.tsx";
 import {ProducerCard} from "../users/producer/ProducerCard.tsx";
 
 type Country = {
@@ -203,6 +203,7 @@ const DomainList = () => {
                     slug={p.slug}
                     name={p.name}
                     email={p.email}
+                    phone={p.phone}
                     website={p.website}
                     description={p.description}
                     wines={p.wines}/>

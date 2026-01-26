@@ -26,27 +26,12 @@ type Retailer {
 }
 
 type RetailerInventory {
-  description: String
+  canonicalId: ID
   id: ID
   name: String
-  "For POS linking"
-  originId: String
-  price: String
-  producer: String
-  "External source system"
-  source: WineSource
+  slug: String
   varietal: String
   vintage: Int
-  "Get canonical wine matches for the given retailers inventory"
-  wineMatches: [RetailerInventoryMatch]
-}
-
-type RetailerInventoryMatch {
-  name: String
-  producer: String
-  varietal: String
-  vintage: Int
-  wineId: String
 }
 
 type RetailerLocation {
@@ -66,7 +51,7 @@ type RetailerMutation {
   onboard(
     "Merchant ID issued by POS"
     merchantId: ID!,
-    pos: WineSource!
+    pos: PosSource!
   ): Retailer
   "Sync inventory from Retailer's POS."
   syncInventory(
@@ -80,8 +65,7 @@ type RetailerQuery {
   retailers: [Retailer]
 }
 
-enum WineSource {
-  CANONICAL
+enum PosSource {
   CLOVER
   SHOPIFY
   SQUARE

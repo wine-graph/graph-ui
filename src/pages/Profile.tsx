@@ -1,11 +1,11 @@
-import PageHeader from "../components/common/PageHeader.tsx";
-import GoogleSignIn from "../components/common/GoogleSignIn.tsx";
+import PageHeader from "../components/PageHeader.tsx";
+import GoogleSignIn from "../components/GoogleSignIn.tsx";
 import type {Role} from "../auth";
 import {startAuthentication, useAuth} from "../auth";
 import React, {useState} from "react";
 import {Send} from "lucide-react";
 import {useNavigate} from "react-router-dom";
-import GoogleProfile from "../components/common/GoogleProfile";
+import GoogleProfile from "../components/GoogleProfile.tsx";
 
 export const ProfilePage = () => {
   const navigate = useNavigate();

@@ -9,8 +9,6 @@ export const ADD_WINE_MUTATION = gql(`
       addWine(input: $input) {
         id
         name
-        slug
-        producer
         varietal
         vintage
       }
@@ -18,22 +16,26 @@ export const ADD_WINE_MUTATION = gql(`
   }
 `)
 
-export const WINE_BY_ID = gql(`
+export const WINE_BY_ID_ENRICHED = gql(`
   query($id: ID!) {
     Wine {
-      wine(id: $id) {
+      enriched(id: $id) {
         id
         name
         slug
         description
         varietal
         vintage
-        alcohol
-        producer
-        color
-        closure
-        type
-        shape
+        createdAt
+        producer {
+          id
+          name
+          slug
+        }
+        retailers {
+          id
+          name
+        }
       }
     }
   }

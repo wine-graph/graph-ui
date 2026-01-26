@@ -47,14 +47,14 @@ const GoogleSignIn: React.FC<Props> = ({
 
   // Eagerly import all PNGs as URLs
   const pngManifest = import.meta.glob(
-    "../../public/google/png@*/*/*.png",
+    "../public/google/png@*/*/*.png",
     { eager: true, as: "url" }
   ) as Record<string, string>;
 
   // Helper to find the best matching URL among available densities for a given variant
   const findDensityUrls = (variant: string) => {
     const mk = (d: 1 | 2 | 3 | 4) =>
-      `../../public/google/png@${d}x/${themeKey}/web_${themeKey}_${shapeKey}_${variant}@${d}x.png`;
+      `../public/google/png@${d}x/${themeKey}/web_${themeKey}_${shapeKey}_${variant}@${d}x.png`;
     const d1 = pngManifest[mk(1)];
     const d2 = pngManifest[mk(2)];
     const d3 = pngManifest[mk(3)];

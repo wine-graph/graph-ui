@@ -1,10 +1,12 @@
 import React, {useMemo} from "react";
 import {useAuth} from "../../auth";
-import PageHeader from "../../components/common/PageHeader.tsx";
+import PageHeader from "../../components/PageHeader.tsx";
 import ProducerWinesImport from "./import/ProducerWinesImport.tsx";
 import {useQuery} from "@apollo/client";
 import {PRODUCER_BY_ID} from "../../services/producer/producerGraph.ts";
 import {producerClient} from "../../services/apolloClient.ts";
+import type {Wine} from "./producer.ts";
+import {Link} from "react-router-dom";
 
 const ProducerInventory: React.FC = () => {
   const {user} = useAuth();
@@ -71,17 +73,21 @@ const ProducerInventory: React.FC = () => {
                     <tr className="text-left">
                       <th className="py-2 px-2 border-b border-token">Name</th>
                       <th className="py-2 px-2 border-b border-token">Vintage</th>
-                      <th className="py-2 px-2 border-b border-token">Color</th>
                       <th className="py-2 px-2 border-b border-token">Varietal</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {wines.map((w: any) => (
-                      <tr key={w.id} className="hover:bg-token/50 focus-within:bg-token/50">
-                        <td className="py-2 px-2 border-b border-token truncate" title={w.name}>{w.name}</td>
-                        <td className="py-2 px-2 border-b border-token">{w.vintage ?? "—"}</td>
-                        <td className="py-2 px-2 border-b border-token">{w.color ?? "—"}</td>
-                        <td className="py-2 px-2 border-b border-token truncate" title={w.varietal}>{w.varietal ?? "—"}</td>
+                    {wines.map((w: Wine) => (
+                      <tr key={w.slug || w.id || w.name} className="border-b border-neutral-200 last:border-b-0">
+                        <td className="py-2 pr-4">
+                          {(w.slug && w.id) ? (
+                            <Link className="underline underline-offset-2" to={`/wine/${w.slug}/${w.id}`}>{w.name}</Link>
+                          ) : (
+                            <span>{w.name}</span>
+                          )}
+                        </td>
+                        <td className="py-2 pr-4">{w.vintage ?? "—"}</td>
+                        <td className="py-2 pr-4">{w.varietal ?? "—"}</td>
                       </tr>
                     ))}
                   </tbody>

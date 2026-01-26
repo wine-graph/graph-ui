@@ -1,5 +1,5 @@
 import {type ReactNode, useEffect} from "react";
-import Spinner from "../components/common/Spinner.tsx";
+import Spinner from "../components/Spinner.tsx";
 import {useShopifyOAuth} from "./shopify.ts";
 import {useCloverOAuth} from "./clover.ts";
 import {useSquareOAuth} from "./square.ts";

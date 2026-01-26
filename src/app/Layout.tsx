@@ -3,7 +3,7 @@ import {useEffect, useMemo, useState} from "react";
 import {useAuth} from "../auth";
 import {type NavLinkDef, resolveNavLinksByRole, toPath} from "./roleNavConfig.ts";
 import {Menu, X, LogIn, Search} from "lucide-react";
-import logoUrl from "../public/winegraph.png";
+import logoUrl from "../public/wine_graph_logo_1024x1024.png";
 
 const Layout = () => {
   const {isAuthenticated, user, pos} = useAuth();

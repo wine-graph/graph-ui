@@ -6,14 +6,14 @@ import App from "./App.tsx";
 import {createBrowserRouter, createRoutesFromElements, Outlet, Route, RouterProvider,} from "react-router-dom";
 import {AuthProvider} from "../auth";
 import RoleRoute from "./RoleRoute.tsx";
-import Spinner from "../components/common/Spinner.tsx";
+import Spinner from "../components/Spinner.tsx";
 import {RetailerMarketplace} from "../users/retailer/RetailerMarketplace.tsx";
 
 const DiscoverPage = lazy(() => import("../pages/Discover.tsx").then(m => ({ default: m.DiscoverPage })));
 const ProfilePage = lazy(() => import("../pages/Profile.tsx").then(m => ({ default: m.ProfilePage })));
 const MarketplacePage = lazy(() => import("../pages/Marketplace.tsx").then(m => ({ default: m.MarketplacePage })));
 const ProducerMarketplace = lazy(() => import("../users/producer/ProducerMarketplace.tsx").then(m => ({ default: m.ProducerMarketplace })));
-const RetailerInventory = lazy(() => import("../users/retailer/RetailerInventory.tsx").then(m => ({ default: m.RetailerInventory })));
+const RetailerInventory = lazy(() => import("../users/retailer/RetailersInventory.tsx").then(m => ({ default: m.RetailersInventory })));
 const RetailerProfile = lazy(() => import("../users/retailer/RetailerProfile.tsx").then(m => ({ default: m.RetailerProfile })));
 const ProducerProfile = lazy(() => import("../users/producer/ProducerProfile.tsx").then(m => ({ default: m.ProducerProfile })));
 const GraphFeed = lazy(() => import("../pages/GraphFeed.tsx"));

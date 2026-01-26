@@ -23,10 +23,14 @@ export const RoleRoute = ({
   allowVisitor,
   redirectPath = "/",
 }: RoleRouteProps) => {
-  const {isAuthenticated, isProducer, isRetailer} = useAuth();
+  const {isAuthenticated, isProducer, isRetailer, isLoading} = useAuth();
 
   // If roles are required, enforce auth + role check
   if (allowedRole) {
+    // Avoid premature redirects while auth is still resolving
+    if (isLoading) {
+      return <div style={{padding: 16}}>Loading…</div>;
+    }
     if (!isAuthenticated) {
       return <Navigate to={redirectPath} replace/>;
     }
