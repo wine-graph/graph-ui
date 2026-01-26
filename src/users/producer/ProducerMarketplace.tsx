@@ -1,7 +1,7 @@
 import PageHeader from "../../components/common/PageHeader.tsx";
 import {ProducerCard} from "./ProducerCard.tsx";
 import {useQuery} from "@apollo/client";
-import {PRODUCERS_QUERY} from "../../services/producerGraph.ts";
+import {PRODUCERS_QUERY} from "../../services/producer/producerGraph.ts";
 import {producerClient} from "../../services/apolloClient.ts";
 import {useMemo} from "react";
 import type {Producer} from "./producer.ts";

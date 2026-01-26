@@ -1,6 +1,6 @@
 import type {ReactNode} from "react";
 import {Navigate} from "react-router-dom";
-import {useAuth} from "../auth/authContext.ts";
+import {useAuth} from "../auth";
 
 interface RoleRouteProps {
   children: ReactNode;
@@ -23,14 +23,16 @@ export const RoleRoute = ({
   allowVisitor,
   redirectPath = "/",
 }: RoleRouteProps) => {
-  const {isAuthenticated, hasRole} = useAuth();
+  const {isAuthenticated, isProducer, isRetailer} = useAuth();
 
   // If roles are required, enforce auth + role check
   if (allowedRole) {
     if (!isAuthenticated) {
       return <Navigate to={redirectPath} replace/>;
     }
-    if (!hasRole(allowedRole)) {
+    // Use derived role flags from auth system (respects local override during onboarding)
+    const isAllowed = allowedRole === "producer" ? isProducer : allowedRole === "retailer" ? isRetailer : false;
+    if (!isAllowed) {
       return <Navigate to={redirectPath} replace/>;
     }
     return <>{children}</>;

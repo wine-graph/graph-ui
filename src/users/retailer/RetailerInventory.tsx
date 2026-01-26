@@ -1,16 +1,16 @@
 import {useParams} from "react-router-dom";
-import {RETAILER_QUERY, RETAILER_INVENTORY_MUTATION} from "../../services/retailerGraph.ts";
+import {RETAILER_QUERY, RETAILER_INVENTORY_MUTATION} from "../../services/retailer/retailerGraph.ts";
 import {useMutation, useQuery} from "@apollo/client";
 import {retailerClient} from "../../services/apolloClient.ts";
 import RetailerInventoryTable from "./RetailerInventoryTable.tsx";
 import {Globe, Mail, MapPin, Phone, Store, RefreshCcw} from "lucide-react";
 import Spinner from "../../components/common/Spinner.tsx";
-import {useAuth} from "../../auth/authContext.ts";
+import {useAuth} from "../../auth";
 import {useEffect, useMemo, useRef, useState} from "react";
 import useRetailerOnboarding from "./useRetailerOnboarding.ts";
 
 export const RetailerInventory = () => {
-  const {user, isRetailer, currentProvider, currentPosToken, isAuthorized} = useAuth();
+  const {user, isRetailer, pos} = useAuth();
   const {retailerId} = useParams();
   const {data, loading, refetch} = useQuery(RETAILER_QUERY, {
     variables: {id: retailerId},
@@ -31,9 +31,9 @@ export const RetailerInventory = () => {
   const shouldOnboard = !retailer;
   useRetailerOnboarding({
     merchantId,
-    isAuthorized: Boolean(isAuthorized && shouldOnboard),
-    provider: currentProvider?.toUpperCase() ?? null,
-    token: currentPosToken ?? null,
+    isAuthorized: Boolean(pos.isAuthorized && shouldOnboard),
+    provider: pos.provider?.toUpperCase() ?? null,
+    token: pos.token ?? null,
   });
 
   // Local UI state for List + Detail pattern
@@ -43,8 +43,8 @@ export const RetailerInventory = () => {
 
   const canSync = useMemo(() => {
     const ownsPage = user?.user?.role?.id && retailerId && user.user.role.id === retailerId;
-    return Boolean(isRetailer && ownsPage && isAuthorized && currentProvider && currentPosToken);
-  }, [currentPosToken, currentProvider, isAuthorized, isRetailer, retailerId, user?.user.role.id]);
+    return Boolean(isRetailer && ownsPage && pos.isAuthorized && pos.provider && pos.token);
+  }, [pos, isRetailer, retailerId, user?.user.role.id]);
 
   const handleSync = async () => {
     setBanner(null);
@@ -168,7 +168,7 @@ export const RetailerInventory = () => {
                 <span>{syncing ? "Syncing inventory…" : "Sync inventory"}</span>
               </button>
               <div className="mt-2 text-[12px] leading-snug text-[color:var(--color-fg-muted)]">
-                {syncing ? "Please wait, this may take up to a minute." : (currentProvider ? `Provider: ${retailer?.pos}` : "")}
+                {syncing ? "Please wait, this may take up to a minute." : (pos.provider ? `Provider: ${retailer?.pos}` : "")}
               </div>
             </div>
 
@@ -187,7 +187,7 @@ export const RetailerInventory = () => {
                 </span>
               </button>
               <div className="mt-1 text-[11px] leading-snug text-[color:var(--color-fg-muted)]">
-                {syncing ? "Please wait, this may take up to a minute." : (currentProvider ? `Provider: ${retailer?.pos}` : "")}
+                {syncing ? "Please wait, this may take up to a minute." : (pos.provider ? `Provider: ${retailer?.pos}` : "")}
               </div>
             </div>
           </>

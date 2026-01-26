@@ -1,18 +1,11 @@
-import { createContext, useContext } from "react";
-import { useAuthService } from "./useAuthService";
+import {createContext, useContext} from "react";
+import type {useAuthService} from "./authSystem.tsx";
 
-// Infer the exact return type from useAuthService — no duplication!
 export type AuthContextValue = ReturnType<typeof useAuthService>;
-
 export const AuthContext = createContext<AuthContextValue | null>(null);
 
-/**
- * Custom hook to access auth context values.
- */
-export const useAuth = (): AuthContextValue => {
+export const useAuth = () => {
   const ctx = useContext(AuthContext);
-  if (!ctx) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
+  if (!ctx) throw new Error("useAuth must be used within an AuthProvider");
   return ctx;
 };

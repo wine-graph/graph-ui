@@ -63,14 +63,41 @@ export const updateRole = async (
   role: Role,
   roleId: string
 ): Promise<SessionUser> => {
-  const token = storage.getToken();
-  // Backend expects RoleEnum, which is typically uppercase. Send uppercase to avoid 400.
+  // Try session token first; if missing (edge cases), fall back to stored user.token
+  let token = storage.getToken();
+  if (!token) {
+    const stored = storage.getUser();
+    if (stored?.token) {
+      token = stored.token;
+      // Heal session for the rest of the session
+      storage.setToken(token);
+      if (import.meta.env.DEV) {
+        console.warn("[authClient] session token missing; recovered from stored user");
+      }
+    }
+  }
+
+  // Backend expects RoleEnum uppercase. Send uppercase to avoid 400.
   const body = { role: role.toUpperCase(), id: roleId } as unknown as { role: string };
+
+  if (import.meta.env.DEV) {
+    // Do not log sensitive token; only log presence
+    console.info("[authClient] updateRole → PATCH /session/user", {
+      role: body.role,
+      id: roleId,
+      hasToken: !!token,
+    });
+  }
+
   const {data} = await api.patch(
     "/session/user",
     body,
     { headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } }
   );
+
+  if (import.meta.env.DEV) {
+    console.info("[authClient] updateRole ← success");
+  }
   return data;
 };
 

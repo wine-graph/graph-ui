@@ -2,7 +2,7 @@ import {useEffect, useMemo, useState} from "react";
 import {RetailerTile} from "./RetailerTile.tsx";
 import {type Retailer} from "./retailer.ts";
 import {useQuery} from "@apollo/client";
-import {RETAILERS_QUERY} from "../../services/retailerGraph.ts";
+import {RETAILERS_QUERY} from "../../services/retailer/retailerGraph.ts";
 import {retailerClient} from "../../services/apolloClient.ts";
 import {MapView} from "../../components/MapView.tsx";
 import type {LatLngExpression} from "leaflet";

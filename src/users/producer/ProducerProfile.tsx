@@ -3,13 +3,13 @@ import GoogleProfile from "../../components/common/GoogleProfile.tsx";
 import SectionCard from "../../components/common/SectionCard.tsx";
 import {MapPin} from "lucide-react";
 import React, {useEffect, useMemo, useRef, useState} from "react";
-import {useAuth} from "../../auth/authContext.ts";
+import type {User} from "../../auth";
+import {useAuth} from "../../auth";
 import {useMutation, useQuery} from "@apollo/client";
-import {AREAS_QUERY} from "../../services/domainGraph.ts";
+import {AREAS_QUERY} from "../../services/domain/domainGraph.ts";
 import {domainClient, producerClient} from "../../services/apolloClient.ts";
-import {ADD_PRODUCER, PRODUCER_BY_ID} from "../../services/producerGraph.ts";
+import {ADD_PRODUCER, PRODUCER_BY_ID} from "../../services/producer/producerGraph.ts";
 import {useNavigate} from "react-router-dom";
-import type {User} from "../../auth/types.ts";
 
 // Monochrome, minimal Producer profile page.
 // Purpose: let producers confirm basic profile and select their primary AVA/area.
@@ -207,7 +207,7 @@ const OnboardingForm: React.FC<{ onSuccess: (id: string) => void, user: User | u
       if (newId) {
         try {
           // Serialize backend attach of role + role_id using existing updateRole API
-          updateRole("producer", newId);
+          await updateRole("producer", newId);
         } catch (e) {
           // Non-blocking: allow navigation; user can retry attach from profile if needed
           console.error("[producer] attachRole failed — proceeding", e);
@@ -238,8 +238,6 @@ const OnboardingForm: React.FC<{ onSuccess: (id: string) => void, user: User | u
               <label className="block text-sm font-medium mb-1" htmlFor="producer-name">Producer name</label>
               <input
                 id="producer-name"
-                defaultValue="Paul Pearson"
-                placeholder="Paul Pearson"
                 ref={nameRef}
                 type="text"
                 className="w-full border rounded-md px-3 h-10 focus:outline-none focus:ring-2 focus:ring-black/60"
@@ -253,8 +251,6 @@ const OnboardingForm: React.FC<{ onSuccess: (id: string) => void, user: User | u
               <input
                 id="producer-email"
                 type="email"
-                placeholder="paul.darlington.pearson@gmail.com"
-                defaultValue="paul.darlington.pearson@gmail.com"
                 className="w-full border rounded-md px-3 h-10 focus:outline-none focus:ring-2 focus:ring-black/60"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -266,8 +262,6 @@ const OnboardingForm: React.FC<{ onSuccess: (id: string) => void, user: User | u
               <input
                 id="producer-phone"
                 type="tel"
-                placeholder="303.520.7822"
-                defaultValue="+13035207822"
                 className="w-full border rounded-md px-3 h-10 focus:outline-none focus:ring-2 focus:ring-black/60"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
@@ -278,8 +272,6 @@ const OnboardingForm: React.FC<{ onSuccess: (id: string) => void, user: User | u
               <input
                 id="producer-website"
                 type="url"
-                defaultValue="http://www.paulpearson.com"
-                placeholder="http://www.paulpearson.com"
                 className="w-full border rounded-md px-3 h-10 focus:outline-none focus:ring-2 focus:ring-black/60"
                 value={website}
                 onChange={(e) => setWebsite(e.target.value)}

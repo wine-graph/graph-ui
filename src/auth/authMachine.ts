@@ -1,4 +1,4 @@
-import {assign, fromPromise, setup} from "xstate";
+import {type ActorRefFrom, assign, fromPromise, setup} from "xstate";
 import {getPosToken, refreshPosToken} from "./authClient";
 import {storage} from "./storage";
 import type {PosProvider, PosToken, SessionUser} from "./types";
@@ -9,13 +9,12 @@ interface PosInput {
   merchantId: string;
 }
 
+export type AuthMachineActor = ActorRefFrom<typeof authMachine>;
+
 export const authMachine = setup({
   types: {
     context: {} as {
       user: SessionUser | null;
-      // When true, we are performing a backend attach of role/value+id.
-      // During this window we should ignore stale LOGGED_IN updates and
-      // pause side-effects like POS rehydration.
       attachInFlight?: boolean;
       pendingRoleAttach?: { role?: string; roleId?: string } | null;
       pos: {
@@ -66,35 +65,15 @@ export const authMachine = setup({
 
     saveUser: assign({
       user: ({context, event}) => {
-        const payload = (event as any)?.data ?? (event as any)?.output ?? null;
-        if (!payload) return context.user;
+        if (event.type !== "LOGGED_IN") return context.user;
+        const incoming = event.data;
 
-        const incoming = payload as SessionUser;
-
-        // If a role attach is currently in flight, ignore stale LOGGED_IN
-        // updates that don't change role value or id. This avoids overwriting
-        // the soon-to-be authoritative attach response with an older fetch.
         if (context.attachInFlight) {
-          const prevRoleVal = context.user?.user.role?.value ?? "";
-          const prevRoleId = context.user?.user.role?.id ?? "";
-          const nextRoleVal = incoming?.user?.role?.value ?? "";
-          const nextRoleId = incoming?.user?.role?.id ?? "";
-          const roleChanged = prevRoleVal !== nextRoleVal || prevRoleId !== nextRoleId;
-          if (!roleChanged) {
-            console.debug("[auth] saveUser ignored (attachInFlight, no role change)");
-            return context.user;
-          }
+          const roleChanged = context.user?.user.role?.value !== incoming.user?.role?.value ||
+            context.user?.user.role?.id !== incoming.user?.role?.id;
+          if (!roleChanged) return context.user;
         }
 
-        try {
-          const prev = deriveRole(context.user?.user.role.value);
-          const next = deriveRole(incoming?.user?.role?.value);
-          if (prev !== next) {
-            console.info("[role] transition", {from: prev, to: next});
-          }
-        } catch {
-          console.warn("[role] failed to derive role", incoming?.user?.role?.value);
-        }
         storage.setUser(incoming);
         return incoming;
       },
@@ -114,12 +93,10 @@ export const authMachine = setup({
       }),
     }),
 
-    setPosLoading: assign({
-      pos: ({context}) => ({
+    setPosLoading: assign({ pos: ({ context }) => ({
         ...context.pos,
         loading: true,
-        error: null,
-      }),
+        error: null })
     }),
 
     setPosSuccess: assign({
@@ -170,23 +147,13 @@ export const authMachine = setup({
   guards: {
     hasUser: ({context}) => !!context.user,
 
-    shouldRehydratePos: ({context}) => {
-      // Only retailers with a system provider can auto-load
-      if (context.attachInFlight) return false;
-      if (deriveRole(context.user?.user.role.value) !== "retailer") return false;
-      // Already have a valid token loaded? Skip
-      if (context.pos.token && context.pos.provider) return false;
-
-      const system = (context.user?.user.role as any)?.system as PosProvider | null | undefined;
-      const hasMerchantId = !!context.user?.user.role?.id;
-
-      return !!system && hasMerchantId;
+    shouldRehydratePos: ({ context }) => {
+      if (context.attachInFlight || deriveRole(context.user?.user.role.value) !== "retailer") return false;
+      if (context.pos.token) return false;
+      return !!(context.user?.user.role as any)?.system && !!context.user?.user.role?.id;
     },
 
-    hasPosInput: ({event}) => {
-      const e = event as any;
-      return !!e?.provider && !!e?.merchantId;
-    },
+    hasPosInput: ({ event }) => event.type === "POS.LOAD" || event.type === "POS.REFRESH" ? !!event.provider && !!event.merchantId : false,
   },
 }).createMachine({
   id: "auth",

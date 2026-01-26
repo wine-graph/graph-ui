@@ -1,4 +1,4 @@
-import type { PosToken } from "../../auth/types.ts";
+import type { PosToken } from "../../auth";
 
 export type Provider = "clover" | "shopify" | "square";
 

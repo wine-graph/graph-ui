@@ -1,8 +1,8 @@
 import {useEffect} from "react";
 import {useMutation} from "@apollo/client";
 import {retailerClient} from "../../services/apolloClient.ts";
-import {RETAILER_ONBOARDING_MUTATION} from "../../services/retailerGraph.ts";
-import type {PosToken} from "../../auth/types.ts";
+import {RETAILER_ONBOARDING_MUTATION} from "../../services/retailer/retailerGraph.ts";
+import type {PosToken} from "../../auth";
 
 type Params = {
   merchantId?: string | null;

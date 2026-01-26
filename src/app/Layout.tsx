@@ -1,33 +1,34 @@
-import {NavLink, Outlet, useLocation, useNavigate} from "react-router-dom";
+import {NavLink, Outlet, useLocation} from "react-router-dom";
 import {useEffect, useMemo, useState} from "react";
-import {useAuth} from "../auth/authContext";
-import {type NavLinkDef, resolveNavLinksByRole, toPath} from "../nav/roleNavConfig";
+import {useAuth} from "../auth";
+import {type NavLinkDef, resolveNavLinksByRole, toPath} from "./roleNavConfig.ts";
 import {Menu, X, LogIn, Search} from "lucide-react";
 import logoUrl from "../public/winegraph.png";
 
 const Layout = () => {
-  const {role, isAuthenticated, user, currentPosToken, attachInFlight} = useAuth();
+  const {isAuthenticated, user, pos} = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
 
   // Retailer ID is NOT the Google user id. Prefer the POS merchant id when available,
   // otherwise fall back to the role.id (which represents the retailer/merchant id in our user model).
   const retailerId = useMemo(
-    () => currentPosToken?.merchantId ?? user?.user?.role.id,
-    [currentPosToken?.merchantId, user?.user?.role.id]
+    () => pos.token?.merchantId ?? user?.user?.role.id,
+    [pos.token?.merchantId, user?.user?.role.id]
   );
 
   const producerId = user?.user.role.value === "producer" ? user?.user.role.id : "";
+  const role = user?.user.role.value;
 
   const links: NavLinkDef[] | undefined = useMemo(() => {
     if (role === "retailer" && retailerId) {
       return resolveNavLinksByRole(role, retailerId);
     }
-    if (role === "producer") {
+    if (role === "producer" && producerId) {
       return resolveNavLinksByRole(role, producerId);
     }
-  }, [retailerId, producerId, role]);
+    return resolveNavLinksByRole("visitor", user?.user.role.id ?? "");
+  }, [retailerId, producerId, role, user?.user.role.id]);
 
   // Dynamic profile path: route avatar to the correct profile page based on role
   const profilePath: string = useMemo(() => {
@@ -58,33 +59,33 @@ const Layout = () => {
   }, [mobileOpen]);
 
   // Centralized auto-redirect: placeholder (user.id) -> definitive (role.id)
-  useEffect(() => {
-    if (!isAuthenticated) return;
-    if (attachInFlight) return; // avoid redirecting mid-attach
-
-    const googleId = user?.user?.id;
-    const roleId = user?.user?.role?.id;
-    if (!googleId || !roleId) return;
-    if (googleId === roleId) return;
-
-    const path = location.pathname;
-
-    if (role === "producer") {
-      const placeholder = `/producer/${googleId}/profile`;
-      if (path === placeholder) {
-        const target = `/producer/${roleId}/profile`;
-        if (target !== path) navigate(target, { replace: true });
-      }
-    }
-
-    if (role === "retailer") {
-      const placeholder = `/retailer/${googleId}/profile`;
-      if (path === placeholder) {
-        const target = `/retailer/${roleId}/profile`;
-        if (target !== path) navigate(target, { replace: true });
-      }
-    }
-  }, [isAuthenticated, attachInFlight, role, user?.user?.id, user?.user?.role?.id, location.pathname, navigate]);
+  // useEffect(() => {
+  //   if (!isAuthenticated) return;
+  //   if (attachInFlight) return; // avoid redirecting mid-attach
+  //
+  //   const googleId = user?.user?.id;
+  //   const roleId = user?.user?.role?.id;
+  //   if (!googleId || !roleId) return;
+  //   if (googleId === roleId) return;
+  //
+  //   const path = location.pathname;
+  //
+  //   if (role === "producer") {
+  //     const placeholder = `/producer/${googleId}/profile`;
+  //     if (path === placeholder) {
+  //       const target = `/producer/${roleId}/profile`;
+  //       if (target !== path) navigate(target, { replace: true });
+  //     }
+  //   }
+  //
+  //   if (role === "retailer") {
+  //     const placeholder = `/retailer/${googleId}/profile`;
+  //     if (path === placeholder) {
+  //       const target = `/retailer/${roleId}/profile`;
+  //       if (target !== path) navigate(target, { replace: true });
+  //     }
+  //   }
+  // }, [isAuthenticated, attachInFlight, role, user?.user?.id, user?.user?.role?.id, location.pathname, navigate]);
 
   return (
     <div className="min-h-screen flex flex-col bg-token text-token">

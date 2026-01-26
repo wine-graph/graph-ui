@@ -28,14 +28,6 @@ export type PosToken = {
 
 export type PosProvider = "square" | "clover" | "shopify";
 
-// New flatter shape — we enforce single active POS
-export type PosState = {
-  provider: PosProvider | null;
-  token: PosToken | null;
-  loading: boolean;
-  error: string | null;
-};
-
 // Helper to derive role cleanly (used in UI + machine)
 export function deriveRole(rawValue: string | undefined): Role {
   if (!rawValue) return "visitor";

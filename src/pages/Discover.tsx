@@ -1,8 +1,8 @@
 import React, {type ReactNode, useMemo, useState} from "react";
 import {DomainCard} from "../components/DomainCard.tsx";
 import {useQuery} from "@apollo/client";
-import {DOMAIN_QUERY} from "../services/domainGraph.ts";
-import {PRODUCERS_BY_AREA} from "../services/producerGraph.ts";
+import {DOMAIN_QUERY} from "../services/domain/domainGraph.ts";
+import {PRODUCERS_BY_AREA} from "../services/producer/producerGraph.ts";
 import PageHeader from "../components/common/PageHeader.tsx";
 // CrumbButton removed in favor of text-label breadcrumbs per new design spec
 import {domainClient, producerClient} from "../services/apolloClient.ts";

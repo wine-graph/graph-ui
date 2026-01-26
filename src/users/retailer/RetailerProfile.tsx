@@ -1,26 +1,25 @@
 import PageHeader from "../../components/common/PageHeader.tsx";
-import {useAuth} from "../../auth/authContext.ts";
+import {useAuth} from "../../auth";
 import GoogleProfile from "../../components/common/GoogleProfile.tsx";
 import PosAuthOptions from "./components/PosAuthOptions.tsx";
 import {Store} from "lucide-react";
 import SectionCard from "../../components/common/SectionCard.tsx";
 import PosProviderStatus from "./components/PosProviderStatus";
-import type {PosToken} from "../../auth/types";
 
 export const RetailerProfile = () => {
-  const {user, isRetailer, refreshPos, currentProvider, currentPosToken, posLoading, posError} = useAuth();
+  const {user, isRetailer, pos} = useAuth();
 
   if (!isRetailer) {
     return <div className="p-8 text-center text-red-600">Access denied. Retailer only.</div>;
   }
 
   // Show connections only when not loading and we have no token at all
-  const notConnected = !posLoading && !currentPosToken;
+  const notConnected = !pos.loading && !pos.token;
 
   const handleRefresh = async (provider: "square" | "clover" | "shopify") => {
-    const merchantId = currentPosToken?.merchantId ?? "";
+    const merchantId = pos.token?.merchantId ?? "";
     try {
-      refreshPos(provider, merchantId);
+      pos.refresh(provider, merchantId);
     } catch (e) {
       console.error("POS refresh failed", provider, e);
     }
@@ -43,12 +42,12 @@ export const RetailerProfile = () => {
           {(!notConnected) ? (
             <SectionCard cardHeader={{icon: Store, title: "POS status"}}>
               <div className="p-6">
-                {currentProvider && (
+                {pos.provider && (
                   <PosProviderStatus
-                    provider={currentProvider}
-                    token={currentPosToken as PosToken | null}
-                    globalLoading={posLoading}
-                    globalError={posError}
+                    provider={pos.provider}
+                    token={pos.token}
+                    globalLoading={pos.loading}
+                    globalError={pos.error}
                     onRefresh={handleRefresh}
                   />
                 )}

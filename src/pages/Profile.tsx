@@ -1,27 +1,17 @@
 import PageHeader from "../components/common/PageHeader.tsx";
 import GoogleSignIn from "../components/common/GoogleSignIn.tsx";
-import {useAuth} from "../auth/authContext.ts";
-import GoogleProfile from "../components/common/GoogleProfile.tsx";
-import {startAuthentication} from "../auth/authClient.ts";
-import type {Role} from "../auth/types.ts";
-import React, {useEffect, useState} from "react";
+import type {Role} from "../auth";
+import {startAuthentication, useAuth} from "../auth";
+import React, {useState} from "react";
 import {Send} from "lucide-react";
 import {useNavigate} from "react-router-dom";
+import GoogleProfile from "../components/common/GoogleProfile";
 
 export const ProfilePage = () => {
   const navigate = useNavigate();
-  const {isAuthenticated, user, isLoading, role, setLocalRole} = useAuth();
+  const {isAuthenticated, user, isLoading, setLocalRole} = useAuth();
 
-  // After login, redirect users to the correct inventory route based on role + role.id
-  useEffect(() => {
-    if (!isAuthenticated) return;
-    const roleId = user?.user.role.id;
-    if (!roleId) return;
-    if (role === "producer") {
-      navigate(`/producer/${roleId}/profile`, { replace: true });
-      return;
-    }
-  }, [isAuthenticated, role, user?.user.role.id, navigate]);
+  const role = user?.user.role?.value ?? "visitor";
 
   if (isLoading) {
     return (
@@ -83,9 +73,9 @@ export const ProfilePage = () => {
                     const userId = user?.user.id;
                     if (!userId) return;
                     if (next === "producer") {
-                      navigate(`/producer/${userId}/profile`, { replace: true });
+                      navigate(`/producer/${userId}/profile`, {replace: true});
                     } else if (next === "retailer") {
-                      navigate(`/retailer/${userId}/profile`, { replace: true });
+                      navigate(`/retailer/${userId}/profile`, {replace: true});
                     }
                   }}
                 />

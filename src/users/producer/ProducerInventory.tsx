@@ -1,9 +1,9 @@
 import React, {useMemo} from "react";
-import {useAuth} from "../../auth/authContext.ts";
+import {useAuth} from "../../auth";
 import PageHeader from "../../components/common/PageHeader.tsx";
 import ProducerWinesImport from "./import/ProducerWinesImport.tsx";
 import {useQuery} from "@apollo/client";
-import {PRODUCER_BY_ID} from "../../services/producerGraph.ts";
+import {PRODUCER_BY_ID} from "../../services/producer/producerGraph.ts";
 import {producerClient} from "../../services/apolloClient.ts";
 
 const ProducerInventory: React.FC = () => {
