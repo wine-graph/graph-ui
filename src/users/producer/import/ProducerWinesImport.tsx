@@ -1,6 +1,6 @@
 import React, {useMemo, useState} from "react";
 import {Link} from "react-router-dom";
-import Spinner from "../../../components/common/Spinner";
+import Spinner from "../../../components/Spinner.tsx";
 import {useImportMachine} from "./useImportMachine";
 import CsvDropzone from "./CsvDropzone";
 import ImportActionBar from "./ImportActionBar";

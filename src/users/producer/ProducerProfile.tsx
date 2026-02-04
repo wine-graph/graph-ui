@@ -1,6 +1,6 @@
-import PageHeader from "../../components/common/PageHeader.tsx";
-import GoogleProfile from "../../components/common/GoogleProfile.tsx";
-import SectionCard from "../../components/common/SectionCard.tsx";
+import PageHeader from "../../components/PageHeader.tsx";
+import GoogleProfile from "../../components/GoogleProfile.tsx";
+import SectionCard from "../../components/SectionCard.tsx";
 import {MapPin} from "lucide-react";
 import React, {useEffect, useMemo, useRef, useState} from "react";
 import type {User} from "../../auth";

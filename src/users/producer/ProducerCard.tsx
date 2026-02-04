@@ -5,6 +5,7 @@ import {useNavigate} from "react-router-dom";
 
 export const ProducerCard: React.FC<Producer> = ({id, name, slug, description, wines = [], email, phone, website}) => {
   const wineCount = wines.length;
+  console.log(`producer ${slug} has ${wineCount} wines`);
   //const featuredWines = wines.slice(0, 3).map(w => w.name).filter(Boolean);
   //const moreCount = wineCount - featuredWines.length;
 

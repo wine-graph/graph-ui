@@ -2,42 +2,8 @@ import {Link, useParams} from "react-router-dom";
 import {useMemo} from "react";
 import {useQuery} from "@apollo/client";
 import {producerClient} from "../services/apolloClient";
-import {PRODUCER_BY_ID} from "../services/producer/producerGraph.ts";
-
-type Producer = {
-  id: string;
-  name: string;
-  slug: string;
-  website?: string;
-  grapes?: string[];
-  styles?: string[];
-  founded?: string;
-  description?: string;
-  wines: Wine[];
-  retailers: { name: string; location?: string }[];
-  metrics?: { wines?: number; retailers?: number; regions?: number; updatedAt?: string };
-};
-
-type Wine = {
-  id: string;
-  name: string;
-  slug: string;
-  vintage: number;
-  varietal: string;
-  size: number;
-  producer: string;
-  color: "RED" | "WHITE" | "ROSE" | "ORANGE";
-  closure: "NATURAL_CORK" | "SCREW_CAP" | "SYNTHETIC_CORK" | "TECHNICAL_CORK" | "VALVE" | "VINO_SEAL" | "ZORK" | "OTHER";
-  shape: "ALSACE" | "BORDEAUX" | "BURGUNDY" | "CALIFORNIA" | "CHAMPAGNE" | "RHONE" | "BOX" | "OTHER";
-  type: "STILL" | "SPARKLING" | "FRIZZANTE";
-  description?: string;
-  alcohol?: number;
-  acid?: number;
-  pH?: number;
-  bottleAging?: number;
-  subarea?: string;
-  weblink?: string;
-}
+import {PRODUCER_BY_ID_ENRICHED} from "../services/producer/producerGraph.ts";
+import type {Producer} from "../users/producer/producer.ts";
 
 function SkeletonRow() {
   return (
@@ -47,13 +13,13 @@ function SkeletonRow() {
 
 export default function ProducerPage() {
   const {id} = useParams();
-  const {data, loading, error, refetch} = useQuery(PRODUCER_BY_ID, {
+  const {data, loading, error, refetch} = useQuery(PRODUCER_BY_ID_ENRICHED, {
     client: producerClient,
     variables: {id},
     skip: !id,
   });
 
-  const producer = data?.Producer?.producer as Producer | undefined;
+  const producer = data?.Producer?.enriched as Producer | undefined;
 
   const headerSubtitle = useMemo(() => {
     if (!producer) return "";
@@ -128,29 +94,23 @@ export default function ProducerPage() {
                     <div className="text-neutral-900 text-sm mt-1">{producer.description}</div>
                   </div>
                 )}
-                {(producer.grapes && producer.grapes.length > 0) && (
-                  <div className="py-2">
-                    <div className="text-neutral-700">Grapes</div>
-                    <div className="text-neutral-900 text-sm mt-1">{producer.grapes.join(", ")}</div>
-                  </div>
-                )}
-                {(producer.styles && producer.styles.length > 0) && (
-                  <div className="py-2">
-                    <div className="text-neutral-700">Styles</div>
-                    <div className="text-neutral-900 text-sm mt-1">{producer.styles.join(", ")}</div>
-                  </div>
-                )}
-                {producer.founded && (
-                  <div className="py-2 flex items-center justify-between">
-                    <span className="text-neutral-700">Founded</span>
-                    <span className="text-neutral-900">{producer.founded}</span>
-                  </div>
-                )}
                 {producer.website && (
                   <div className="py-2 flex items-center justify-between">
                     <span className="text-neutral-700">Website</span>
                     <a className="text-neutral-900 underline underline-offset-2" href={producer.website} target="_blank"
                        rel="noreferrer">Visit</a>
+                  </div>
+                )}
+                {producer.phone && (
+                  <div className="py-2 flex items-center justify-between">
+                    <span className="text-neutral-700">Phone</span>
+                    <a className="text-neutral-900 underline underline-offset-2" href={`tel:${producer.phone}`}>{producer.phone}</a>
+                  </div>
+                )}
+                {producer.email && (
+                  <div className="py-2 flex items-center justify-between">
+                    <span className="text-neutral-700">Email</span>
+                    <a className="text-neutral-900 underline underline-offset-2" href={`mailto:${producer.email}`}>{producer.email}</a>
                   </div>
                 )}
               </div>
@@ -160,11 +120,9 @@ export default function ProducerPage() {
             <section className="bg-white border border-neutral-200 rounded p-4" aria-labelledby="graph-title">
               <h2 id="graph-title" className="text-lg font-medium text-neutral-900">In the graph</h2>
               <ul className="mt-3 space-y-2 text-neutral-900">
-                <li>{producer.wines.length ?? "—"} wines in Wine Graph</li>
-                <li>{producer.metrics?.retailers ?? "0"} retailers carrying this producer</li>
-                <li>{producer.metrics?.regions ?? "0"} areas (AVA, AOC, etc)</li>
-                <li>Last
-                  updated: {producer.metrics?.updatedAt ? new Date(producer.metrics.updatedAt).toLocaleString() : "—"}</li>
+                <li>{producer?.wines?.length ?? "—"} wines in Wine Graph</li>
+                <li>Located in # {producer.areas?.length ?? "0"} areas (AVA, AOC, etc)</li>
+                <li>Added to Wine Graph: {producer.createdAt ? new Date(producer.createdAt).getFullYear() : "—"}</li>
               </ul>
             </section>
           </div>
@@ -185,7 +143,7 @@ export default function ProducerPage() {
                       <tr>
                         <th className="py-2 pr-4">Wine</th>
                         <th className="py-2 pr-4">Vintage</th>
-                        <th className="py-2 pr-4">Color / Style</th>
+                        <th className="py-2 pr-4">Varietal</th>
                       </tr>
                       </thead>
                       <tbody className="border-t border-neutral-200 text-neutral-900">
@@ -199,29 +157,12 @@ export default function ProducerPage() {
                             )}
                           </td>
                           <td className="py-2 pr-4">{w.vintage ?? "—"}</td>
-                          <td className="py-2 pr-4">{[w.color, w.varietal].filter(Boolean).join(" / ") || "—"}</td>
+                          <td className="py-2 pr-4">{w.varietal ?? "—"}</td>
                         </tr>
                       ))}
                       </tbody>
                     </table>
                   </div>
-                )}
-              </div>
-            </section>
-
-            {/* Retailers */}
-            <section className="bg-white border border-neutral-200 rounded p-4" aria-labelledby="retailers-title">
-              <h2 id="retailers-title" className="text-lg font-medium text-neutral-900">Retailers</h2>
-              <div className="mt-3 space-y-2">
-                {producer.retailers?.length === 0 ? (
-                  <p className="text-neutral-700">No retailers listed yet.</p>
-                ) : (
-                  producer.retailers?.map((r, idx) => (
-                    <div key={idx} className="flex items-center justify-between text-sm text-neutral-900">
-                      <span className="truncate">{r.name}</span>
-                      <span className="text-neutral-700 ml-3">{r.location || ""}</span>
-                    </div>
-                  ))
                 )}
               </div>
             </section>

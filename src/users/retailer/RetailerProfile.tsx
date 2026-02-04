@@ -1,9 +1,9 @@
-import PageHeader from "../../components/common/PageHeader.tsx";
+import PageHeader from "../../components/PageHeader.tsx";
 import {useAuth} from "../../auth";
-import GoogleProfile from "../../components/common/GoogleProfile.tsx";
+import GoogleProfile from "../../components/GoogleProfile.tsx";
 import PosAuthOptions from "./components/PosAuthOptions.tsx";
 import {Store} from "lucide-react";
-import SectionCard from "../../components/common/SectionCard.tsx";
+import SectionCard from "../../components/SectionCard.tsx";
 import PosProviderStatus from "./components/PosProviderStatus";
 
 export const RetailerProfile = () => {

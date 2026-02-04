@@ -15,6 +15,8 @@ type Mutation {
 }
 
 type Producer {
+  areas: [String]
+  createdAt: String
   description: String
   email: String
   id: ID
@@ -33,6 +35,8 @@ type ProducerMutation {
 type ProducerQuery {
   "Get all producers"
   all: [Producer]
+  "Get a producer by its ID, but enriched with 'extra' data"
+  enriched(id: ID!): Producer
   "Get a producer by its ID"
   producer(id: ID!): Producer
   "Get producers for a given area"
@@ -46,25 +50,16 @@ type Query {
 }
 
 type Wine {
-  acid: Float
-  alcohol: Float
-  bottleAging: Int
-  closure: String
-  color: String
+  createdAt: String
   description: String
   id: ID
   name: String
-  pH: Float
-  producer: String
-  shape: String
-  size: Float
+  producer: WineProducer
+  retailers: [WineRetailer]
   slug: String
-  subarea: String
-  type: String
   "Can be a single varietal (grape) or blend"
   varietal: String
   vintage: Int
-  weblink: String
   "Get a wines components"
   wineComponents: [WineGrape]
 }
@@ -86,9 +81,23 @@ type WineMutation {
   addWineComponents(input: WineComponentInput!): [WineGrape]
 }
 
+type WineProducer {
+  id: ID
+  name: String
+  slug: String
+}
+
 type WineQuery {
+  "Get a wine by its ID but fully enriched with producer and retailer data"
+  enriched(id: ID!): Wine
   "Get a wine by its ID"
   wine(id: ID!): Wine
+}
+
+type WineRetailer {
+  id: ID
+  name: String
+  source: String
 }
 
 enum Closure {
@@ -140,7 +149,6 @@ input ProducerInput {
   areaId: ID!
   description: String
   email: String
-  fax: String
   name: String!
   phone: String
   website: String

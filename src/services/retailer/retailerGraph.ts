@@ -9,9 +9,10 @@ const RETAILER_QUERY = gql(`
         pos
         inventory {
           name
-          producer
           varietal
           vintage
+          slug
+          canonicalId
         }
         location {
           zipCode
@@ -55,7 +56,7 @@ const RETAILERS_QUERY = gql(`
 `)
 
 const RETAILER_ONBOARDING_MUTATION = gql(`
-  mutation OnboardRetailer($merchantId: ID!, $pos: WineSource!) {
+  mutation OnboardRetailer($merchantId: ID!, $pos: PosSource!) {
     Retailer {
       onboard(merchantId: $merchantId, pos: $pos) {
         id

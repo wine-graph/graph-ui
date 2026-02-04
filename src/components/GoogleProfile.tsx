@@ -1,7 +1,7 @@
 import SectionCard from "./SectionCard.tsx";
 import React from "react";
 import {LogOut, User} from "lucide-react";
-import {useAuth} from "../../auth";
+import {useAuth} from "../auth";
 import {useNavigate} from "react-router-dom";
 
 type GoogleProfileProps = { name: string; picture: string; email: string };

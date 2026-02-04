@@ -1,5 +1,5 @@
 import React, {useCallback, useState} from "react";
-import SectionCard from "../../../components/common/SectionCard.tsx";
+import SectionCard from "../../../components/SectionCard.tsx";
 import PosConnectButton from "./PosConnectButton.tsx";
 import {startAuthorization} from "../../../auth";
 import squarePng from "../../../public/pos/square.png";

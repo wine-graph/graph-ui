@@ -1,28 +1,9 @@
 import {Link, useParams} from "react-router-dom";
-import {useMemo, useRef} from "react";
+import {useMemo} from "react";
 import {useQuery} from "@apollo/client";
-import {WINE_BY_ID} from "../services/producer/wineGraph.ts";
+import {WINE_BY_ID_ENRICHED} from "../services/producer/wineGraph.ts";
 import {producerClient} from "../services/apolloClient.ts";
-
-type Wine = {
-  name: string;
-  slug: string;
-  vintage?: string | number;
-  varietal: string;
-  producer?: { id: string; name: string; slug: string };
-  area?: string;
-  region?: string;
-  country?: string;
-  grapes?: string[];
-  color?: string; // red, white, sparkling, etc.
-  type?: string;  // alias for color/type coming from backend variants
-  size?: string;  // 750ml
-  abv?: string | number;
-  description?: string;
-  retailers: { name: string; location?: string; price?: string }[];
-  similarWines: { id?: string; name: string; slug: string; vintage?: string | number; producer?: { name: string } }[];
-  metrics?: { retailers?: number; regions?: number; matches?: number; updatedAt?: string; since?: string };
-};
+import type {WineEnriched, WineProducer, WineRetailer} from "../users/producer/producer.ts";
 
 function SkeletonRow() {
   return <div className="animate-pulse h-5 bg-neutral-200 rounded"/>;
@@ -30,20 +11,20 @@ function SkeletonRow() {
 
 export default function WinePage() {
   const {id} = useParams();
-  const retailersRef = useRef<HTMLDivElement | null>(null);
 
-  const {data, loading, error, refetch} = useQuery(WINE_BY_ID, {client: producerClient, variables: {id}, skip: !id});
-  const wine = data?.Wine?.wine as Wine | undefined;
+  const {data, loading, error, refetch} = useQuery(WINE_BY_ID_ENRICHED, {client: producerClient, variables: {id}, skip: !id});
+  const wine = data?.Wine?.enriched as WineEnriched | undefined;
+  const retailers = wine?.retailers as WineRetailer[] | undefined;
+  const producer = wine?.producer as WineProducer | undefined;
 
   const subtitle = useMemo(() => {
     if (!wine) return "";
     const parts: string[] = [];
     if (wine.vintage) parts.push(String(wine.vintage));
-    if (wine.producer) parts.push(wine.producer.name);
-    const place = [wine.area, wine.region, wine.country].filter(Boolean).join(", ");
-    if (place) parts.push(place);
+    if (producer?.name) parts.push(producer.name);
+    if (wine.retailers?.length) parts.push(`${wine.retailers.length} retailers`);
     return parts.join(" • ");
-  }, [wine]);
+  }, [wine, producer?.name]);
 
   return (
     <main className="px-4 sm:px-6 md:px-8 py-4" aria-labelledby="page-title">
@@ -65,23 +46,19 @@ export default function WinePage() {
               className="text-2xl text-neutral-900 font-medium leading-tight">{wine?.name || (loading ? "Loading…" : wine?.slug)}</h1>
           {subtitle && (
             <p className="text-sm text-neutral-700 mt-1">
-              {wine?.producer?.name ? (
+              {producer ? (
                 <>
                   <span className="mx-1">•</span>
                   <Link className="underline underline-offset-2"
-                        to={`/producer/${(wine.producer.slug)}/${wine.producer.id}`}>{wine.producer.name}</Link>
+                        to={`/producer/${(producer.slug)}/${producer.id}`}>{producer.name}</Link>
                 </>
               ) : null}
-              {(() => {
-                const place = [wine?.area, wine?.region, wine?.country].filter(Boolean).join(", ");
-                return place ? (<><span className="mx-1">•</span><span>{place}</span></>) : null;
-              })()}
             </p>
           )}
         </div>
         <div className="flex items-center gap-3">
-          {wine?.metrics?.since && (
-            <span className="text-sm text-neutral-700">In Wine Graph since {wine.metrics.since}</span>
+          {wine?.createdAt && (
+            <span className="text-sm text-neutral-700">In Wine Graph since {new Date(wine.createdAt).getFullYear()}</span>
           )}
         </div>
       </header>
@@ -121,11 +98,11 @@ export default function WinePage() {
             <section className="bg-white border border-neutral-200 rounded p-4" aria-labelledby="profile-title">
               <h2 id="profile-title" className="text-lg font-medium text-neutral-900">Profile</h2>
               <div className="mt-3 divide-y divide-neutral-200">
-                {wine.producer && (
+                {wine?.producer && (
                   <div className="py-2 flex items-center justify-between">
                     <span className="text-neutral-700">Producer</span>
                     <Link className="text-neutral-900 underline underline-offset-2"
-                          to={`/producer/${(wine.producer.slug)}/${wine.producer.id}`}>{wine.producer.name}</Link>
+                          to={`/producer/${(producer?.slug)}/${producer?.id}`}>{producer?.name}</Link>
                   </div>
                 )}
                 {wine.vintage && (
@@ -134,22 +111,9 @@ export default function WinePage() {
                   </div>
                 )}
                 {(wine.varietal) && (
-                  <div className="py-2 flex items-center justify-between"><span className="text-neutral-700">Varietal</span><span
-                    className="text-neutral-900">{wine.varietal}</span></div>
-                )}
-                {wine.grapes && wine.grapes.length > 0 && (
-                  <div className="py-2">
-                    <div className="text-neutral-700">Grapes</div>
-                    <div className="text-neutral-900 text-sm mt-1">{wine.grapes.join(", ")}</div>
-                  </div>
-                )}
-                {wine.size && (
-                  <div className="py-2 flex items-center justify-between"><span className="text-neutral-700">Size</span><span
-                    className="text-neutral-900">{wine.size}</span></div>
-                )}
-                {wine.abv && (
                   <div className="py-2 flex items-center justify-between"><span
-                    className="text-neutral-700">ABV</span><span className="text-neutral-900">{wine.abv}</span></div>
+                    className="text-neutral-700">Varietal</span><span
+                    className="text-neutral-900">{wine.varietal}</span></div>
                 )}
                 {wine.description && (
                   <div className="py-2">
@@ -162,13 +126,7 @@ export default function WinePage() {
             {/* In the graph */}
             <section className="bg-white border border-neutral-200 rounded p-4" aria-labelledby="ingraph-title">
               <h2 id="ingraph-title" className="text-lg font-medium text-neutral-900">In the graph</h2>
-              <ul className="mt-3 space-y-2 text-neutral-900">
-                {/*<li>{wine.metrics?.retailers ?? "—"} retailers carrying this wine</li>*/}
-                <li>{wine.metrics?.regions ?? "—"} regions</li>
-                <li>{wine.metrics?.matches ?? "—"} matches / references</li>
-                <li>Last
-                  updated: {wine.metrics?.updatedAt ? new Date(wine.metrics.updatedAt).toLocaleString() : "—"}</li>
-              </ul>
+              <p className="text-[14px] text-muted text-center">Coming soon...</p>
               {/* Role-aware examples (text only, no branching layout) */}
               <p
                 className="text-sm text-neutral-700 mt-2">{/* Retailer/Producer context could show here in the future. */}</p>
@@ -178,13 +136,12 @@ export default function WinePage() {
           {/* Retailers + Similar wines */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Retailers carrying this wine */}
-            <section ref={retailersRef as any} tabIndex={-1}
-                     className="md:col-span-2 bg-white border border-neutral-200 rounded p-4 outline-none"
+            <section className="md:col-span-2 bg-white border border-neutral-200 rounded p-4 outline-none"
                      aria-labelledby="retailers-title">
               <h2 id="retailers-title" className="text-lg font-medium text-neutral-900">Retailers carrying this
                 wine</h2>
               <div className="mt-3">
-                {wine.retailers?.length === 0 ? (
+                {retailers?.length === 0 ? (
                   <p className="text-neutral-700">No retailers listed yet.</p>
                 ) : (
                   <div className="overflow-x-auto">
@@ -192,14 +149,18 @@ export default function WinePage() {
                       <thead className="text-left text-neutral-700">
                       <tr>
                         <th className="py-2 pr-4">Retailer</th>
-                        <th className="py-2 pr-4">Location</th>
                       </tr>
                       </thead>
                       <tbody className="border-t border-neutral-200 text-neutral-900">
-                      {wine.retailers?.map((r, i) => (
+                      {retailers?.map((r, i) => (
                         <tr key={i} className="border-b border-neutral-200 last:border-b-0">
-                          <td className="py-2 pr-4">{r.name}</td>
-                          <td className="py-2 pr-4">{r.location || "—"}</td>
+                          <td className="py-2 pr-4">
+                            {
+                              <Link className="underline underline-offset-2" to={`/${r.id}/inventory`}>
+                                {r.name}
+                              </Link>
+                            }
+                          </td>
                         </tr>
                       ))}
                       </tbody>
@@ -212,24 +173,7 @@ export default function WinePage() {
             {/* Similar wines */}
             <section className="bg-white border border-neutral-200 rounded p-4" aria-labelledby="similar-title">
               <h2 id="similar-title" className="text-lg font-medium text-neutral-900">Similar wines</h2>
-              <div className="mt-3 space-y-2">
-                {wine.similarWines?.length === 0 ? (
-                  <p className="text-neutral-700">Similar wines will appear here as the graph grows.</p>
-                ) : (
-                  wine.similarWines?.map((sw) => (
-                    <div key={sw.slug} className="text-sm">
-                      {sw.id ? (
-                        <Link className="underline underline-offset-2 text-neutral-900" to={`/wine/${sw.slug}/${sw.id}`}>
-                          {sw.name}{sw.vintage ? ` ${sw.vintage}` : ""}
-                        </Link>
-                      ) : (
-                        <span className="text-neutral-900">{sw.name}{sw.vintage ? ` ${sw.vintage}` : ""}</span>
-                      )}
-                      {sw.producer?.name ? <span className="text-neutral-700"> — {sw.producer.name}</span> : null}
-                    </div>
-                  ))
-                )}
-              </div>
+              <p className="text-[14px] text-muted text-center">Coming soon...</p>
             </section>
           </div>
         </div>

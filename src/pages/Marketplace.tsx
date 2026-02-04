@@ -1,4 +1,4 @@
-import PageHeader from "../components/common/PageHeader.tsx";
+import PageHeader from "../components/PageHeader.tsx";
 import {RetailerMarketplace} from "../users/retailer/RetailerMarketplace.tsx";
 
 export const MarketplacePage = () => {
