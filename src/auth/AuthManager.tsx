@@ -1,54 +1,58 @@
 import {type ReactNode, useEffect} from "react";
-import Spinner from "../components/Spinner.tsx";
-import {useShopifyOAuth} from "./shopify.ts";
-import {useCloverOAuth} from "./clover.ts";
-import {useSquareOAuth} from "./square.ts";
 import {useGoogleOidc} from "./google.ts";
 import {useMachine} from "@xstate/react";
 import {authMachine} from "./authMachine.ts";
 import {AuthContext, type AuthContextValue} from "./authContext.ts";
 import {useAuthService} from "./authSystem.tsx";
+import {FullScreenSpinner} from "../components/FullScreenSpinner.tsx";
+import {useNavigate} from "react-router-dom";
+import {posOAuthMachine} from "./posOAuthMachine.ts";
+import type {PosProvider} from "./types.ts";
 
 /**
  * Handles OAuth redirection side effects.
  * Kept separate to prevent AuthProvider from becoming a "God Component".
  */
 export const AuthManager = ({auth}: { auth: AuthContextValue }) => {
+  const navigate = useNavigate();
   const google = useGoogleOidc({auth});
-  const square = useSquareOAuth({auth});
-  const clover = useCloverOAuth({auth});
-  const shopify = useShopifyOAuth({auth});
+  const [oauthState, oauthSend] = useMachine(posOAuthMachine, {
+    input: {
+      fetchUser: auth.fetchUser,
+      loadPos: auth.pos.load,
+    },
+  });
+
+  const processingPosOAuth = oauthState.matches("processing");
+  const redirectPath = oauthState.context.redirectPath;
 
   useEffect(() => {
-    google.authorize();
-  }, [google]);
-  useEffect(() => {
-    if (sessionStorage.getItem("square_oauth_pending")) square.authenticate();
-  }, [square]);
-  useEffect(() => {
-    if (sessionStorage.getItem("clover_oauth_pending")) clover.authenticate();
-  }, [clover]);
-  useEffect(() => {
-    if (sessionStorage.getItem("shopify_oauth_pending")) shopify.authenticate();
-  }, [shopify]);
+    const provider = (["square", "clover", "shopify"] as PosProvider[]).find((p) => {
+      return !!sessionStorage.getItem(`${p}_oauth_pending`);
+    });
+    if (!provider) return;
+    oauthSend({type: "START", provider});
+  }, [oauthSend]);
 
-  return google.isProcessing ? (
+  useEffect(() => {
+    if (!redirectPath) return;
+    navigate(redirectPath, {replace: true});
+    oauthSend({type: "RESET"});
+  }, [navigate, oauthSend, redirectPath]);
+
+  return (google.isProcessing || processingPosOAuth) ? (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80">
-      <Spinner label="Completing login..."/>
+      <FullScreenSpinner label={google.isProcessing ? "Completing login..." : "Completing POS authorization..."}/>
     </div>
   ) : null;
 };
 
 export const AuthProvider = ({children}: { children: ReactNode }) => {
-  const [state, , actor] = useMachine(authMachine);
+  const [, , actor] = useMachine(authMachine);
   const auth = useAuthService(actor);
 
-  if (state.matches("loading")) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <Spinner label="Authenticating…"/>
-      </div>
-    );
+  if (auth.isInitializing) {
+    return <FullScreenSpinner label="Setting up your session..."/>
   }
 
   return (

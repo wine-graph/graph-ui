@@ -7,7 +7,7 @@ export const RetailerTile: React.FC<Retailer> = (retailer) => {
 
   return (
     <button
-      onClick={() => navigate(`/${retailer.id}/inventory`)}
+      onClick={() => navigate(`/retailer/${retailer.id}/inventory`)}
       className="w-full text-left p-4 border border-[color:var(--color-border)] bg-panel-token hover:bg-[color:var(--color-muted)] hover:border-[color:var(--color-primary)] transition-all group rounded-none"
     >
       <div className="flex items-center justify-between gap-3">

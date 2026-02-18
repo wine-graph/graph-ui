@@ -6,6 +6,7 @@ export {AuthProvider} from "./AuthManager";
 
 // State machine (kept separate for clarity/testability)
 export {authMachine} from "./authMachine";
+export {posOAuthMachine} from "./posOAuthMachine";
 
 export {useAuth} from "./authContext";
 
@@ -26,17 +27,13 @@ export {
   startAuthentication,
   completeGoogleAuth,
   fetchCurrentUser,
-  updateRole,
   getPosToken,
   refreshPosToken,
   startAuthorization,
 } from "./authClient";
 
-// OAuth callback hooks (POS + Google)
+// OAuth callback hooks
 export {useGoogleOidc} from "./google";
-export {useSquareOAuth} from "./square";
-export {useCloverOAuth} from "./clover";
-export {useShopifyOAuth} from "./shopify";
 
 // Storage (rarely needed by app code; exposed for utilities/tools)
 export {storage} from "./storage";

@@ -1,8 +1,8 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import logo64 from "../../public/wine_graph_logo_64x64.png";
-import logo128 from "../../public/wine_graph_logo_128x128.png";
-import logo256 from "../../public/wine_graph_logo_256x256.png";
+import logo64 from "../../../public/wine_graph_logo_64x64.png";
+import logo128 from "../../../public/wine_graph_logo_128x128.png";
+import logo256 from "../../../public/wine_graph_logo_256x256.png";
 
 type Wine = {
   vintage: string | number;

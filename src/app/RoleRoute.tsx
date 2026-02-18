@@ -1,6 +1,7 @@
 import type {ReactNode} from "react";
 import {Navigate} from "react-router-dom";
 import {useAuth} from "../auth";
+import {FullScreenSpinner} from "../components/FullScreenSpinner.tsx";
 
 interface RoleRouteProps {
   children: ReactNode;
@@ -23,13 +24,13 @@ export const RoleRoute = ({
   allowVisitor,
   redirectPath = "/",
 }: RoleRouteProps) => {
-  const {isAuthenticated, isProducer, isRetailer, isLoading} = useAuth();
+  const {isAuthenticated, isProducer, isRetailer, isInitializing} = useAuth();
 
   // If roles are required, enforce auth + role check
   if (allowedRole) {
     // Avoid premature redirects while auth is still resolving
-    if (isLoading) {
-      return <div style={{padding: 16}}>Loading…</div>;
+    if (isInitializing) {
+      return <FullScreenSpinner/>;
     }
     if (!isAuthenticated) {
       return <Navigate to={redirectPath} replace/>;

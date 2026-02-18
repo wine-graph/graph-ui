@@ -1,13 +1,22 @@
 import PageHeader from "../../components/PageHeader.tsx";
 import {useAuth} from "../../auth";
 import GoogleProfile from "../../components/GoogleProfile.tsx";
-import PosAuthOptions from "./components/PosAuthOptions.tsx";
+import PosAuthOptions from "./pos/PosAuthOptions.tsx";
 import {Store} from "lucide-react";
 import SectionCard from "../../components/SectionCard.tsx";
-import PosProviderStatus from "./components/PosProviderStatus";
+import PosProviderStatus from "./pos/PosProviderStatus";
+import {useEffect, useState} from "react";
 
 export const RetailerProfile = () => {
   const {user, isRetailer, pos} = useAuth();
+  const [oauthError, setOauthError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const stored = sessionStorage.getItem("pos_oauth_error");
+    if (!stored) return;
+    setOauthError(stored);
+    sessionStorage.removeItem("pos_oauth_error");
+  }, []);
 
   if (!isRetailer) {
     return <div className="p-8 text-center text-red-600">Access denied. Retailer only.</div>;
@@ -38,6 +47,11 @@ export const RetailerProfile = () => {
 
         {/* Right: POS status and connections */}
         <div className="space-y-6">
+          {oauthError && (
+            <div className="border border-red-300 bg-red-50 text-red-700 px-3 py-2 rounded-md text-sm" role="alert">
+              {oauthError}
+            </div>
+          )}
           {/* Show status when authorized or checking; else show connect options */}
           {(!notConnected) ? (
             <SectionCard cardHeader={{icon: Store, title: "POS status"}}>
