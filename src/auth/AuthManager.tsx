@@ -1,5 +1,4 @@
 import {type ReactNode, useEffect} from "react";
-import Spinner from "../components/Spinner.tsx";
 import {useShopifyOAuth} from "./shopify.ts";
 import {useCloverOAuth} from "./clover.ts";
 import {useSquareOAuth} from "./square.ts";
@@ -8,6 +7,7 @@ import {useMachine} from "@xstate/react";
 import {authMachine} from "./authMachine.ts";
 import {AuthContext, type AuthContextValue} from "./authContext.ts";
 import {useAuthService} from "./authSystem.tsx";
+import {FullScreenSpinner} from "../components/FullScreenSpinner.tsx";
 
 /**
  * Handles OAuth redirection side effects.
@@ -20,9 +20,6 @@ export const AuthManager = ({auth}: { auth: AuthContextValue }) => {
   const shopify = useShopifyOAuth({auth});
 
   useEffect(() => {
-    google.authorize();
-  }, [google]);
-  useEffect(() => {
     if (sessionStorage.getItem("square_oauth_pending")) square.authenticate();
   }, [square]);
   useEffect(() => {
@@ -34,21 +31,17 @@ export const AuthManager = ({auth}: { auth: AuthContextValue }) => {
 
   return google.isProcessing ? (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80">
-      <Spinner label="Completing login..."/>
+      <FullScreenSpinner label="Completing login..."/>
     </div>
   ) : null;
 };
 
 export const AuthProvider = ({children}: { children: ReactNode }) => {
-  const [state, , actor] = useMachine(authMachine);
+  const [, , actor] = useMachine(authMachine);
   const auth = useAuthService(actor);
 
-  if (state.matches("loading")) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <Spinner label="Authenticating…"/>
-      </div>
-    );
+  if (auth.isInitializing) {
+    return <FullScreenSpinner label="Setting up your session..."/>
   }
 
   return (

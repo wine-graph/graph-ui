@@ -6,19 +6,16 @@ import React, {useState} from "react";
 import {Send} from "lucide-react";
 import {useNavigate} from "react-router-dom";
 import GoogleProfile from "../components/GoogleProfile.tsx";
+import {FullScreenSpinner} from "../components/FullScreenSpinner.tsx";
 
 export const ProfilePage = () => {
   const navigate = useNavigate();
-  const {isAuthenticated, user, isLoading, setLocalRole} = useAuth();
+  const {isAuthenticated, user, setLocalRole, isInitializing} = useAuth();
 
   const role = user?.user.role?.value ?? "visitor";
 
-  if (isLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
+  if (isInitializing) {
+    return <FullScreenSpinner label="Loading your profile..." />
   }
 
   return (

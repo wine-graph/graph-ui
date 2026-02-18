@@ -1,5 +1,5 @@
 import axios from "axios";
-import type {Role, SessionUser} from "./types.ts";
+import type {PosProvider, PosToken, SessionUser} from "./types.ts";
 import {storage} from "./storage.ts";
 
 const BASE_URL = import.meta.env.DEV
@@ -23,12 +23,12 @@ export const api = axios.create({
 // === Debug logs (dev only) ===
 if (import.meta.env.DEV) {
   api.interceptors.request.use((c) => {
-    console.log("API →", c.method?.toUpperCase(), c.url);
+    //console.log("API →", c.method?.toUpperCase(), c.url);
     return c;
   });
   api.interceptors.response.use(
     (r) => {
-      console.log("API ←", r.status, r.config.url);
+      //console.log("API ←", r.status, r.config.url);
       return r;
     },
     (e) => {
@@ -58,50 +58,7 @@ export const fetchCurrentUser = async (): Promise<SessionUser> => {
   return data;
 };
 
-// === Update role (server is the source of truth) ===
-export const updateRole = async (
-  role: Role,
-  roleId: string
-): Promise<SessionUser> => {
-  // Try session token first; if missing (edge cases), fall back to stored user.token
-  let token = storage.getToken();
-  if (!token) {
-    const stored = storage.getUser();
-    if (stored?.token) {
-      token = stored.token;
-      // Heal session for the rest of the session
-      storage.setToken(token);
-      if (import.meta.env.DEV) {
-        console.warn("[authClient] session token missing; recovered from stored user");
-      }
-    }
-  }
-
-  // Backend expects RoleEnum uppercase. Send uppercase to avoid 400.
-  const body = { role: role.toUpperCase(), id: roleId } as unknown as { role: string };
-
-  if (import.meta.env.DEV) {
-    // Do not log sensitive token; only log presence
-    console.info("[authClient] updateRole → PATCH /session/user", {
-      role: body.role,
-      id: roleId,
-      hasToken: !!token,
-    });
-  }
-
-  const {data} = await api.patch(
-    "/session/user",
-    body,
-    { headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } }
-  );
-
-  if (import.meta.env.DEV) {
-    console.info("[authClient] updateRole ← success");
-  }
-  return data;
-};
-
-export const startAuthorization = (provider: "square" | "clover" | "shopify", userId: string, shop: string | null): void => {
+export const startAuthorization = (provider: PosProvider, userId: string, shop: string | null): void => {
   if (!userId) {
     console.warn(`Cannot start ${provider} OAuth: missing userId`);
     return;
@@ -128,60 +85,36 @@ export const startAuthorization = (provider: "square" | "clover" | "shopify", us
 };
 
 // === POS: Only status & refresh ===
-export const getPosToken = async (provider: "square" | "clover" | "shopify", merchantId?: string | null) => {
+export const getPosToken = async (provider: PosProvider, merchantId?: string | null) => {
   if (!merchantId) {
     console.warn(`[pos] Skipping ${provider} token load: missing merchantId`);
     return null;
   }
-  // Swagger: GET /{provider}/token?merchantId=...
-  const {data} = await api.get(`/${provider}/token`, {params: {merchant_id: merchantId}});
-
+  const {data} = await api.get(`/${provider}/token`, {params: {merchant_id: merchantId}}) as { data: PosToken | null };
   if (!data) return null;
-  const expiry = pickExpiryMs(data);
 
   return {
-    merchantId: data.merchantId ?? data.merchant_id ?? "",
-    expiry,
-    token: data.token ?? undefined,
-  } as { merchantId: string; expiry: number | null; token?: string };
+    merchantId: data.merchantId,
+    expiresAt: data.expiresAt,
+    expiresAtMs: data.expiresAtMs,
+    expiresInSeconds: data.expiresInSeconds,
+  } as PosToken;
 };
 
-export const refreshPosToken = async (provider: "square" | "clover" | "shopify", merchantId?: string | null) => {
+export const refreshPosToken = async (provider: PosProvider, merchantId?: string | null) => {
   if (!merchantId) {
     console.warn(`[pos] Skipping ${provider} token refresh: missing merchantId`);
     return null;
   }
-  // Swagger: POST /{provider}/refresh?merchantId=...
-  const {data} = await api.post(`/${provider}/refresh`, null, {params: {merchant_id: merchantId}});
+  const {data} = await api.post(`/${provider}/refresh`, null, {params: {merchant_id: merchantId}}) as {
+    data: PosToken | null
+  };
   if (!data) return null;
-  const expiry = pickExpiryMs(data);
+
   return {
-    merchantId: data.merchantId ?? data.merchant_id ?? "",
-    expiry,
-    token: data.token ?? undefined,
-  } as { merchantId: string; expiry: number | null; token?: string };
+    merchantId: data.merchantId,
+    expiresAt: data.expiresAt,
+    expiresAtMs: data.expiresAtMs,
+    expiresInSeconds: data.expiresInSeconds
+  } as PosToken;
 };
-
-// === Expiry selection: backend exposes multiple fields; prefer ms when present ===
-function pickExpiryMs(data: any): number | null {
-  // 1) Prefer numeric epoch ms directly
-  const ms = data?.expiresAtMs;
-  if (typeof ms === "number" && Number.isFinite(ms) && ms > 0) return Math.round(ms);
-
-  // 2) If ISO string Instant exists, parse it
-  const iso = data?.expiresAt ?? "";
-  if (typeof iso === "string" && iso.trim()) {
-    // Trim fractional seconds beyond ms precision to avoid parse inconsistencies
-    const trimmed = iso.replace(/\.(\d{3})\d+(Z|[+\-]\d{2}:\d{2})$/, ".$1$2");
-    const parsed = Date.parse(trimmed);
-    if (Number.isFinite(parsed) && parsed > 0) return parsed;
-  }
-
-  // 3) As a fallback, if seconds TTL provided, convert relative seconds to absolute ms
-  const secs = data?.expiresInSeconds;
-  if (typeof secs === "number" && Number.isFinite(secs) && secs > 0) {
-    return Date.now() + Math.round(secs * 1000);
-  }
-
-  return null;
-}

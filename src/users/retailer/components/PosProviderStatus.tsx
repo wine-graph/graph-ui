@@ -39,7 +39,7 @@ export default function PosProviderStatus({ provider, token, globalLoading, glob
               <div className="text-neutral-600">Merchant</div>
               <div className="font-mono text-neutral-900">{token.merchantId}</div>
               <div className="text-neutral-600">Expires</div>
-              <div className="font-mono text-neutral-900">{formatExpiry(token.expiry)}</div>
+              <div className="font-mono text-neutral-900">{formatExpiry(token.expiresAtMs)}</div>
             </div>
           )}
         </div>

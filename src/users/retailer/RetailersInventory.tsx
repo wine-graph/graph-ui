@@ -38,6 +38,13 @@ export const RetailersInventory = () => {
     isAuthorized: Boolean(pos.isAuthorized && shouldOnboard),
     provider: pos.provider?.toUpperCase() ?? null,
     token: pos.token ?? null,
+    onCompleted: async () => {
+      try {
+        await refetch();
+      } catch {
+        // ignore refetch errors here; page will still be navigable
+      }
+    },
   });
 
   // Local UI state for Inventory search

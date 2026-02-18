@@ -168,8 +168,8 @@ const AvaSelection: React.FC<{ value?: string | null; onChange?: (id: string) =>
 };
 
 // Onboarding form shown when PRODUCER_BY_ID returns null
-const OnboardingForm: React.FC<{ onSuccess: (id: string) => void, user: User | undefined }> = ({onSuccess, user}) => {
-  const {updateRole, clearLocalRole} = useAuth();
+const OnboardingForm: React.FC<{ onSuccess: (id: string) => void, user: User | undefined }> = ({user}) => {
+  const {clearLocalRole} = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -203,19 +203,7 @@ const OnboardingForm: React.FC<{ onSuccess: (id: string) => void, user: User | u
       const res = await addProducer({variables: vars});
       const created = res?.data?.Producer?.addProducer;
       console.info("[producer] created ", created);
-      const newId = created?.id;
-      if (newId) {
-        try {
-          // Serialize backend attach of role + role_id using existing updateRole API
-          await updateRole("producer", newId);
-        } catch (e) {
-          // Non-blocking: allow navigation; user can retry attach from profile if needed
-          console.error("[producer] attachRole failed — proceeding", e);
-        } finally {
-          clearLocalRole();
-          onSuccess(newId);
-        }
-      }
+      clearLocalRole();
     } catch (err) {
       setSubmitError("We couldn’t create your producer. Retry in a moment.");
       console.error(err);

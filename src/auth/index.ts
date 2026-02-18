@@ -26,7 +26,6 @@ export {
   startAuthentication,
   completeGoogleAuth,
   fetchCurrentUser,
-  updateRole,
   getPosToken,
   refreshPosToken,
   startAuthorization,
