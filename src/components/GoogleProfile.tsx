@@ -4,7 +4,7 @@ import {LogOut, User} from "lucide-react";
 import {useAuth} from "../auth";
 import {useNavigate} from "react-router-dom";
 
-type GoogleProfileProps = { name: string; picture: string; email: string };
+type GoogleProfileProps = { name: string; picture: string; email: string; className?: string };
 
 // Displays the signed-in Google account and provides a safe logout.
 // Logout clears auth state via the auth machine and removes any pending POS OAuth flags.
@@ -32,18 +32,18 @@ const GoogleProfile: React.FC<GoogleProfileProps> = (profile: GoogleProfileProps
   };
 
   return (
-    <SectionCard cardHeader={{icon: User, title: "Your Google Account"}}>
-      <div className="p-4 space-y-4">
+    <SectionCard cardHeader={{icon: User, title: "Your Google Account"}} className={profile.className}>
+      <div className="p-5 space-y-4">
         {/* Top row: avatar (left) + logout (right) */}
         <div className="flex items-center justify-between gap-4">
           {profile.picture ? (
             <img
               src={profile.picture}
               alt={profile.name ?? "User"}
-              className="w-[72px] h-[72px] rounded-full object-cover border"
+              className="w-[72px] h-[72px] rounded-full object-cover border border-token"
             />
           ) : (
-            <div className="w-[72px] h-[72px] rounded-full border bg-[color:var(--color-muted)]" aria-hidden="true"/>
+            <div className="w-[72px] h-[72px] rounded-full border border-token bg-[color:var(--color-muted)]" aria-hidden="true"/>
           )}
 
           {/* Logout button (moved up for clearer affordance) */}
@@ -51,8 +51,8 @@ const GoogleProfile: React.FC<GoogleProfileProps> = (profile: GoogleProfileProps
             type="button"
             onClick={handleLogout}
             className="ml-auto btn-minimal tap-target flex items-center gap-2 rounded-md px-2 py-2 transition
-                       hover:bg-neutral-100 active:scale-[0.98]
-                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/60
+                       hover:bg-[color:var(--color-muted)]
+                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-accent)]
                        group"
             aria-label="Log out"
             title="Log out"

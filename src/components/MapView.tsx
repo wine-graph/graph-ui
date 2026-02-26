@@ -18,6 +18,44 @@ const defaultIcon = L.icon({
 // Assign as default for all markers
 L.Marker.prototype.options.icon = defaultIcon;
 
+let tileHintsInjected = false;
+
+function ensureMapNetworkHints() {
+  if (typeof document === "undefined" || tileHintsInjected) return;
+
+  const hosts = [
+    "https://a.basemaps.cartocdn.com",
+    "https://b.basemaps.cartocdn.com",
+    "https://c.basemaps.cartocdn.com",
+    "https://d.basemaps.cartocdn.com",
+  ];
+
+  hosts.forEach((host) => {
+    const key = host.replace("https://", "");
+    const preconnectSelector = `link[data-map-preconnect='${key}']`;
+    const dnsSelector = `link[data-map-dns='${key}']`;
+
+    if (!document.head.querySelector(preconnectSelector)) {
+      const preconnect = document.createElement("link");
+      preconnect.rel = "preconnect";
+      preconnect.href = host;
+      preconnect.crossOrigin = "anonymous";
+      preconnect.setAttribute("data-map-preconnect", key);
+      document.head.appendChild(preconnect);
+    }
+
+    if (!document.head.querySelector(dnsSelector)) {
+      const dnsPrefetch = document.createElement("link");
+      dnsPrefetch.rel = "dns-prefetch";
+      dnsPrefetch.href = host;
+      dnsPrefetch.setAttribute("data-map-dns", key);
+      document.head.appendChild(dnsPrefetch);
+    }
+  });
+
+  tileHintsInjected = true;
+}
+
 interface MapViewProps {
   center: LatLngExpression;
   zoom?: number;
@@ -25,6 +63,10 @@ interface MapViewProps {
 }
 
 export const MapView = ({center, zoom = 13, markers = []}: MapViewProps) => {
+  useEffect(() => {
+    ensureMapNetworkHints();
+  }, []);
+
   return (
     <MapContainer
       center={center}

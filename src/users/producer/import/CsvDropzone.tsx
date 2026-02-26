@@ -7,16 +7,29 @@ type Props = {
 
 export const CsvDropzone: React.FC<Props> = ({ file, onFileSelected }) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const [fileError, setFileError] = React.useState<string | null>(null);
 
   const onChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
-    if (f && f.name.toLowerCase().endsWith(".csv")) onFileSelected(f);
+    if (!f) return;
+    if (!f.name.toLowerCase().endsWith(".csv")) {
+      setFileError("Only .csv files are supported.");
+      return;
+    }
+    setFileError(null);
+    onFileSelected(f);
   }, [onFileSelected]);
 
   const onDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     const f = e.dataTransfer.files?.[0];
-    if (f && f.name.toLowerCase().endsWith(".csv")) onFileSelected(f);
+    if (!f) return;
+    if (!f.name.toLowerCase().endsWith(".csv")) {
+      setFileError("Only .csv files are supported.");
+      return;
+    }
+    setFileError(null);
+    onFileSelected(f);
   }, [onFileSelected]);
 
   return (
@@ -24,10 +37,17 @@ export const CsvDropzone: React.FC<Props> = ({ file, onFileSelected }) => {
       <div
         onDragOver={(e) => e.preventDefault()}
         onDrop={onDrop}
-        className="border border-token rounded-[var(--radius-md)] p-6 text-center cursor-pointer select-none"
+        className="border border-token rounded-[var(--radius-md)] p-6 text-center cursor-pointer select-none hover:bg-[color:var(--color-muted)]/20 transition-colors"
         onClick={() => inputRef.current?.click()}
         aria-label="Upload CSV"
         role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            inputRef.current?.click();
+          }
+        }}
       >
         <p className="text-[14px] text-muted">Drag a CSV here, or click to browse.</p>
         <p className="text-[12px] text-muted mt-1">Accepted: .csv</p>
@@ -39,6 +59,12 @@ export const CsvDropzone: React.FC<Props> = ({ file, onFileSelected }) => {
         className="hidden"
         onChange={onChange}
       />
+
+      {fileError ? (
+        <div className="mt-2 text-[12px] text-[color:var(--color-danger)]" role="alert">
+          {fileError}
+        </div>
+      ) : null}
 
       {file ? (
         <div className="mt-3 flex items-center justify-between border border-token rounded-md p-3">

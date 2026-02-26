@@ -7,6 +7,7 @@ type Params = {
   provider: string | null | undefined;
   isAuthorized: boolean;
   isOnboarded: boolean;
+  autoOnboardEnabled?: boolean;
   onOnboarded?: () => void | Promise<void>;
   onSynced?: () => void | Promise<void>;
   onError?: (message: string) => void;
@@ -25,6 +26,7 @@ export const useRetailerFlow = ({
   provider,
   isAuthorized,
   isOnboarded,
+  autoOnboardEnabled = true,
   onOnboarded,
   onSynced,
   onError,
@@ -44,8 +46,9 @@ export const useRetailerFlow = ({
   }, [flowSend, merchantId, isAuthorized, posEnum, isOnboarded]);
 
   useEffect(() => {
+    if (!autoOnboardEnabled) return;
     flowSend({type: "AUTO_ONBOARD"});
-  }, [flowSend, merchantId, isAuthorized, posEnum, isOnboarded]);
+  }, [autoOnboardEnabled, flowSend, merchantId, isAuthorized, posEnum, isOnboarded]);
 
   useEffect(() => {
     if (!flowState.context.error || !onError) return;

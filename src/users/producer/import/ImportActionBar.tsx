@@ -4,21 +4,22 @@ type Props = {
   state: "idle" | "uploading" | "reviewing" | "confirming" | "success" | "error";
   canUpload: boolean;
   canConfirm: boolean;
+  disabledReason?: string;
   onUpload: () => void;
   onConfirm: () => void;
 };
 
-export const ImportActionBar: React.FC<Props> = ({ state, canUpload, canConfirm, onUpload, onConfirm }) => {
+export const ImportActionBar: React.FC<Props> = ({ state, canUpload, canConfirm, disabledReason, onUpload, onConfirm }) => {
   return (
     <div className="flex items-center justify-end gap-2">
       {state === "idle" || state === "error" ? (
-        <button className="btn btn-primary" disabled={!canUpload} onClick={onUpload}>
+        <button className="btn btn-primary" disabled={!canUpload} onClick={onUpload} title={!canUpload ? disabledReason : undefined}>
           Upload & Import
         </button>
       ) : null}
 
       {state === "reviewing" ? (
-        <button className="btn btn-primary" disabled={!canConfirm} onClick={onConfirm}>
+        <button className="btn btn-primary" disabled={!canConfirm} onClick={onConfirm} title={!canConfirm ? disabledReason : undefined}>
           Confirm import
         </button>
       ) : null}

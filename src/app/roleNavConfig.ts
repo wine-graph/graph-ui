@@ -24,7 +24,7 @@ export type NavLinkDef = {
 const baseLinks: NavLinkDef[] = [
   {title: "Home", icon: BarChart3, route: "/"},
   {title: "Discover", icon: Globe, route: "/explore"},
-  {title: "Marketplace", icon: Store, route: "/marketplace"},
+  {title: "Locate", icon: Store, route: "/marketplace"},
   {title: "Profile", icon: User, route: "/profile"},
   //...genericLinks,
 ];
@@ -33,7 +33,7 @@ const baseLinks: NavLinkDef[] = [
 function retailerLinks(retailerId: string): NavLinkDef[] {
   // Use dynamic retailerId paths to match router: /retailer/:retailerId/...
   const cellar: NavLinkDef = {title: "Cellar", icon: Package, route: `/retailer/${retailerId}/cellar`};
-  const marketplace: NavLinkDef = {title: "Marketplace", icon: Store, route: "/retailer/marketplace"};
+  const marketplace: NavLinkDef = {title: "Producers", icon: Store, route: "/retailer/marketplace"};
   //const profile: NavLinkDef = {title: "Profile", icon: User, route: `/retailer/${retailerId}/profile`};
   return [baseLinks[0], marketplace, cellar, baseLinks[3]];
 }
@@ -48,7 +48,7 @@ function enthusiastLinks(): NavLinkDef[] {
 
 function producerLinks(producerId: string): NavLinkDef[] {
   const cellar: NavLinkDef = {title: "Cellar", icon: Package, route: `/producer/${producerId}/cellar`};
-  const marketplace: NavLinkDef = {title: "Marketplace", icon: Store, route: "/retailer/marketplace"};
+  const marketplace: NavLinkDef = {title: "Retailers", icon: Store, route: "/retailer/marketplace"};
   return [baseLinks[0], marketplace, cellar, baseLinks[3]];
 }
 

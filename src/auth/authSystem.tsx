@@ -15,6 +15,7 @@ export const useAuthService = (actor: AuthMachineActor) => {
     isLoading: s.context.isFetchingUser || s.context.pos.loading
   }));
 
+  //todo possible bug here or in this 'flow' -> after retailer authz's via pos we aren't setting the role properly in storage
   const role: Role = (() => {
     if (!isAuthenticated) return "visitor" as Role;
     const local = sessionStorage.getItem(LOCAL_ROLE_KEY);
