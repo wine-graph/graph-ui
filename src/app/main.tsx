@@ -7,21 +7,22 @@ import {createBrowserRouter, createRoutesFromElements, Outlet, Route, RouterProv
 import {AuthProvider} from "../auth";
 import RoleRoute from "./RoleRoute.tsx";
 import Spinner from "../components/Spinner.tsx";
-import {RetailerMarketplace} from "../users/retailer/RetailerMarketplace.tsx";
+import {likelyPathsForRole, prefetchPaths, routeLoaders} from "./routePrefetch.ts";
 
-const DiscoverPage = lazy(() => import("../pages/Discover.tsx").then(m => ({ default: m.DiscoverPage })));
-const ProfilePage = lazy(() => import("../pages/Profile.tsx").then(m => ({ default: m.ProfilePage })));
-const MarketplacePage = lazy(() => import("../pages/Marketplace.tsx").then(m => ({ default: m.MarketplacePage })));
-const ProducerMarketplace = lazy(() => import("../users/producer/ProducerMarketplace.tsx").then(m => ({ default: m.ProducerMarketplace })));
-const RetailerInventory = lazy(() => import("../users/retailer/inventory/RetailerInventoryPage.tsx").then(m => ({ default: m.RetailerInventoryPage })));
-const RetailerProfile = lazy(() => import("../users/retailer/RetailerProfile.tsx").then(m => ({ default: m.RetailerProfile })));
-const ProducerProfile = lazy(() => import("../users/producer/ProducerProfile.tsx").then(m => ({ default: m.ProducerProfile })));
-const GraphFeed = lazy(() => import("../pages/GraphFeed.tsx"));
-const ProducerInventory = lazy(() => import("../users/producer/ProducerInventory.tsx"));
-const ProducerPage = lazy(() => import("../pages/ProducerPage.tsx"));
-const WinePage = lazy(() => import("../pages/WinePage.tsx"));
+const DiscoverPage = lazy(routeLoaders.discover);
+const ProfilePage = lazy(routeLoaders.profile);
+const MarketplacePage = lazy(routeLoaders.marketplace);
+const ProducerMarketplace = lazy(routeLoaders.producerMarketplace);
+const RetailerInventory = lazy(routeLoaders.retailerInventory);
+const RetailerProfile = lazy(routeLoaders.retailerProfile);
+const ProducerProfile = lazy(routeLoaders.producerProfile);
+const GraphFeed = lazy(routeLoaders.graphFeed);
+const ProducerInventory = lazy(routeLoaders.producerInventory);
+const ProducerPage = lazy(routeLoaders.producerPage);
+const WinePage = lazy(routeLoaders.winePage);
+const RetailerMarketplace = lazy(routeLoaders.retailerMarketplace);
 
-const RetailerCellar = lazy(() => import("../users/retailer/RetailerCellar.tsx").then(m => ({ default: m.RetailerCellar })));
+const RetailerCellar = lazy(routeLoaders.retailerCellar);
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -105,3 +106,13 @@ createRoot(document.getElementById("root")!).render(
     </Suspense>
   </StrictMode>
 );
+
+if (typeof window !== "undefined") {
+  const warm = () => prefetchPaths(likelyPathsForRole({role: "visitor"}).slice(0, 3));
+  const ric = window.requestIdleCallback;
+  if (ric) {
+    ric(warm, {timeout: 1500});
+  } else {
+    window.setTimeout(warm, 350);
+  }
+}

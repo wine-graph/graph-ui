@@ -2,14 +2,16 @@ import React, {useCallback, useState} from "react";
 import SectionCard from "../../../components/SectionCard.tsx";
 import PosConnectButton from "./PosConnectButton.tsx";
 import {startAuthorization} from "../../../auth";
-import squarePng from "../../../public/pos/square.png";
-import cloverPng from "../../../public/pos/clover.png";
-import shopifyPng from "../../../public/pos/shopify.png";
 import {Store} from "lucide-react";
+import {InputField} from "../../../components/ui";
 
 type Props = {
   userId: string;
 };
+
+const squarePng = "/pos/square.png";
+const cloverPng = "/pos/clover.png";
+const shopifyPng = "/pos/shopify.png";
 
 const PosAuthOptions: React.FC<Props> = ({userId}) => {
   // Shopify shop capture state
@@ -71,7 +73,7 @@ const PosAuthOptions: React.FC<Props> = ({userId}) => {
       cardHeader={{ icon: Store, title: "Point-of-sale connections" }}
     >
       <div className="p-6 space-y-4">
-        <p className="text-sm text-neutral-700">
+        <p className="text-sm text-fg-muted">
           Connect your POS to sync inventory into Wine Graph. Choose one provider to continue.
         </p>
 
@@ -80,11 +82,11 @@ const PosAuthOptions: React.FC<Props> = ({userId}) => {
           <div>
             <PosConnectButton logoSrc={shopifyPng} label="Shopify" onClick={handleShopify} disabled={isRedirecting || !userId}/>
             {showShopifyForm && (
-              <form onSubmit={submitShopify} className="mt-3 border border-neutral-200 rounded-md p-3">
-                <label className="block text-sm text-neutral-900 mb-2" htmlFor="shopify-shop">
+              <form onSubmit={submitShopify} className="mt-3 border border-token rounded-[var(--radius-sm)] p-3 panel-token">
+                <label className="block text-sm mb-2" htmlFor="shopify-shop">
                   Shopify shop name
                 </label>
-                <input
+                <InputField
                   id="shopify-shop"
                   name="shop"
                   type="text"
@@ -95,24 +97,23 @@ const PosAuthOptions: React.FC<Props> = ({userId}) => {
                     setShopInput(e.target.value);
                     if (shopError) setShopError(null);
                   }}
-                  className="w-full h-10 px-3 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
                 />
-                <div className="mt-2 text-xs text-neutral-700">
+                <div className="mt-2 text-xs text-fg-muted">
                   You can paste your full shop URL or just the name. We will pass it as provided and the server will normalize it.
                 </div>
                 {shopError && (
-                  <div className="mt-2 text-xs text-red-600" role="alert">{shopError}</div>
+                  <div className="mt-2 text-xs text-[color:var(--color-danger)]" role="alert">{shopError}</div>
                 )}
                 <div className="mt-3 flex items-center gap-3">
                   <button
                     type="submit"
                     disabled={isRedirecting}
-                    className="h-10 px-4 border border-neutral-900 rounded-md bg-neutral-900 text-white focus:outline-none focus:ring-2 focus:ring-black"
+                    className="btn btn-primary focus-accent"
                   >
                     {isRedirecting ? "Redirecting…" : "Continue to Shopify"}
                   </button>
                   <a
-                    className="text-xs underline text-neutral-900"
+                    className="text-xs underline text-token"
                     href="https://help.shopify.com/en/manual/domains/myshopify-com-domains"
                     target="_blank"
                     rel="noreferrer"
@@ -126,7 +127,7 @@ const PosAuthOptions: React.FC<Props> = ({userId}) => {
           <PosConnectButton logoSrc={squarePng} label="Square" onClick={handleSquare} disabled={isRedirecting || !userId}/>
         </div>
         {isRedirecting && (
-          <p className="text-xs text-neutral-700" role="status">Opening provider authorization…</p>
+          <p className="text-xs text-fg-muted" role="status">Opening provider authorization…</p>
         )}
       </div>
     </SectionCard>

@@ -23,6 +23,11 @@ export const ImportResultsSummary: React.FC<Props> = ({ result }) => {
             </tr>
           </thead>
           <tbody>
+            {result.wines.length === 0 ? (
+              <tr>
+                <td className="px-3 py-3 text-muted" colSpan={3}>No wines were saved from this file.</td>
+              </tr>
+            ) : null}
             {result.wines.map((w, i) => (
               <tr key={i} className="border-b border-token">
                 <td className="px-3 py-2">{w.name}</td>

@@ -5,9 +5,6 @@ import {useNavigate} from "react-router-dom";
 
 export const ProducerCard: React.FC<Producer> = ({id, name, slug, description, wines = [], email, phone, website}) => {
   const wineCount = wines.length;
-  console.log(`producer ${slug} has ${wineCount} wines`);
-  //const featuredWines = wines.slice(0, 3).map(w => w.name).filter(Boolean);
-  //const moreCount = wineCount - featuredWines.length;
 
   const hasEmail = !!email?.trim();
   const hasPhone = !!phone?.trim();
@@ -27,7 +24,7 @@ export const ProducerCard: React.FC<Producer> = ({id, name, slug, description, w
       tabIndex={0}
       onClick={handleOpen}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleOpen(); } }}
-      className="group relative panel-token border border-[color:var(--color-border)] rounded-xl p-6 hover:border-[color:var(--color-border)] hover:bg-[color:var(--color-neutral-100)] hover:shadow-sm hover:-translate-y-0.5 transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[color:var(--color-fg)]">
+      className="group relative panel-token border border-[color:var(--color-border)] rounded-[var(--radius-lg)] p-6 hover:bg-[color:var(--color-muted)] hover:shadow-[var(--shadow-soft)] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[color:var(--color-accent)]">
 
       <div className="relative space-y-5">
         {/* Header with icon + name */}
@@ -41,7 +38,7 @@ export const ProducerCard: React.FC<Producer> = ({id, name, slug, description, w
             </h3>
           </div>
           <ChevronRight
-            className="w-5 h-5 text-[color:var(--color-fg-muted)] group-hover:text-[color:var(--color-fg)] group-hover:translate-x-1 transition-all"/>
+            className="w-5 h-5 text-[color:var(--color-fg-muted)] group-hover:text-[color:var(--color-accent)] group-hover:translate-x-1 transition-all"/>
         </div>
 
         {/* Description */}
@@ -56,12 +53,6 @@ export const ProducerCard: React.FC<Producer> = ({id, name, slug, description, w
           <span className="font-semibold text-[color:var(--color-fg)]">
             <Wine className="w-4.5 h-4.5 inline-block align-text-bottom mr-1"/> {wineCount} {wineCount === 1 ? "wine" : "wines"}
           </span>
-          {/*{featuredWines.length > 0 && (*/}
-          {/*  <span className="text-fg-muted">*/}
-          {/*    {" · "} {featuredWines.join(", ")}*/}
-          {/*    {moreCount > 0 && ` +${moreCount} more`}*/}
-          {/*  </span>*/}
-          {/*)}*/}
         </div>
 
         {/* Contact links (monochrome) */}

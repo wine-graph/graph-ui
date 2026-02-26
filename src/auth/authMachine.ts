@@ -9,6 +9,17 @@ interface PosInput {
   merchantId: string;
 }
 
+type PosResult = { provider: PosProvider; token: PosToken | null };
+
+function toMessage(error: unknown): string {
+  if (typeof error === "string") return error;
+  if (error && typeof error === "object" && "message" in error) {
+    const message = (error as { message?: unknown }).message;
+    if (typeof message === "string" && message.trim()) return message;
+  }
+  return "Unknown POS error";
+}
+
 export type AuthMachineActor = ActorRefFrom<typeof authMachine>;
 
 export const authMachine = setup({
@@ -38,14 +49,14 @@ export const authMachine = setup({
       return user;
     }),
 
-    loadPosToken: fromPromise<{ provider: PosProvider; token: PosToken | null }, PosInput>(
+    loadPosToken: fromPromise<PosResult, PosInput>(
       async ({input}) => {
         const data = await getPosToken(input.provider, input.merchantId);
         return {provider: input.provider, token: data ?? null};
       }
     ),
 
-    refreshPosToken: fromPromise<{ provider: PosProvider; token: PosToken | null }, PosInput>(
+    refreshPosToken: fromPromise<PosResult, PosInput>(
       async ({input}) => {
         const data = await refreshPosToken(input.provider, input.merchantId);
         return {provider: input.provider, token: data ?? null};
@@ -85,9 +96,7 @@ export const authMachine = setup({
 
     setPosSuccess: assign({
       pos: ({context, event}) => {
-        const output = (event as any).output as
-          | { provider: PosProvider; token: PosToken | null }
-          | undefined;
+        const output = "output" in event ? (event.output as PosResult | undefined) : undefined;
 
         if (!output?.token) {
           console.warn("[POS] No valid token/status returned");
@@ -107,7 +116,7 @@ export const authMachine = setup({
       pos: ({context, event}) => ({
         ...context.pos,
         loading: false,
-        error: (event as any)?.message ?? "Unknown POS error"
+        error: "error" in event ? toMessage(event.error) : "Unknown POS error"
       })
     })
   },
@@ -117,7 +126,7 @@ export const authMachine = setup({
 
     shouldRehydratePos: ({context}) => {
       const isRetailer = deriveRole(context.user?.user.role?.value) === "retailer";
-      const hasSystem = !!(context.user?.user.role as any)?.system;
+      const hasSystem = !!context.user?.user.role?.system;
       const hasId = !!context.user?.user.role?.id;
       const noToken = !context.pos.token;
 
@@ -217,7 +226,7 @@ export const authMachine = setup({
               if (event.type === "POS.LOAD" || event.type === "POS.REFRESH") {
                 return {provider: event.provider, merchantId: event.merchantId};
               }
-              const system = (context.user?.user.role as any)?.system?.toLowerCase() as PosProvider | undefined;
+              const system = context.user?.user.role?.system;
               const rid = context.user?.user.role?.id;
               if (system && rid) return {provider: system, merchantId: rid};
               throw new Error("No POS input available");

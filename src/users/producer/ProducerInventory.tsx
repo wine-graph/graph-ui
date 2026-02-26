@@ -7,6 +7,7 @@ import {PRODUCER_BY_ID} from "../../services/producer/producerGraph.ts";
 import {producerClient} from "../../services/apolloClient.ts";
 import type {Wine} from "./producer.ts";
 import {Link} from "react-router-dom";
+import {ActionRow, Card, DataTable, EmptyState, SectionTitle, SkeletonPanel, StatePanel} from "../../components/ui";
 
 const ProducerInventory: React.FC = () => {
   const {user} = useAuth();
@@ -35,66 +36,60 @@ const ProducerInventory: React.FC = () => {
 
         {/* Inventory table (List + Detail scaffold) */}
         <section className="mt-6">
-          <div className="panel-token border border-token rounded-[var(--radius-md)] p-4 sm:p-5">
-            <div className="flex items-center justify-between gap-3">
-              <h2 className="text-[16px] font-medium">Your wines</h2>
+          <Card className="p-4 sm:p-5">
+            <ActionRow>
+              <SectionTitle title="Your wines" titleClassName="text-[16px] font-medium" />
               <div className="text-[13px] text-muted">
                 {loading ? "Loading…" : `${wines.length} item${wines.length === 1 ? "" : "s"}`}
               </div>
-            </div>
+            </ActionRow>
 
             {/* Table states */}
             {error ? (
-              <div className="mt-3 border border-token rounded-[var(--radius-sm)] p-3" role="alert">
-                <div className="text-[14px] font-medium">We couldn’t load wines.</div>
-                <div className="text-[13px] text-muted mt-1">Retry in a moment or refresh the page.</div>
-                <div className="mt-2">
+              <StatePanel
+                variant="error"
+                role="alert"
+                title="We couldn’t load wines."
+                desc="Retry in a moment or refresh the page."
+                className="mt-3"
+                action={
                   <button className="btn btn-secondary" onClick={() => refetch()}>Retry</button>
-                </div>
-              </div>
+                }
+              />
             ) : loading ? (
-              <div className="mt-4">
-                <div className="h-8 bg-token/50 border border-token rounded-[var(--radius-sm)] animate-pulse" />
-                <div className="mt-2 space-y-2">
+              <SkeletonPanel className="mt-4 p-4">
+                <div className="h-8 bg-token/50 border border-token rounded-[var(--radius-sm)] mb-2" />
+                <div className="space-y-2">
                   <div className="h-10 bg-token/30 border border-token rounded" />
                   <div className="h-10 bg-token/30 border border-token rounded" />
                   <div className="h-10 bg-token/30 border border-token rounded" />
                 </div>
-              </div>
+              </SkeletonPanel>
             ) : wines.length === 0 ? (
-              <div className="mt-3">
-                <div className="text-[14px] font-medium">No wines yet</div>
-                <div className="text-[13px] text-muted mt-1">Upload a CSV to add wines to your catalog.</div>
-              </div>
+              <EmptyState
+                title="No wines yet"
+                desc="Upload a CSV to add wines to your catalog."
+                className="mt-3 border-none text-left py-2 px-0"
+              />
             ) : (
-              <div className="mt-4 overflow-x-auto">
-                <table className="w-full text-[14px]">
-                  <thead>
-                    <tr className="text-left">
-                      <th className="py-2 px-2 border-b border-token">Name</th>
-                      <th className="py-2 px-2 border-b border-token">Vintage</th>
-                      <th className="py-2 px-2 border-b border-token">Varietal</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {wines.map((w: Wine) => (
-                      <tr key={w.slug || w.id || w.name} className="border-b border-neutral-200 last:border-b-0">
-                        <td className="py-2 pr-4">
-                          {(w.slug && w.id) ? (
-                            <Link className="underline underline-offset-2" to={`/wine/${w.slug}/${w.id}`}>{w.name}</Link>
-                          ) : (
-                            <span>{w.name}</span>
-                          )}
-                        </td>
-                        <td className="py-2 pr-4">{w.vintage ?? "—"}</td>
-                        <td className="py-2 pr-4">{w.varietal ?? "—"}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <DataTable<Wine>
+                className="mt-4"
+                columns={[
+                  {
+                    id: "name",
+                    header: "Name",
+                    render: (w) => (w.slug && w.id)
+                      ? <Link className="underline underline-offset-2" to={`/wine/${w.slug}/${w.id}`}>{w.name}</Link>
+                      : <span>{w.name}</span>,
+                  },
+                  {id: "vintage", header: "Vintage", render: (w) => w.vintage ?? "—"},
+                  {id: "varietal", header: "Varietal", render: (w) => w.varietal ?? "—"},
+                ]}
+                rows={wines}
+                rowKey={(w) => w.slug || w.id || w.name}
+              />
             )}
-          </div>
+          </Card>
         </section>
 
         {/* Import section */}

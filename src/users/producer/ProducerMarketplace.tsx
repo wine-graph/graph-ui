@@ -5,6 +5,7 @@ import {PRODUCERS_QUERY} from "../../services/producer/producerGraph.ts";
 import {producerClient} from "../../services/apolloClient.ts";
 import {useMemo} from "react";
 import type {Producer} from "./producer.ts";
+import {StatePanel} from "../../components/ui";
 
 export const ProducerMarketplace = () => {
   const {data, loading, error, refetch} = useQuery(PRODUCERS_QUERY, {client: producerClient});
@@ -19,31 +20,32 @@ export const ProducerMarketplace = () => {
 
       <section className="mt-12">
         {error ? (
-          <div className="mb-6 border border-[color:var(--color-border)] rounded-md p-4 bg-[color:var(--color-neutral-100)]">
-            <p className="text-body text-fg">We couldn’t load producers. Retry in a moment.</p>
-            <div className="mt-3">
+          <StatePanel
+            variant="error"
+            role="alert"
+            className="mb-6"
+            title="We couldn’t load producers."
+            desc="Retry in a moment."
+            action={
               <button
                 type="button"
                 onClick={() => refetch()}
-                className="px-3 py-2 text-sm border border-[color:var(--color-border)] rounded hover:bg-[color:var(--color-neutral-100)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-fg)]"
+                className="btn btn-secondary focus-accent"
               >
                 Retry
               </button>
-            </div>
-          </div>
+            }
+          />
         ) : loading ? (
-          <div className="text-center py-20 text-muted">Loading producers…</div>
+          <StatePanel title="Loading producers..." align="center" className="py-20" />
         ) : producers.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="max-w-md mx-auto">
-              <p className="text-xl font-semibold text-fg-muted mb-3">
-                No producers yet
-              </p>
-              <p className="text-muted">
-                Producers will appear here as they join Wine Graph.
-              </p>
-            </div>
-          </div>
+          <StatePanel
+            title="No producers yet"
+            desc="Producers will appear here as they join Wine Graph."
+            align="center"
+            variant="empty"
+            className="py-20"
+          />
         ) : (
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {producers.map((producer) => (

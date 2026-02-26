@@ -6,6 +6,7 @@ import {Store} from "lucide-react";
 import SectionCard from "../../components/SectionCard.tsx";
 import PosProviderStatus from "./pos/PosProviderStatus";
 import {useEffect, useState} from "react";
+import {Notice} from "../../components/ui";
 
 export const RetailerProfile = () => {
   const {user, isRetailer, pos} = useAuth();
@@ -48,9 +49,9 @@ export const RetailerProfile = () => {
         {/* Right: POS status and connections */}
         <div className="space-y-6">
           {oauthError && (
-            <div className="border border-red-300 bg-red-50 text-red-700 px-3 py-2 rounded-md text-sm" role="alert">
+            <Notice variant="error" className="text-sm" role="alert">
               {oauthError}
-            </div>
+            </Notice>
           )}
           {/* Show status when authorized or checking; else show connect options */}
           {(!notConnected) ? (
