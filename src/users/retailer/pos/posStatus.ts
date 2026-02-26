@@ -1,4 +1,4 @@
-import type { PosToken } from "../../auth";
+import type {PosToken} from "../../../auth";
 
 export type Provider = "clover" | "shopify" | "square";
 
@@ -18,16 +18,10 @@ export function getProviderStatus(
   if (error) return "error";
   if (!token) return "not_connected";
   // Null expiry means non-expiring token → connected
-  if (token.expiry == null) return "connected";
-  return token.expiry > Date.now() ? "connected" : "expired";
-}
-
-export function isAuthorized(token?: PosToken | null): boolean {
-  if (!token) return false;
-  if (token.expiry == null) return true;
-  return token.expiry > Date.now();
+  if (token.expiresAtMs == null) return "connected";
+  return token.expiresAtMs > Date.now() ? "connected" : "expired";
 }
 
 export function formatExpiry(expiry?: number | null): string {
-  return expiry ? new Date(expiry).toLocaleString() : "—";
+  return expiry ? new Date(expiry).toLocaleDateString() : "—";
 }

@@ -31,6 +31,7 @@ export const storage = {
 
   clear: () => {
     localStorage.removeItem(USER_KEY);
+    localStorage.clear();
     storage.setToken(null);
     sessionStorage.clear();
   },

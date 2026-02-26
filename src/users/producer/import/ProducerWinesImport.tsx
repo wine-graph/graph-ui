@@ -1,6 +1,5 @@
 import React, {useMemo, useState} from "react";
 import {Link} from "react-router-dom";
-import Spinner from "../../../components/Spinner.tsx";
 import {useImportMachine} from "./useImportMachine";
 import CsvDropzone from "./CsvDropzone";
 import ImportActionBar from "./ImportActionBar";
@@ -8,6 +7,7 @@ import WinesPreviewTable from "./WinesPreviewTable";
 import ImportResultsSummary from "./ImportResultsSummary";
 import ImportErrorsPanel from "./ImportErrorsPanel";
 import AdvancedDrawer from "./AdvancedDrawer";
+import {OverlaySpinner} from "../../../components/OverlaySpinner.tsx";
 
 type Props = { producerId: string };
 
@@ -115,7 +115,7 @@ const ProducerWinesImport: React.FC<Props> = ({producerId}) => {
       {/* Blocking overlay */}
       {overlay ? (
         <div className="absolute inset-0 bg-white/70 backdrop-blur-[1px] flex flex-col items-center justify-center rounded-[var(--radius-md)]">
-          <Spinner label={overlay.title} />
+          <OverlaySpinner label={overlay.title} />
           {overlay.sub ? <div className="text-[13px] text-muted mt-2">{overlay.sub}</div> : null}
         </div>
       ) : null}

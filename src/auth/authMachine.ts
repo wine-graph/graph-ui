@@ -1,5 +1,5 @@
 import {type ActorRefFrom, assign, fromPromise, setup} from "xstate";
-import {getPosToken, refreshPosToken} from "./authClient";
+import {fetchCurrentUser, getPosToken, refreshPosToken} from "./authClient";
 import {storage} from "./storage";
 import type {PosProvider, PosToken, SessionUser} from "./types";
 import {deriveRole} from "./types";
@@ -15,65 +15,54 @@ export const authMachine = setup({
   types: {
     context: {} as {
       user: SessionUser | null;
-      attachInFlight?: boolean;
-      pendingRoleAttach?: { role?: string; roleId?: string } | null;
       pos: {
         provider: PosProvider | null;
         token: PosToken | null;
         loading: boolean;
         error: string | null;
       };
+      isFetchingUser: boolean;
     },
     events: {} as
       | { type: "LOGGED_IN"; data: SessionUser }
       | { type: "LOGGED_OUT" }
       | { type: "POS.LOAD"; provider: PosProvider; merchantId: string }
       | { type: "POS.REFRESH"; provider: PosProvider; merchantId: string }
-      | { type: "ROLE.ATTACH_START"; role?: string; roleId?: string }
-      | { type: "ROLE.ATTACH_DONE" }
-      | { type: "ROLE.ATTACH_ERROR" },
+      | { type: "FETCH_USER" }
   },
 
   actors: {
-    loadPosToken: fromPromise<
-      { provider: PosProvider; token: PosToken | null },
-      PosInput
-    >(async ({input}) => {
-      const data = await getPosToken(input.provider, input.merchantId);
-      console.debug("[auth] POS token loaded:", input.provider, input.merchantId);
-      return {provider: input.provider, token: data ?? null};
+    fetchUser: fromPromise<SessionUser>(async () => {
+      const user = await fetchCurrentUser();
+      if (!user) throw new Error("No current user returned");
+      return user;
     }),
 
-    refreshPosToken: fromPromise<
-      { provider: PosProvider; token: PosToken | null },
-      PosInput
-    >(async ({input}) => {
-      const data = await refreshPosToken(input.provider, input.merchantId);
-      console.debug("[auth] POS token refreshed:", input.provider, input.merchantId);
-      return {provider: input.provider, token: data ?? null};
-    }),
+    loadPosToken: fromPromise<{ provider: PosProvider; token: PosToken | null }, PosInput>(
+      async ({input}) => {
+        const data = await getPosToken(input.provider, input.merchantId);
+        return {provider: input.provider, token: data ?? null};
+      }
+    ),
+
+    refreshPosToken: fromPromise<{ provider: PosProvider; token: PosToken | null }, PosInput>(
+      async ({input}) => {
+        const data = await refreshPosToken(input.provider, input.merchantId);
+        return {provider: input.provider, token: data ?? null};
+      }
+    )
   },
 
   actions: {
     hydrateUserFromStorage: assign({
-      user: () => {
-        const u = storage.getUser();
-        console.debug("[auth] hydrated user from storage →", u?.user.id);
-        return u;
-      },
+      user: () => storage.getUser()
     }),
 
     saveUser: assign({
-      user: ({context, event}) => {
+      user: ({event, context}) => {
         if (event.type !== "LOGGED_IN") return context.user;
-        const incoming = event.data;
 
-        if (context.attachInFlight) {
-          const roleChanged = context.user?.user.role?.value !== incoming.user?.role?.value ||
-            context.user?.user.role?.id !== incoming.user?.role?.id;
-          if (!roleChanged) return context.user;
-        }
-
+        const incoming = event.data as SessionUser;
         storage.setUser(incoming);
         return incoming;
       },
@@ -81,22 +70,17 @@ export const authMachine = setup({
 
     clearUser: assign({
       user: () => {
-        console.debug("[auth] clearing user");
         storage.clear();
         return null;
       },
-      pos: () => ({
-        provider: null,
-        token: null,
-        loading: false,
-        error: null,
-      }),
+      pos: () => ({provider: null, token: null, loading: false, error: null})
     }),
 
-    setPosLoading: assign({ pos: ({ context }) => ({
-        ...context.pos,
-        loading: true,
-        error: null })
+    setFetchingUser: assign({isFetchingUser: () => true}),
+    clearFetchingUser: assign({isFetchingUser: () => false}),
+
+    setPosLoading: assign({
+      pos: ({context}) => ({...context.pos, loading: true, error: null})
     }),
 
     setPosSuccess: assign({
@@ -104,13 +88,15 @@ export const authMachine = setup({
         const output = (event as any).output as
           | { provider: PosProvider; token: PosToken | null }
           | undefined;
-        if (!output?.token) return context.pos;
 
-        const {provider, token} = output;
+        if (!output?.token) {
+          console.warn("[POS] No valid token/status returned");
+          return context.pos;
+        }
 
         return {
-          provider,
-          token,
+          provider: output.provider,
+          token: output.token,
           loading: false,
           error: null,
         };
@@ -118,178 +104,141 @@ export const authMachine = setup({
     }),
 
     setPosError: assign({
-      pos: ({context, event}) => {
-        const err = (event as any)?.error?.message ?? "Unknown POS error";
-        console.error("[auth] POS error:", err);
-        return {
-          ...context.pos,
-          loading: false,
-          error: err,
-        };
-      },
-    }),
-
-    setAttachStart: assign({
-      attachInFlight: () => true,
-      pendingRoleAttach: (_ctx, ev: any) => ({role: ev?.role, roleId: ev?.roleId}),
-    }),
-
-    setAttachDone: assign({
-      attachInFlight: () => false,
-      pendingRoleAttach: () => null,
-    }),
-
-    setAttachError: assign({
-      attachInFlight: () => false,
-    }),
+      pos: ({context, event}) => ({
+        ...context.pos,
+        loading: false,
+        error: (event as any)?.message ?? "Unknown POS error"
+      })
+    })
   },
 
   guards: {
     hasUser: ({context}) => !!context.user,
 
-    shouldRehydratePos: ({ context }) => {
-      if (context.attachInFlight || deriveRole(context.user?.user.role.value) !== "retailer") return false;
-      if (context.pos.token) return false;
-      return !!(context.user?.user.role as any)?.system && !!context.user?.user.role?.id;
+    shouldRehydratePos: ({context}) => {
+      const isRetailer = deriveRole(context.user?.user.role?.value) === "retailer";
+      const hasSystem = !!(context.user?.user.role as any)?.system;
+      const hasId = !!context.user?.user.role?.id;
+      const noToken = !context.pos.token;
+
+      return isRetailer && hasSystem && hasId && noToken;
     },
 
-    hasPosInput: ({ event }) => event.type === "POS.LOAD" || event.type === "POS.REFRESH" ? !!event.provider && !!event.merchantId : false,
-  },
+    hasPosInput: ({event}) => {
+      return (event.type === "POS.LOAD" || event.type === "POS.REFRESH") &&
+        !!event.provider && !!event.merchantId
+    }
+
+  }
 }).createMachine({
   id: "auth",
-  initial: "loading",
+  initial: "initializing",
+
   context: {
     user: null,
-    pos: {
-      provider: null,
-      token: null,
-      loading: false,
-      error: null,
-    },
-  },
-
-  on: {
-    LOGGED_OUT: {
-      target: ".unauthenticated",
-      actions: "clearUser",
-    },
-    "ROLE.ATTACH_START": {
-      actions: "setAttachStart",
-    },
-    "ROLE.ATTACH_DONE": {
-      actions: "setAttachDone",
-    },
-    "ROLE.ATTACH_ERROR": {
-      actions: "setAttachError",
-    },
+    pos: {provider: null, token: null, loading: false, error: null},
+    isFetchingUser: false,
   },
 
   states: {
-    loading: {
+    initializing: {
       entry: "hydrateUserFromStorage",
       always: [
         {target: "authenticated", guard: "hasUser"},
-        {target: "unauthenticated"},
-      ],
+        {target: "unauthenticated"}
+      ]
     },
 
     unauthenticated: {
-      id: "unauthenticated",
       on: {
-        LOGGED_IN: {
-          target: "authenticated",
-          actions: "saveUser",
-        },
-      },
+        LOGGED_IN: {target: "authenticated", actions: "saveUser"}
+      }
     },
 
     authenticated: {
-      entry: "saveUser",
-      initial: "idle",
-      // Allow updating the stored user (e.g., role change) without leaving the
-      // authenticated state. Previously, LOGGED_IN events sent while already
-      // authenticated were ignored, so localStorage (graph_user) was not updated.
+      initial: "checkingPos",
       on: {
-        LOGGED_IN: {
-          actions: "saveUser",
-        },
+        LOGGED_IN: {actions: "saveUser"},
+        FETCH_USER: {target: ".loadingUser"},
+        LOGGED_OUT: {target: "unauthenticated", actions: "clearUser"}
       },
 
       states: {
-        idle: {
+        checkingPos: {
           always: [
             {
               guard: "shouldRehydratePos",
               target: "loadingPos",
-              actions: "setPosLoading",
-            },
-          ],
+              actions: "setPosLoading"
+            }
+          ]
+        },
+
+        idle: {
           on: {
             "POS.LOAD": {
               target: "loadingPos",
               actions: "setPosLoading",
-              guard: "hasPosInput",
+              guard: "hasPosInput"
             },
             "POS.REFRESH": {
               target: "refreshingPos",
               actions: "setPosLoading",
-              guard: "hasPosInput",
+              guard: "hasPosInput"
+            }
+          }
+        },
+
+        loadingUser: {
+          entry: "setFetchingUser",
+          invoke: {
+            src: "fetchUser",
+            onDone: {
+              target: "idle",
+              actions: [
+                assign({user: ({event}) => event.output}),
+                "clearFetchingUser"
+              ]
             },
-          },
+            onError: {
+              target: "idle",
+              actions: [
+                ({event}) => console.error("[auth] fetch failed", event.error),
+                "clearFetchingUser"
+              ]
+            }
+          }
         },
 
         loadingPos: {
           invoke: {
             src: "loadPosToken",
             input: ({context, event}) => {
-              const e = event as any;
-
-              // Explicit call takes priority
-              if (e?.provider && e?.merchantId) {
-                return {provider: e.provider, merchantId: e.merchantId};
+              if (event.type === "POS.LOAD" || event.type === "POS.REFRESH") {
+                return {provider: event.provider, merchantId: event.merchantId};
               }
-
-              // Auto-rehydrate from role.system (backend source of truth)
-              const system = (context.user?.user.role as any)?.system as PosProvider | undefined;
+              const system = (context.user?.user.role as any)?.system?.toLowerCase() as PosProvider | undefined;
               const rid = context.user?.user.role?.id;
-              if (system && rid) {
-                return {provider: system, merchantId: rid};
-              }
-
-              throw new Error("Cannot load POS: no provider/merchantId available");
+              if (system && rid) return {provider: system, merchantId: rid};
+              throw new Error("No POS input available");
             },
-            onDone: {
-              target: "idle",
-              actions: "setPosSuccess",
-            },
-            onError: {
-              target: "idle",
-              actions: "setPosError",
-            },
-          },
+            onDone: {target: "idle", actions: "setPosSuccess"},
+            onError: {target: "idle", actions: "setPosError"}
+          }
         },
 
         refreshingPos: {
           invoke: {
             src: "refreshPosToken",
             input: ({event}) => {
-              const e = event as any;
-              return {
-                provider: e.provider,
-                merchantId: e.merchantId,
-              };
+              if (event.type !== "POS.REFRESH") throw new Error("Invalid event");
+              return {provider: event.provider, merchantId: event.merchantId};
             },
-            onDone: {
-              target: "idle",
-              actions: "setPosSuccess",
-            },
-            onError: {
-              target: "idle",
-              actions: "setPosError",
-            },
-          },
-        },
-      },
-    },
-  },
+            onDone: {target: "idle", actions: "setPosSuccess"},
+            onError: {target: "idle", actions: "setPosError"}
+          }
+        }
+      }
+    }
+  }
 });

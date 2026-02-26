@@ -22,8 +22,9 @@ export type SessionUser = {
 
 export type PosToken = {
   merchantId: string;
-  expiry: number | null;
-  token?: string;
+  expiresAt: string;
+  expiresAtMs: number;
+  expiresInSeconds: number;
 };
 
 export type PosProvider = "square" | "clover" | "shopify";

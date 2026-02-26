@@ -17,9 +17,9 @@ This module centralizes the React provider, consumer hook, and facade for auth i
 | Flow | Steps |
 |------|-------|
 | Google Login | Click → `/session/authenticate` → Google → `/session/complete?state=xyz` → `auth.login()` |
-| Square Connect | Click → `/square/authorize` → Square → callback → server sets session → redirects to `/retailer?id=123` → `useSquareOAuth` → `auth.loadPos` → `auth.fetchUser` |
+| Square Connect | Click → `/square/authorize` → Square → callback → server sets session → redirects to `/retailer?id=123` → `posOAuthMachine` (via `AuthManager`) → `auth.loadPos` → `auth.fetchUser` |
 | Clover Connect | Same as Square, different provider path |
-| Shopify Connect | Click → shop capture → `/shopify/authorize?shop=...` → callback → server redirects → `useShopifyOAuth` → `auth.loadPos` → `auth.fetchUser` |
+| Shopify Connect | Click → shop capture → `/shopify/authorize?shop=...` → callback → server redirects → `posOAuthMachine` (via `AuthManager`) → `auth.loadPos` → `auth.fetchUser` |
 
 Notes:
 - No frontend POST to provider callbacks; the backend (Quarkus) completes the OAuth flow and redirects the browser back with query params.
@@ -34,13 +34,14 @@ Notes:
 | `index.ts` | Public barrel: import everything from `src/auth` |
 | `authSystem.tsx` | Consolidated module: `AuthProvider`, `AuthContext`/`useAuth`, and `useAuthService` facade (selectors + actions) |
 | `authMachine.ts` | XState machine — single source of truth for state logic |
+| `posOAuthMachine.ts` | XState machine that completes POS OAuth callbacks and drives redirect/error outcomes |
 | `types.ts` | `SessionUser`, `Role`, POS types and helpers (`deriveRole`, `hasRole`) |
 | `storage.ts` | Persist user/token in web storage |
 | `authClient.ts` | Axios client + auth/session/POS helpers |
 | `google.ts` | Google OIDC completion hook |
-| `square.ts` | Square OAuth completion hook |
-| `clover.ts` | Clover OAuth completion hook |
-| `shopify.ts` | Shopify OAuth completion hook |
+| `square.ts` | Legacy compatibility module (not exported by barrel) |
+| `clover.ts` | Legacy compatibility module (not exported by barrel) |
+| `shopify.ts` | Legacy compatibility module (not exported by barrel) |
 | `authContext.ts` | Re-export shim: re-exports `AuthContext` and `useAuth` from `authSystem.tsx` |
 | `AuthProvider.tsx` | Re-export shim: re-exports `AuthProvider` from `authSystem.tsx` |
 | `useAuthService.ts` | Re-export shim: re-exports `useAuthService` (for deep import compatibility) |
@@ -53,7 +54,7 @@ Always import from the barrel to keep call sites stable:
 
 ```ts
 import { AuthProvider, useAuth } from "../auth";
-import { startAuthentication, useSquareOAuth } from "../auth";
+import { startAuthentication } from "../auth";
 import type { Role, PosToken } from "../auth";
 ```
 

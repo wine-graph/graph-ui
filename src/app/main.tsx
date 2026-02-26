@@ -1,4 +1,4 @@
-import {StrictMode, Suspense, lazy} from "react";
+import {lazy, StrictMode, Suspense} from "react";
 import {createRoot} from "react-dom/client";
 import "./index.css";
 import "leaflet/dist/leaflet.css";
@@ -13,13 +13,15 @@ const DiscoverPage = lazy(() => import("../pages/Discover.tsx").then(m => ({ def
 const ProfilePage = lazy(() => import("../pages/Profile.tsx").then(m => ({ default: m.ProfilePage })));
 const MarketplacePage = lazy(() => import("../pages/Marketplace.tsx").then(m => ({ default: m.MarketplacePage })));
 const ProducerMarketplace = lazy(() => import("../users/producer/ProducerMarketplace.tsx").then(m => ({ default: m.ProducerMarketplace })));
-const RetailerInventory = lazy(() => import("../users/retailer/RetailersInventory.tsx").then(m => ({ default: m.RetailersInventory })));
+const RetailerInventory = lazy(() => import("../users/retailer/inventory/RetailerInventoryPage.tsx").then(m => ({ default: m.RetailerInventoryPage })));
 const RetailerProfile = lazy(() => import("../users/retailer/RetailerProfile.tsx").then(m => ({ default: m.RetailerProfile })));
 const ProducerProfile = lazy(() => import("../users/producer/ProducerProfile.tsx").then(m => ({ default: m.ProducerProfile })));
 const GraphFeed = lazy(() => import("../pages/GraphFeed.tsx"));
 const ProducerInventory = lazy(() => import("../users/producer/ProducerInventory.tsx"));
 const ProducerPage = lazy(() => import("../pages/ProducerPage.tsx"));
 const WinePage = lazy(() => import("../pages/WinePage.tsx"));
+
+const RetailerCellar = lazy(() => import("../users/retailer/RetailerCellar.tsx").then(m => ({ default: m.RetailerCellar })));
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -35,7 +37,7 @@ const router = createBrowserRouter(
       {/* todo fix routes and navigate throughout */}
       <Route path="marketplace" element={(<MarketplacePage/>)} />
       {/* RetailerInventory should be 'nested' under Marketplace properly */}
-      <Route path=":retailerId/inventory" element={(<RetailerInventory/>)} />
+      <Route path="retailer/:retailerId/inventory" element={(<RetailerInventory/>)} />
       <Route path="profile" element={(<ProfilePage/>)} />
       {/* Public graph detail routes: human-readable slugs in path; IDs used for data queries */}
       <Route path="producer/:slug/:id" element={(<ProducerPage/>)} />
@@ -50,7 +52,7 @@ const router = createBrowserRouter(
               <Outlet/>
             </RoleRoute>
           }>
-          <Route path="inventory" element={(<RetailerInventory/>)} />
+          <Route path="cellar" element={(<RetailerCellar/>)} />
           <Route path="profile" element={(<RetailerProfile/>)} />
         </Route>
         {/* Retailer-wide routes (not tied to ID but still protected) */}
@@ -77,7 +79,7 @@ const router = createBrowserRouter(
         >
           <Route path="profile" element={(<ProducerProfile/>)} />
           {/* Producer Inventory (includes CSV Import component) */}
-          <Route path="inventory" element={(<ProducerInventory/>)} />
+          <Route path="cellar" element={(<ProducerInventory/>)} />
         </Route>
         <Route
           path="marketplace"
