@@ -7,6 +7,7 @@ import {Send} from "lucide-react";
 import {useNavigate} from "react-router-dom";
 import GoogleProfile from "../components/GoogleProfile.tsx";
 import {FullScreenSpinner} from "../components/FullScreenSpinner.tsx";
+import {Card, SectionTitle} from "../components/ui";
 
 export const ProfilePage = () => {
   const navigate = useNavigate();
@@ -33,18 +34,24 @@ export const ProfilePage = () => {
         {!isAuthenticated ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Left: Sign-in CTA */}
-            <div className="order-1">
+            <Card className="order-1 p-6">
+              <SectionTitle
+                eyebrow="Authentication"
+                title="Sign in to continue"
+                desc="Use Google to connect your profile and unlock role-specific features."
+                className="mb-6"
+              />
               <GoogleSignIn
                 onClick={startAuthentication}
                 className="w-full sm:w-auto"
                 size="lg" //default is lg
               />
-            </div>
+            </Card>
 
             {/* Right: Roles overview (non-interactive pre-auth) */}
             <div className="order-2">
               <RolesOverview/>
-              <p className="mt-2 text-xs text-slate-500">Sign in to choose your role and unlock the relevant tools.</p>
+              <p className="mt-2 text-xs text-fg-muted">Sign in to choose your role and unlock the relevant tools.</p>
             </div>
           </div>
         ) : (
@@ -112,62 +119,65 @@ const RolePicker: React.FC<{ currentRole: Role; onChange: (r: Role) => void; dis
   const handleConfirm = (e: React.FormEvent) => {
     e.preventDefault();
     if (canConfirm && pendingRole) {
-      console.info("[role] confirm selection", {from: currentRole, to: pendingRole});
       onChange(pendingRole);
     }
   };
 
   return (
-    <form onSubmit={handleConfirm} className={`rounded-lg border p-4 ${disabled ? 'opacity-60' : ''}`}>
-      <h3 className="text-lg font-semibold">Choose your role</h3>
-      <p className="text-sm text-slate-600 mb-3">Select one, then tap Confirm to apply. This helps prevent accidental
-        changes.</p>
-      <div className="space-y-2">
-        {options.map((opt) => (
-          <label
-            key={opt.value}
-            className={`flex items-start gap-3 p-2 rounded ${disabled ? 'cursor-not-allowed' : 'hover:bg-slate-50 cursor-pointer'}`}
-          >
-            <input
-              type="radio"
-              name="role"
-              value={opt.value}
-              checked={pendingRole === opt.value}
-              onChange={() => {
-                if (disabled) return;
-                console.debug("[role] pending selection set", {value: opt.value});
-                setPendingRole(opt.value);
-              }}
-              disabled={disabled}
-              className="mt-1"
-            />
-            <span>
-              <div className="font-medium">{opt.label}</div>
-              <div className="text-xs text-slate-600">{opt.desc}</div>
-            </span>
-          </label>
-        ))}
-      </div>
+    <form onSubmit={handleConfirm}>
+      <Card className={`p-5 ${disabled ? 'opacity-60' : ''}`}>
+        <SectionTitle
+          eyebrow="Setup"
+          title="Choose your role"
+          desc="Select one, then confirm to apply. This helps prevent accidental changes."
+          className="mb-4"
+        />
+        <div className="space-y-2">
+          {options.map((opt) => (
+            <label
+              key={opt.value}
+              className={`flex items-start gap-3 p-3 rounded-[var(--radius-sm)] border border-transparent ${disabled ? 'cursor-not-allowed' : 'hover:bg-[color:var(--color-muted)] cursor-pointer'}`}
+            >
+              <input
+                type="radio"
+                name="role"
+                value={opt.value}
+                checked={pendingRole === opt.value}
+                onChange={() => {
+                  if (disabled) return;
+                  setPendingRole(opt.value);
+                }}
+                disabled={disabled}
+                className="mt-1"
+              />
+              <span>
+                <div className="font-medium">{opt.label}</div>
+                <div className="text-xs text-fg-muted">{opt.desc}</div>
+              </span>
+            </label>
+          ))}
+        </div>
 
-      <div className="mt-4 flex items-center gap-3">
-        <button
-          type="submit"
-          disabled={!canConfirm}
-          aria-disabled={!canConfirm}
-          className={`ml-0 btn-minimal tap-target group flex items-center justify-center rounded-md p-2 transition active:scale-[0.98]
-            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/60
-            ${canConfirm ? 'hover:bg-blue-50 text-blue-600' : 'cursor-not-allowed text-slate-400'}
-          `}
-          aria-label="Confirm role selection"
-          title={canConfirm ? 'Confirm selection' : 'Select a role to enable confirm'}
-        >
-          <Send className={`w-6 h-6 transition-transform duration-150 ${canConfirm ? 'group-hover:scale-110' : ''}`}/>
-          <span className="sr-only">Confirm role selection</span>
-        </button>
-        {!canConfirm && (
-          <span className="text-xs text-slate-500">Pick a role to enable confirm.</span>
-        )}
-      </div>
+        <div className="mt-4 flex items-center gap-3">
+          <button
+            type="submit"
+            disabled={!canConfirm}
+            aria-disabled={!canConfirm}
+            className={`ml-0 btn-minimal tap-target group flex items-center justify-center rounded-md p-2 transition
+              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-accent)]
+              ${canConfirm ? 'hover:bg-[color:var(--color-accent-soft)] text-[color:var(--color-accent)]' : 'cursor-not-allowed text-fg-muted'}
+            `}
+            aria-label="Confirm role selection"
+            title={canConfirm ? 'Confirm selection' : 'Select a role to enable confirm'}
+          >
+            <Send className={`w-6 h-6 transition-transform duration-150 ${canConfirm ? 'group-hover:scale-110' : ''}`}/>
+            <span className="sr-only">Confirm role selection</span>
+          </button>
+          {!canConfirm && (
+            <span className="text-xs text-fg-muted">Pick a role to enable confirm.</span>
+          )}
+        </div>
+      </Card>
     </form>
   );
 };
@@ -179,27 +189,31 @@ const RolesOverview = () => {
     {title: "Enthusiast", desc: "Discover wines and retailers (read-only)."},
   ];
   return (
-    <div className="rounded-lg border p-4">
-      <h3 className="text-lg font-semibold">Platform roles</h3>
-      <p className="text-sm text-slate-600 mb-3">Review roles, then pick one after you sign in.</p>
+    <Card className="p-5">
+      <SectionTitle
+        eyebrow="Profiles"
+        title="Platform roles"
+        desc="Review roles, then pick one after you sign in."
+        className="mb-4"
+      />
       <ul className="space-y-2">
         {items.map((it) => (
-          <li key={it.title} className="p-2 rounded bg-slate-50">
+          <li key={it.title} className="p-3 rounded-[var(--radius-sm)] bg-[color:var(--color-muted)]">
             <div className="font-medium">{it.title}</div>
-            <div className="text-xs text-slate-600">{it.desc}</div>
+            <div className="text-xs text-fg-muted">{it.desc}</div>
           </li>
         ))}
       </ul>
-    </div>
+    </Card>
   );
 };
 
 const CurrentRoleSummary: React.FC<{ role: Role }> = ({role}) => (
-  <div className="rounded-lg border p-4">
-    <h3 className="text-lg font-semibold">Current role</h3>
-    <p className="text-sm text-slate-600 capitalize">{role}</p>
-    <p className="text-xs text-slate-500 mt-2">
+  <Card className="p-5">
+    <SectionTitle eyebrow="Status" title="Current role" />
+    <p className="text-sm text-fg-muted capitalize mt-2">{role}</p>
+    <p className="text-xs text-fg-muted mt-2">
       Role selection is part of initial setup. You can continue using Wine Graph with your current role.
     </p>
-  </div>
+  </Card>
 );

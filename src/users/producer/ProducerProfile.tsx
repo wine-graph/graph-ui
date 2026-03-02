@@ -10,6 +10,7 @@ import {AREAS_QUERY} from "../../services/domain/domainGraph.ts";
 import {domainClient, producerClient} from "../../services/apolloClient.ts";
 import {ADD_PRODUCER, PRODUCER_BY_ID} from "../../services/producer/producerGraph.ts";
 import {useNavigate} from "react-router-dom";
+import {InputField, Notice} from "../../components/ui";
 
 // Monochrome, minimal Producer profile page.
 // Purpose: let producers confirm basic profile and select their primary AVA/area.
@@ -19,7 +20,6 @@ export const ProducerProfile: React.FC = () => {
 
   // Prefer URL param if present; fallback to role.id from auth
   const producerId = user?.user.role?.id;
-  console.info("[producer] producerId from auth:", producerId);
   const {data, loading} = useQuery(PRODUCER_BY_ID, {
     variables: {id: producerId},
     client: producerClient,
@@ -42,7 +42,7 @@ export const ProducerProfile: React.FC = () => {
 
       {/* Page-level states for producer existence */}
       {loading ? (
-        <div className="mt-10 text-center text-sm text-slate-600">Loading profile…</div>
+        <div className="mt-10 text-center text-sm text-fg-muted">Loading profile…</div>
       ) : (data?.Producer?.producer ? (
         // Existing producer: show summary + area selection module
         <div className="mt-10 grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -65,13 +65,17 @@ export const ProducerProfile: React.FC = () => {
 };
 
 type Area = { id: string; name: string; regionName?: string };
+type DomainAreaNode = { id: string; name: string };
+type DomainRegionNode = { name?: string; areas?: DomainAreaNode[] };
+type DomainCountryNode = { regions?: DomainRegionNode[] };
+type AreasQueryData = { Domain?: { countries?: DomainCountryNode[] } };
 
 const AvaSelection: React.FC<{ value?: string | null; onChange?: (id: string) => void }> = ({
                                                                                               value = null,
                                                                                               onChange
                                                                                             }) => {
   const [query, setQuery] = useState("");
-  const {data, loading, error, refetch} = useQuery(AREAS_QUERY, {client: domainClient});
+  const {data, loading, error, refetch} = useQuery<AreasQueryData>(AREAS_QUERY, {client: domainClient});
   const [selectedId, setSelectedId] = useState<string | null>(value);
 
   useEffect(() => {
@@ -82,9 +86,9 @@ const AvaSelection: React.FC<{ value?: string | null; onChange?: (id: string) =>
   const allAreas: Area[] = useMemo(() => {
     const result: Area[] = [];
     const countries = data?.Domain?.countries ?? [];
-    countries.forEach((c: any) => {
-      (c?.regions ?? []).forEach((r: any) => {
-        (r?.areas ?? []).forEach((a: any) => {
+    countries.forEach((c) => {
+      (c?.regions ?? []).forEach((r) => {
+        (r?.areas ?? []).forEach((a) => {
           result.push({id: a.id, name: a.name, regionName: r?.name});
         })
       })
@@ -107,7 +111,7 @@ const AvaSelection: React.FC<{ value?: string | null; onChange?: (id: string) =>
   return (
     <SectionCard cardHeader={{icon: MapPin, title: "Primary area"}}>
       <div className="p-6">
-        <p className="text-sm text-slate-600 mb-4">
+        <p className="text-sm text-fg-muted mb-4">
           Select the AVA or area where you primarily produce. You can update this later in settings.
         </p>
 
@@ -116,34 +120,33 @@ const AvaSelection: React.FC<{ value?: string | null; onChange?: (id: string) =>
           <label htmlFor="ava-search" className="block text-sm font-medium mb-2">
             Search areas
           </label>
-          <input
+          <InputField
             id="ava-search"
             type="text"
             placeholder="Search AVAs or regions…"
-            className="w-full border rounded-md px-3 h-10 focus:outline-none focus:ring-2 focus:ring-black/60"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
         </div>
 
         {/* List */}
-        <div className="max-h-64 overflow-auto border rounded-md divide-y" role="listbox" aria-label="Areas">
+        <div className="max-h-64 overflow-auto border border-token rounded-[var(--radius-sm)] divide-y divide-[color:var(--color-border)]" role="listbox" aria-label="Areas">
           {loading ? (
-            <div className="p-3 text-sm text-slate-600">Loading areas…</div>
+            <div className="p-3 text-sm text-fg-muted">Loading areas…</div>
           ) : error ? (
             <div className="p-3 text-sm">
               We couldn’t load areas.
               <div className="mt-2">
                 <button type="button" onClick={() => refetch()}
-                        className="px-2 h-8 rounded border hover:bg-neutral-100">Retry
+                        className="px-2 h-8 rounded border border-token hover:bg-[color:var(--color-muted)]">Retry
                 </button>
               </div>
             </div>
           ) : filtered.length === 0 ? (
-            <div className="p-3 text-sm text-slate-600">No results match your search.</div>
+            <div className="p-3 text-sm text-fg-muted">No results match your search.</div>
           ) : (
             filtered.map((a) => (
-              <label key={a.id} className="flex items-start gap-3 p-3 cursor-pointer hover:bg-neutral-100">
+              <label key={a.id} className="flex items-start gap-3 p-3 cursor-pointer hover:bg-[color:var(--color-muted)]">
                 <input
                   type="radio"
                   name="ava"
@@ -155,7 +158,7 @@ const AvaSelection: React.FC<{ value?: string | null; onChange?: (id: string) =>
                 <span>
                   <div className="font-medium text-sm">{a.name}</div>
                   {a.regionName && (
-                    <div className="text-xs text-slate-600">{a.regionName}</div>
+                    <div className="text-xs text-fg-muted">{a.regionName}</div>
                   )}
                 </span>
               </label>
@@ -168,7 +171,7 @@ const AvaSelection: React.FC<{ value?: string | null; onChange?: (id: string) =>
 };
 
 // Onboarding form shown when PRODUCER_BY_ID returns null
-const OnboardingForm: React.FC<{ onSuccess: (id: string) => void, user: User | undefined }> = ({user}) => {
+const OnboardingForm: React.FC<{ onSuccess: (id: string) => void, user: User | undefined }> = ({user, onSuccess}) => {
   const {clearLocalRole} = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -190,6 +193,7 @@ const OnboardingForm: React.FC<{ onSuccess: (id: string) => void, user: User | u
       nameRef.current?.focus();
       return;
     }
+    if (!areaId) return;
     try {
       const vars = {
         producer: {
@@ -199,11 +203,14 @@ const OnboardingForm: React.FC<{ onSuccess: (id: string) => void, user: User | u
           website: website || undefined,
           areaId
         }
-      } as any;
+      };
       const res = await addProducer({variables: vars});
       const created = res?.data?.Producer?.addProducer;
-      console.info("[producer] created ", created);
+      const createdId = created?.id as string | undefined;
       clearLocalRole();
+      if (createdId) {
+        onSuccess(createdId);
+      }
     } catch (err) {
       setSubmitError("We couldn’t create your producer. Retry in a moment.");
       console.error(err);
@@ -224,11 +231,10 @@ const OnboardingForm: React.FC<{ onSuccess: (id: string) => void, user: User | u
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-1" htmlFor="producer-name">Producer name</label>
-              <input
+              <InputField
                 id="producer-name"
                 ref={nameRef}
                 type="text"
-                className="w-full border rounded-md px-3 h-10 focus:outline-none focus:ring-2 focus:ring-black/60"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 aria-invalid={name.trim().length === 0}
@@ -236,31 +242,28 @@ const OnboardingForm: React.FC<{ onSuccess: (id: string) => void, user: User | u
             </div>
             <div>
               <label className="block text-sm font-medium mb-1" htmlFor="producer-email">Contact email</label>
-              <input
+              <InputField
                 id="producer-email"
                 type="email"
-                className="w-full border rounded-md px-3 h-10 focus:outline-none focus:ring-2 focus:ring-black/60"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
-              <p className="text-xs text-slate-600 mt-1">We’ll use this for account and data notifications.</p>
+              <p className="text-xs text-fg-muted mt-1">We’ll use this for account and data notifications.</p>
             </div>
             <div>
               <label className="block text-sm font-medium mb-1" htmlFor="producer-phone">Phone (optional)</label>
-              <input
+              <InputField
                 id="producer-phone"
                 type="tel"
-                className="w-full border rounded-md px-3 h-10 focus:outline-none focus:ring-2 focus:ring-black/60"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
               />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1" htmlFor="producer-website">Website (optional)</label>
-              <input
+              <InputField
                 id="producer-website"
                 type="url"
-                className="w-full border rounded-md px-3 h-10 focus:outline-none focus:ring-2 focus:ring-black/60"
                 value={website}
                 onChange={(e) => setWebsite(e.target.value)}
               />
@@ -278,16 +281,16 @@ const OnboardingForm: React.FC<{ onSuccess: (id: string) => void, user: User | u
               type="submit"
               disabled={!valid || loading}
               aria-disabled={!valid || loading}
-              className={`px-3 h-10 rounded-md border transition active:scale-[0.98] ${valid && !loading ? "hover:bg-neutral-100" : "opacity-60 cursor-not-allowed"}`}
+              className={`btn ${valid && !loading ? "btn-secondary" : "opacity-60 cursor-not-allowed"}`}
             >
               {loading ? "Saving…" : "Save and continue"}
             </button>
           </div>
 
           {submitError && (
-            <div className="mt-3 text-sm text-red-700 border border-red-300 rounded p-2">
+            <Notice variant="error" className="mt-3 text-sm" role="alert">
               {submitError}
-            </div>
+            </Notice>
           )}
         </div>
       </SectionCard>

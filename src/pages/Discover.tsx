@@ -9,6 +9,7 @@ import {domainClient, producerClient} from "../services/apolloClient.ts";
 import type {Producer} from "../users/producer/producer.ts";
 import Spinner from "../components/Spinner.tsx";
 import {ProducerCard} from "../users/producer/ProducerCard.tsx";
+import {Card} from "../components/ui";
 
 type Country = {
   id: string;
@@ -35,7 +36,7 @@ type Area = {
 }
 
 const Grid: React.FC<{ children: ReactNode }> = ({children}) => (
-  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
     {children}
   </div>
 );
@@ -112,17 +113,17 @@ const DomainList = () => {
           <nav className="mb-8" aria-label="Breadcrumb">
             <ol className="flex items-center gap-2 text-label">
               <li className={showCountries ? "text-foreground" : "text-fg-muted"}>
-                <span onClick={resetToCountries} className="cursor-pointer underline-offset-4 hover:underline">
+                <button type="button" onClick={resetToCountries} className="cursor-pointer underline-offset-4 hover:underline">
                   Countries
-                </span>
+                </button>
               </li>
               {selectedCountry ? (
                 <>
                   <li aria-hidden="true" className="text-fg-muted">/</li>
                   <li className={showRegions ? "text-foreground" : "text-fg-muted"}>
-                    <span onClick={resetToRegions} className="cursor-pointer underline-offset-4 hover:underline">
+                    <button type="button" onClick={resetToRegions} className="cursor-pointer underline-offset-4 hover:underline">
                       {selectedCountry.name}
-                    </span>
+                    </button>
                   </li>
                 </>
               ) : null}
@@ -130,9 +131,9 @@ const DomainList = () => {
                 <>
                   <li aria-hidden="true" className="text-fg-muted">/</li>
                   <li className={showAreas ? "text-foreground" : "text-fg-muted"}>
-                    <span onClick={resetToAreas} className="cursor-pointer underline-offset-4 hover:underline">
+                    <button type="button" onClick={resetToAreas} className="cursor-pointer underline-offset-4 hover:underline">
                       {selectedRegion.name}
-                    </span>
+                    </button>
                   </li>
                 </>
               ) : null}
@@ -140,9 +141,9 @@ const DomainList = () => {
                 <>
                   <li aria-hidden="true" className="text-fg-muted">/</li>
                   <li className={showProducers ? "text-foreground" : "text-fg-muted"}>
-                    <span onClick={resetToProducers} className="cursor-pointer underline-offset-4 hover:underline">
+                    <button type="button" onClick={resetToProducers} className="cursor-pointer underline-offset-4 hover:underline">
                       {selectedArea.name}
-                    </span>
+                    </button>
                   </li>
                 </>
               ) : null}
@@ -224,9 +225,9 @@ export const DiscoverPage = () => {
         title="Explore Wines"
         desc="Discover wines from around the world by region, varietal, or producer."
       />
-      <div className="mt-8 sm:mt-12">
+      <Card className="mt-8 sm:mt-12 p-6 sm:p-8">
         <DomainList/>
-      </div>
+      </Card>
     </div>
   );
 };

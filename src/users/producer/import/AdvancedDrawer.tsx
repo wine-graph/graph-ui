@@ -1,4 +1,5 @@
 import React from "react";
+import {InputField} from "../../../components/ui";
 
 type Props = {
   maxRows: number;
@@ -18,14 +19,20 @@ export const AdvancedDrawer: React.FC<Props> = ({ maxRows, onMaxRowsChange, dryR
       <div className="px-4 pb-4 grid gap-3 sm:grid-cols-2">
         <label className="flex items-center gap-3">
           <span className="w-40">Max rows</span>
-          <input type="number" min={1} className="input input-sm w-28" value={maxRows} onChange={(e) => onMaxRowsChange(Number(e.target.value || 0))} />
+          <InputField
+            type="number"
+            min={1}
+            className="w-28"
+            value={maxRows}
+            onChange={(e) => onMaxRowsChange(Number(e.target.value || 0))}
+          />
         </label>
         <label className="flex items-center gap-3">
-          <input type="checkbox" className="checkbox" checked={dryRun} onChange={(e) => onDryRunChange(e.target.checked)} />
+          <input type="checkbox" className="h-4 w-4 accent-[color:var(--color-accent)]" checked={dryRun} onChange={(e) => onDryRunChange(e.target.checked)} />
           <span>Dry run (extract only)</span>
         </label>
         <label className="flex items-center gap-3">
-          <input type="checkbox" className="checkbox" checked={strictMode} onChange={(e) => onStrictModeChange(e.target.checked)} />
+          <input type="checkbox" className="h-4 w-4 accent-[color:var(--color-accent)]" checked={strictMode} onChange={(e) => onStrictModeChange(e.target.checked)} />
           <span>Strict mode (reject incomplete rows)</span>
         </label>
       </div>

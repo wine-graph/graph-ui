@@ -1,15 +1,9 @@
 import {Link, useParams} from "react-router-dom";
-import {useMemo} from "react";
 import {useQuery} from "@apollo/client";
 import {producerClient} from "../services/apolloClient";
 import {PRODUCER_BY_ID_ENRICHED} from "../services/producer/producerGraph.ts";
 import type {Producer} from "../users/producer/producer.ts";
-
-function SkeletonRow() {
-  return (
-    <div className="animate-pulse h-5 bg-neutral-200 rounded"/>
-  );
-}
+import {Card, DataTable, EmptyState, SectionTitle, StatePanel} from "../components/ui";
 
 export default function ProducerPage() {
   const {id} = useParams();
@@ -21,158 +15,111 @@ export default function ProducerPage() {
 
   const producer = data?.Producer?.enriched as Producer | undefined;
 
-  const headerSubtitle = useMemo(() => {
-    if (!producer) return "";
-  }, [producer]);
-
   return (
-    <main className="px-4 sm:px-6 md:px-8 py-4" aria-labelledby="page-title">
-      {/* Breadcrumb */}
-      <nav aria-label="Breadcrumb" className="text-sm text-neutral-600 mb-2">
+    <main className="container-max py-6 sm:py-8" aria-labelledby="page-title">
+      <nav aria-label="Breadcrumb" className="text-sm text-fg-muted mb-3">
         <ol className="flex gap-2">
           <li><Link className="underline-offset-2 hover:underline" to="/">Wine Graph</Link></li>
           <li>/</li>
           <li>Producers</li>
           <li>/</li>
-          <li className="text-neutral-900 truncate max-w-[50vw]" aria-current="page">{producer?.name || producer?.slug}</li>
+          <li className="text-token truncate max-w-[50vw]" aria-current="page">{producer?.name || "Producer"}</li>
         </ol>
       </nav>
 
-      {/* Header band */}
-      <header className="flex items-start justify-between gap-4 border-b border-neutral-200 pb-4">
-        <div>
-          <h1 id="page-title"
-              className="text-2xl text-neutral-900 font-medium leading-tight">{producer?.name || (loading ? "Loading…" : producer?.slug)}</h1>
-          {headerSubtitle && (
-            <p className="text-sm text-neutral-700 mt-1">{headerSubtitle}</p>
-          )}
-        </div>
-        {/* Right side role-aware placeholder */}
-        <div className="flex items-center gap-2">
-          {/* Placeholder for role-aware controls; keep monochrome */}
-        </div>
+      <header className="border-b border-token pb-4">
+        <h1 id="page-title" className="text-heading-page">{producer?.name || (loading ? "Loading..." : "Producer")}</h1>
       </header>
 
-      {/* Page states */}
       {loading && (
         <section className="mt-6">
-          <div className="space-y-2 max-w-md">
-            <SkeletonRow/>
-            <SkeletonRow/>
-            <SkeletonRow/>
-          </div>
+          <StatePanel title="Loading producer..." variant="loading" />
         </section>
       )}
+
       {error && (
-        <section className="mt-6" role="alert" aria-live="polite">
-          <div className="border border-neutral-300 bg-white p-3 rounded">
-            <p className="text-neutral-900">We couldn’t load this producer. Retry in a moment.</p>
-            <div className="mt-3">
-              <button
-                type="button"
-                onClick={() => refetch()}
-                className="px-3 py-2 text-sm border border-neutral-300 rounded hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-neutral-900"
-              >
-                Retry
-              </button>
-            </div>
-          </div>
+        <section className="mt-6">
+          <StatePanel
+            variant="error"
+            role="alert"
+            title="We couldn’t load this producer."
+            desc="Retry in a moment."
+            action={<button type="button" onClick={() => refetch()} className="btn btn-secondary focus-accent">Retry</button>}
+          />
         </section>
       )}
 
       {(!loading && !error && producer) && (
         <div className="mt-6 space-y-6">
-          {/* Overview + In the graph */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Overview card */}
-            <section className="bg-white border border-neutral-200 rounded p-4" aria-labelledby="overview-title">
-              <h2 id="overview-title" className="text-lg font-medium text-neutral-900">Overview</h2>
-              <div className="mt-3 divide-y divide-neutral-200">
-                {(producer.description && producer.description.length > 0) && (
+            <Card className="p-4">
+              <SectionTitle title="Overview" titleClassName="text-[20px]" />
+              <div className="mt-3 divide-y divide-token/80">
+                {producer.description ? (
                   <div className="py-2">
-                    <div className="text-neutral-700">Description</div>
-                    <div className="text-neutral-900 text-sm mt-1">{producer.description}</div>
+                    <div className="text-fg-muted">Description</div>
+                    <div className="text-sm mt-1">{producer.description}</div>
                   </div>
-                )}
-                {producer.website && (
+                ) : null}
+                {producer.website ? (
                   <div className="py-2 flex items-center justify-between">
-                    <span className="text-neutral-700">Website</span>
-                    <a className="text-neutral-900 underline underline-offset-2" href={producer.website} target="_blank"
-                       rel="noreferrer">Visit</a>
+                    <span className="text-fg-muted">Website</span>
+                    <a className="underline underline-offset-2" href={producer.website} target="_blank" rel="noreferrer">Visit</a>
                   </div>
-                )}
-                {producer.phone && (
+                ) : null}
+                {producer.phone ? (
                   <div className="py-2 flex items-center justify-between">
-                    <span className="text-neutral-700">Phone</span>
-                    <a className="text-neutral-900 underline underline-offset-2" href={`tel:${producer.phone}`}>{producer.phone}</a>
+                    <span className="text-fg-muted">Phone</span>
+                    <a className="underline underline-offset-2" href={`tel:${producer.phone}`}>{producer.phone}</a>
                   </div>
-                )}
-                {producer.email && (
+                ) : null}
+                {producer.email ? (
                   <div className="py-2 flex items-center justify-between">
-                    <span className="text-neutral-700">Email</span>
-                    <a className="text-neutral-900 underline underline-offset-2" href={`mailto:${producer.email}`}>{producer.email}</a>
+                    <span className="text-fg-muted">Email</span>
+                    <a className="underline underline-offset-2" href={`mailto:${producer.email}`}>{producer.email}</a>
                   </div>
-                )}
+                ) : null}
               </div>
-            </section>
+            </Card>
 
-            {/* In the graph card */}
-            <section className="bg-white border border-neutral-200 rounded p-4" aria-labelledby="graph-title">
-              <h2 id="graph-title" className="text-lg font-medium text-neutral-900">In the graph</h2>
-              <ul className="mt-3 space-y-2 text-neutral-900">
-                <li>{producer?.wines?.length ?? "—"} wines in Wine Graph</li>
-                <li>Located in # {producer.areas?.length ?? "0"} areas (AVA, AOC, etc)</li>
-                <li>Added to Wine Graph: {producer.createdAt ? new Date(producer.createdAt).getFullYear() : "—"}</li>
+            <Card className="p-4">
+              <SectionTitle title="In the graph" titleClassName="text-[20px]" />
+              <ul className="mt-3 space-y-2">
+                <li>{producer?.wines?.length ?? 0} wines in Wine Graph</li>
+                <li>Located in {producer.areas?.length ?? 0} areas (AVA, AOC, etc.)</li>
+                <li>Added to Wine Graph: {producer.createdAt ? new Date(producer.createdAt).getFullYear() : "-"}</li>
               </ul>
-            </section>
+            </Card>
           </div>
 
-          {/* Wines + Retailers row */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Wines list/table */}
-            <section className="md:col-span-2 bg-white border border-neutral-200 rounded p-4"
-                     aria-labelledby="wines-title">
-              <h2 id="wines-title" className="text-lg font-medium text-neutral-900">Wines from this producer</h2>
-              <div className="mt-3">
-                {(!producer.wines || producer.wines.length === 0) ? (
-                  <p className="text-neutral-700">No wines for this producer in Wine Graph yet.</p>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full text-sm">
-                      <thead className="text-left text-neutral-700">
-                      <tr>
-                        <th className="py-2 pr-4">Wine</th>
-                        <th className="py-2 pr-4">Vintage</th>
-                        <th className="py-2 pr-4">Varietal</th>
-                      </tr>
-                      </thead>
-                      <tbody className="border-t border-neutral-200 text-neutral-900">
-                      {producer.wines.map((w) => (
-                        <tr key={w.slug || w.id || w.name} className="border-b border-neutral-200 last:border-b-0">
-                          <td className="py-2 pr-4">
-                            {(w.slug && w.id) ? (
-                              <Link className="underline underline-offset-2" to={`/wine/${w.slug}/${w.id}`}>{w.name}</Link>
-                            ) : (
-                              <span>{w.name}</span>
-                            )}
-                          </td>
-                          <td className="py-2 pr-4">{w.vintage ?? "—"}</td>
-                          <td className="py-2 pr-4">{w.varietal ?? "—"}</td>
-                        </tr>
-                      ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            </section>
-          </div>
+          <Card className="p-4">
+            <SectionTitle title="Wines from this producer" titleClassName="text-[20px]" />
+            {!producer.wines || producer.wines.length === 0 ? (
+              <EmptyState title="No wines for this producer yet." className="mt-3" />
+            ) : (
+              <DataTable
+                className="mt-3"
+                columns={[
+                  {
+                    id: "wine",
+                    header: "Wine",
+                    render: (w) => (w.slug && w.id)
+                      ? <Link className="underline underline-offset-2" to={`/wine/${w.slug}/${w.id}`}>{w.name}</Link>
+                      : <span>{w.name}</span>,
+                  },
+                  {id: "vintage", header: "Vintage", render: (w) => w.vintage ?? "-"},
+                  {id: "varietal", header: "Varietal", render: (w) => w.varietal ?? "-"},
+                ]}
+                rows={producer.wines}
+                rowKey={(w) => w.slug || w.id || w.name}
+              />
+            )}
+          </Card>
 
-          {/* Data section */}
-          <section className="bg-white border border-neutral-200 rounded p-4" aria-labelledby="data-title">
-            <h2 id="data-title" className="text-lg font-medium text-neutral-900">Data</h2>
-            <p className="text-neutral-700 mt-2">Data completeness, corrections, and history will appear here.</p>
-          </section>
+          <Card className="p-4">
+            <SectionTitle title="Data" titleClassName="text-[20px]" />
+            <p className="text-fg-muted mt-2">Data completeness, corrections, and history will appear here.</p>
+          </Card>
         </div>
       )}
     </main>

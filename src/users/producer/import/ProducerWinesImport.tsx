@@ -26,6 +26,12 @@ const ProducerWinesImport: React.FC<Props> = ({producerId}) => {
 
   const canUpload = !!machine.ctx.file && machine.state === "idle";
   const canConfirm = machine.state === "reviewing" && machine.invalids.length === 0 && machine.ctx.editableWines.length > 0;
+  const actionDisabledReason = useMemo(() => {
+    if (machine.state === "idle" && !machine.ctx.file) return "Select a CSV file first.";
+    if (machine.state === "reviewing" && machine.ctx.editableWines.length === 0) return "No rows found to import.";
+    if (machine.state === "reviewing" && machine.invalids.length > 0) return "Fix validation issues before confirming.";
+    return undefined;
+  }, [machine.ctx.editableWines.length, machine.ctx.file, machine.invalids.length, machine.state]);
 
   // Overlay copy
   const overlay = useMemo(() => {
@@ -45,6 +51,7 @@ const ProducerWinesImport: React.FC<Props> = ({producerId}) => {
         {/* Step 1: File */}
         <div className="mt-4">
           <h3 className="text-[14px] font-medium">Step 1: File</h3>
+          <p className="mt-1 text-[12px] text-muted">Upload a CSV with wine name, vintage, and varietal columns.</p>
           <div className="mt-2">
             <CsvDropzone file={machine.ctx.file} onFileSelected={machine.selectFile} />
           </div>
@@ -57,10 +64,14 @@ const ProducerWinesImport: React.FC<Props> = ({producerId}) => {
             state={machine.state}
             canUpload={canUpload}
             canConfirm={canConfirm}
+            disabledReason={actionDisabledReason}
             onUpload={machine.upload}
             onConfirm={machine.confirm}
           />
         </div>
+        {actionDisabledReason && (machine.state === "idle" || machine.state === "reviewing") ? (
+          <div className="mt-2 text-[12px] text-muted" role="status">{actionDisabledReason}</div>
+        ) : null}
 
         {/* Error banner */}
         {machine.state === "error" && machine.ctx.error ? (
@@ -76,6 +87,9 @@ const ProducerWinesImport: React.FC<Props> = ({producerId}) => {
         {/* Reviewing table */}
         {machine.state === "reviewing" ? (
           <div className="mt-4">
+            <div className="mb-2 text-[12px] text-muted">
+              Review parsed rows before saving. Fields update in place.
+            </div>
             <WinesPreviewTable wines={machine.ctx.editableWines} onEdit={machine.editWine} invalids={machine.invalids} />
             {machine.ctx.extraction?.errors && machine.ctx.extraction.errors.length > 0 ? (
               <div className="mt-3">
