@@ -1,8 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import logo64 from "../../../public/wine_graph_logo_64x64.png";
-import logo128 from "../../../public/wine_graph_logo_128x128.png";
-import logo256 from "../../../public/wine_graph_logo_256x256.png";
+import {TableShell} from "../../../components/ui";
 
 type Wine = {
   vintage: string | number;
@@ -19,14 +17,18 @@ type Props = {
   onRowFocus?: (el: HTMLElement, wine: Wine) => void;
 };
 
+const logo64 = "/wine_graph_logo_64x64.png";
+const logo128 = "/wine_graph_logo_128x128.png";
+const logo256 = "/wine_graph_logo_256x256.png";
+
 // Responsive inventory table. Desktop uses a table; mobile uses stacked list rows.
 const RetailerInventoryTable: React.FC<Props> = ({ wines, onRowClick, onRowFocus }) => {
   // Desktop table (≥768px)
   const TableDesktop = (
     <div className="hidden md:block">
       <div className="overflow-x-auto">
-        <table className="w-full border-2 border-[color:var(--color-border)] border-t-0 border-l-0 border-r-0 rounded-none text-[14px]">
-          <thead className="sticky top-0 z-10 bg-[color:var(--color-panel)] border-b-2 border-[color:var(--color-border)]">
+        <table className="w-full border border-token rounded-none text-[14px]">
+          <thead className="sticky top-0 z-10 bg-[color:var(--color-panel)] border-b border-token">
             <tr>
               {/* Tighter, left-aligned status column */}
               <th className="text-left py-3 pl-3 pr-2 w-14">Matched</th>
@@ -42,7 +44,7 @@ const RetailerInventoryTable: React.FC<Props> = ({ wines, onRowClick, onRowFocus
               return (
                 <tr
                   key={key}
-                  className="even:bg-[color:var(--color-muted)]/10 hover:bg-[color:var(--color-muted)]/40 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black hover:shadow-[inset_3px_0_0_0_var(--color-fg)] focus-visible:shadow-[inset_3px_0_0_0_var(--color-fg)] transition-colors"
+                  className="even:bg-[color:var(--color-muted)]/10 hover:bg-[color:var(--color-muted)]/40 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-accent)] hover:shadow-[inset_3px_0_0_0_var(--color-accent)] focus-visible:shadow-[inset_3px_0_0_0_var(--color-accent)] transition-colors"
                   tabIndex={0}
                   role="button"
                   onClick={() => onRowClick?.(w)}
@@ -94,15 +96,15 @@ const RetailerInventoryTable: React.FC<Props> = ({ wines, onRowClick, onRowFocus
 
   // Mobile stacked (<768px)
   const ListMobile = (
-    <div className="md:hidden border-t-2 border-[color:var(--color-border)] text-[14px]">
-      <ul className="divide-y-2 divide-[color:var(--color-border)]">
+    <div className="md:hidden border-t border-token text-[14px]">
+      <ul className="divide-y divide-[color:var(--color-border)]">
         {wines.map((w, idx) => {
           const key = `${w.canonicalId ?? "noid"}-${w.name}-${String(w.vintage ?? "NV")}-${idx}`;
           const wineHref = w.canonicalId ? `/wine/${w.slug}/${w.canonicalId}` : undefined;
           return (
             <li
               key={key}
-              className="py-3 px-4 even:bg-[color:var(--color-muted)]/10 hover:bg-[color:var(--color-muted)]/40 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black hover:shadow-[inset_3px_0_0_0_var(--color-fg)] focus-visible:shadow-[inset_3px_0_0_0_var(--color-fg)] transition-colors"
+              className="py-3 px-4 even:bg-[color:var(--color-muted)]/10 hover:bg-[color:var(--color-muted)]/40 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-accent)] hover:shadow-[inset_3px_0_0_0_var(--color-accent)] focus-visible:shadow-[inset_3px_0_0_0_var(--color-accent)] transition-colors"
               tabIndex={0}
               role="button"
               onClick={() => onRowClick?.(w)}
@@ -154,10 +156,10 @@ const RetailerInventoryTable: React.FC<Props> = ({ wines, onRowClick, onRowFocus
   );
 
   return (
-    <div className="border-2 border-[color:var(--color-border)] rounded-none bg-[color:var(--color-panel)]">
+    <TableShell>
       {TableDesktop}
       {ListMobile}
-    </div>
+    </TableShell>
   );
 };
 

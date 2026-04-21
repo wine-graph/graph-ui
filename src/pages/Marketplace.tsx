@@ -9,7 +9,9 @@ export const MarketplacePage = () => {
         title="Wine Locator"
         desc="Find local wine retailers in your area. Discover shops that carry your favorite wines."
       />
-      <RetailerMarketplace/>
+      <div className="mt-8 sm:mt-12">
+        <RetailerMarketplace/>
+      </div>
     </div>
   );
 }

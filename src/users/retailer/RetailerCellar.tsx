@@ -10,6 +10,7 @@ import {RetailerInventorySection} from "./inventory/RetailerInventorySection.tsx
 import RetailerInventorySkeleton from "./inventory/RetailerInventorySkeleton.tsx";
 import {useRetailerFlow} from "./useRetailerFlow.ts";
 import RetailerLocationCard from "./components/RetailerLocationCard.tsx";
+import {Card, Notice, SectionTitle} from "../../components/ui";
 
 export const RetailerCellar = () => {
   const {user, isRetailer, isAuthenticated, isLoading, pos} = useAuth();
@@ -36,12 +37,14 @@ export const RetailerCellar = () => {
 
   const merchantId = pos.token?.merchantId ?? null;
   const isOnboarded = Boolean(retailer?.location?.id);
+  const autoOnboardEnabled = !isLoading && !loading;
 
   const flow = useRetailerFlow({
     merchantId,
     provider: pos.provider,
     isAuthorized: pos.isAuthorized,
     isOnboarded,
+    autoOnboardEnabled,
     onOnboarded: async () => {
       setIsRefreshingRetailerAfterOnboard(true);
       await refetch();
@@ -90,6 +93,7 @@ export const RetailerCellar = () => {
   }
 
   const shouldHoldForAutoOnboarding = Boolean(
+    autoOnboardEnabled &&
     !retailer &&
       !flow.hasError &&
       pos.isAuthorized &&
@@ -112,27 +116,24 @@ export const RetailerCellar = () => {
       <div className="max-w-3xl mx-auto px-4 sm:px-8 py-12">
         {/* Optional banner */}
         {banner && (
-          <div
-            className={`mb-6 border-2 p-3 text-sm ${
-              banner.type === "success"
-                ? "border-[color:var(--color-border)] bg-[color:var(--color-panel)]"
-                : "border-[color:var(--color-border)] bg-[color:var(--color-panel)]"
-            }`}
+          <Notice
+            variant={banner.type}
+            className="mb-6 text-sm"
             role="status"
-            aria-live="polite"
           >
             {banner.message}
-          </div>
+          </Notice>
         )}
 
-        <div className="border-2 border-[color:var(--color-border)] bg-panel-token p-6">
-          <h1 className="text-2xl font-bold tracking-tight">Retailer inventory</h1>
-          <p className="mt-2 text-sm text-[color:var(--color-fg-muted)]">
-            Add your store details to complete onboarding, then you can sync inventory from your POS.
-          </p>
+        <Card className="p-6">
+          <SectionTitle
+            title="Retailer inventory"
+            desc="Add your store details to complete onboarding, then you can sync inventory from your POS."
+            titleClassName="text-[30px] tracking-tight"
+          />
 
           <div
-            className="mt-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-2 border-[color:var(--color-border)] bg-[color:var(--color-panel)] p-4">
+            className="mt-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border border-token rounded-[var(--radius-sm)] bg-[color:var(--color-panel)] p-4">
             <div className="text-sm">
               <div className="font-medium">Add store details</div>
               <div className="text-[color:var(--color-fg-muted)] mt-0.5">Complete retailer onboarding to enable inventory sync.</div>
@@ -146,7 +147,7 @@ export const RetailerCellar = () => {
               <button
                 onClick={handleOnboard}
                 disabled={flow.onboarding || !isRetailer || !pos.isAuthorized || !pos.provider || !flow.posEnum}
-                className={`inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md border-2 border-[color:var(--color-border)] hover:bg-[color:var(--color-muted)] transition text-sm min-h-[40px] ${
+                className={`btn btn-secondary ${
                   flow.onboarding ? "opacity-80 cursor-not-allowed" : ""
                 }`}
                 aria-label="Onboard retailer"
@@ -157,7 +158,7 @@ export const RetailerCellar = () => {
               </button>
             </div>
           </div>
-        </div>
+        </Card>
       </div>
     );
   }
@@ -167,7 +168,7 @@ export const RetailerCellar = () => {
       <RetailerLocationCard retailer={retailer}>
         {/* Explicit onboarding: show prompt if location info is missing */}
         {!retailer.location?.id && (
-          <div className="mt-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-2 border-[color:var(--color-border)] bg-[color:var(--color-panel)] p-4">
+          <div className="mt-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border border-token rounded-[var(--radius-sm)] bg-[color:var(--color-panel)] p-4">
             <div className="text-sm">
               <div className="font-medium">Add store details</div>
               <div className="text-[color:var(--color-fg-muted)] mt-0.5">Complete retailer onboarding to enable inventory sync.</div>
@@ -176,7 +177,7 @@ export const RetailerCellar = () => {
               <button
                 onClick={handleOnboard}
                 disabled={flow.onboarding || !isRetailer || !pos.isAuthorized || !pos.provider || !flow.posEnum}
-                className={`inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md border-2 border-[color:var(--color-border)] hover:bg-[color:var(--color-muted)] transition text-sm min-h-[40px] ${flow.onboarding ? "opacity-80 cursor-not-allowed" : ""}`}
+                className={`btn btn-secondary ${flow.onboarding ? "opacity-80 cursor-not-allowed" : ""}`}
                 aria-label="Onboard retailer"
                 title="Onboard retailer"
               >
@@ -194,7 +195,7 @@ export const RetailerCellar = () => {
               <button
                 onClick={handleSync}
                 disabled={flow.syncing}
-                className={`w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 border-[color:var(--color-border)] hover:bg-[color:var(--color-muted)] transition text-sm min-h-[44px] ${flow.syncing ? "opacity-80 cursor-not-allowed" : ""}`}
+                className={`w-full btn btn-secondary ${flow.syncing ? "opacity-80 cursor-not-allowed" : ""}`}
                 title="Sync Inventory"
                 aria-label="Sync Inventory"
               >
@@ -210,7 +211,7 @@ export const RetailerCellar = () => {
               <button
                 onClick={handleSync}
                 disabled={flow.syncing}
-                className={`btn-minimal inline-flex items-center gap-2 px-3 py-2 rounded-lg border-2 border-[color:var(--color-border)] hover:bg-[color:var(--color-muted)] transition ${flow.syncing ? "opacity-80 cursor-not-allowed" : ""}`}
+                className={`btn btn-secondary ${flow.syncing ? "opacity-80 cursor-not-allowed" : ""}`}
                 title="Sync Inventory"
                 aria-label="Sync Inventory"
               >

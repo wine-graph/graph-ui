@@ -7,6 +7,7 @@ import {useMemo} from "react";
 import RetailerInventorySkeleton from "./RetailerInventorySkeleton.tsx";
 import {RetailerInventorySection} from "./RetailerInventorySection.tsx";
 import RetailerLocationCard from "../components/RetailerLocationCard.tsx";
+import {StatePanel} from "../../../components/ui";
 
 
 export const RetailerInventoryPage = () => {
@@ -29,13 +30,27 @@ export const RetailerInventoryPage = () => {
   // Unified loading state: wait for both auth and retailer query to settle
   if (loading) return <RetailerInventorySkeleton/>; // Filtered rows based on search query (name/varietal/vintage)
 
-  return (retailerId && retailer && inventory) && (
+  if (!retailerId) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-8 py-8 sm:py-12">
+        <StatePanel title="Retailer not found." variant="empty" />
+      </div>
+    );
+  }
+
+  if (!retailer) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-8 py-8 sm:py-12">
+        <StatePanel title="Retailer not found." variant="empty" />
+      </div>
+    );
+  }
+
+  return (
     <div className="max-w-7xl mx-auto px-4 sm:px-8 py-8 sm:py-12">
       <RetailerLocationCard retailer={retailer}/>
-
       <RetailerInventorySection inventory={inventory}/>
-
     </div>
-  )
+  );
 
 }

@@ -38,13 +38,13 @@ const PosConnectButton: React.FC<Props> = ({logoSrc, label, onClick, disabled, a
         // Full-width at all breakpoints inside cards per guidance
         "group w-full inline-flex items-center justify-center",
         // Clickable area (controlled by size)
-        `${containerHeight} px-4 rounded-md border border-neutral-200`,
+        `${containerHeight} px-4 rounded-[var(--radius-sm)] border border-token`,
         // Monochrome surface
-        "bg-white text-neutral-900",
+        "bg-panel-token text-token",
         // Hover/disabled behavior
-        "hover:bg-neutral-50 disabled:opacity-60 disabled:cursor-not-allowed",
+        "hover:bg-[color:var(--color-muted)] disabled:opacity-60 disabled:cursor-not-allowed",
         // Strong focus ring for accessibility
-        "focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 focus-visible:ring-offset-white",
+        "focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-bg)]",
         // Smooth transitions
         "transition-colors",
         className,

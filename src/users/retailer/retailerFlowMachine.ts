@@ -38,15 +38,35 @@ const markDoneOnboarding = (key: string) => {
   }
 };
 
+const collectErrorStrings = (value: unknown): string[] => {
+  if (!value) return [];
+  if (typeof value === "string") return [value];
+  if (Array.isArray(value)) return value.flatMap(collectErrorStrings);
+  if (typeof value !== "object") return [];
+
+  const entries = value as Record<string, unknown>;
+  return Object.entries(entries).flatMap(([key, nested]) => {
+    if (key === "stack") return [];
+    if (key === "message" || key === "hint" || key === "code") {
+      return collectErrorStrings(nested);
+    }
+    if (key === "graphQLErrors" || key === "networkError" || key === "extensions" || key === "cause" || key === "error") {
+      return collectErrorStrings(nested);
+    }
+    return [];
+  });
+};
+
 const isDuplicateRetailerInsert = (error: unknown): boolean => {
-  if (!error || typeof error !== "object") return false;
-  const message = (error as {message?: unknown}).message;
-  if (typeof message !== "string") return false;
-  const lower = message.toLowerCase();
-  return lower.includes("duplicate key value") ||
-    lower.includes("retailer_pkey") ||
-    lower.includes("already exists") ||
-    lower.includes("sqlstate: 23505");
+  const haystack = collectErrorStrings(error).join(" ").toLowerCase();
+  if (!haystack) return false;
+  return haystack.includes("duplicate key value") ||
+    haystack.includes("retailer_pkey") ||
+    haystack.includes("already exists") ||
+    haystack.includes("already onboarded") ||
+    haystack.includes("use the existing retailer id") ||
+    haystack.includes("code conflict") ||
+    haystack.includes("sqlstate: 23505");
 };
 
 const getErrorMessage = (error: unknown): string => {

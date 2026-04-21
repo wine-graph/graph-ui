@@ -55,6 +55,21 @@ const RETAILERS_QUERY = gql(`
   }
 `)
 
+const RETAILER_COORDINATES_QUERY = gql(`
+  query($id: ID!) {
+    Retailer {
+      retailer(retailerId: $id) {
+        location {
+          coordinates {
+            latitude
+            longitude
+          }
+        }
+      }
+    }
+  }
+`)
+
 const RETAILER_ONBOARDING_MUTATION = gql(`
   mutation OnboardRetailer($merchantId: ID!, $pos: PosSource!) {
     Retailer {
@@ -91,4 +106,4 @@ const RETAILER_INVENTORY_MUTATION = gql(`
   }
 `)
 
-export {RETAILER_QUERY, RETAILERS_QUERY, RETAILER_INVENTORY_MUTATION, RETAILER_ONBOARDING_MUTATION};
+export {RETAILER_QUERY, RETAILERS_QUERY, RETAILER_INVENTORY_MUTATION, RETAILER_ONBOARDING_MUTATION, RETAILER_COORDINATES_QUERY};

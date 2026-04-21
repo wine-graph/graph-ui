@@ -1,19 +1,22 @@
 import React from "react";
+import {SectionTitle} from "./ui";
 
 type PageHeaderProps = { title: string; desc?: string };
 
 const PageHeader: React.FC<PageHeaderProps> = ({ title, desc }) => {
   return (
-    <div>
+    <div className="max-w-5xl">
       <header>
-        <h1 className="text-heading-page">{title}</h1>
-        {desc ? (
-          <p className="text-body font-normal text-muted max-w-3xl text-compact mt-4">
-            {desc}
-          </p>
-        ) : null}
+        <SectionTitle
+          as="h1"
+          eyebrow="Wine Graph"
+          title={title}
+          desc={desc}
+          titleClassName="text-heading-page"
+          descClassName="text-body font-normal text-muted max-w-3xl text-compact mt-4"
+        />
       </header>
-      <div className="w-24 h-[2px] mt-6 bg-[color:var(--color-border)]" />
+      <div className="mt-6 h-[3px] w-28 accent-strip rounded-full" />
     </div>
   );
 };

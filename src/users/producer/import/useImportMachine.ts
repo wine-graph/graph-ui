@@ -7,17 +7,37 @@ import {producerClient} from "../../../services/apolloClient.ts";
 import {PRODUCER_BY_ID} from "../../../services/producer/producerGraph.ts";
 import {ADD_WINE_MUTATION} from "../../../services/producer/wineGraph.ts";
 
+type AddWinePayload = {
+  Wine?: {
+    addWine?: {
+      name: string;
+      vintage?: number | null;
+      varietal?: string | null;
+    };
+  };
+};
+
+type ProducerImportEvent =
+  | { type: "FILE_SELECTED"; file: File }
+  | { type: "UPLOAD" }
+  | { type: "EDIT_WINE"; index: number; patch: Partial<Wine> }
+  | { type: "CONFIRM" }
+  | { type: "RESET" };
+
+function hasOutput<T>(event: unknown): event is { output: T } {
+  return !!event && typeof event === "object" && "output" in event;
+}
+
+function hasError(event: unknown): event is { error: unknown } {
+  return !!event && typeof event === "object" && "error" in event;
+}
+
 // XState machine for the import flow
 const importMachine = setup({
   types: {
     context: {} as ImportContext,
     input: {} as { producerId: string },
-    events: {} as
-      | { type: "FILE_SELECTED"; file: File }
-      | { type: "UPLOAD" }
-      | { type: "EDIT_WINE"; index: number; patch: Partial<Wine> }
-      | { type: "CONFIRM" }
-      | { type: "RESET" },
+    events: {} as ProducerImportEvent,
   },
   actors: {
     uploadCsv: fromPromise<WineExtraction, { producerId: string; file: File }>(async ({input}) => {
@@ -39,18 +59,18 @@ const importMachine = setup({
             continue;
           }
 
-          const variables = {
+          const variables: { input: { name: string; producerId: string; varietal: string; vintage: number; description?: string } } = {
             input: {
               name: w.name,
               producerId,
               varietal,
-              vintage,
+              vintage: Number(vintage),
               description: w.description ?? undefined,
             },
-          } as any;
+          };
 
-          const {data} = await producerClient.mutate({mutation: ADD_WINE_MUTATION, variables});
-          const created = (data as any)?.Wine?.addWine;
+          const {data} = await producerClient.mutate<AddWinePayload>({mutation: ADD_WINE_MUTATION, variables});
+          const created = data?.Wine?.addWine;
           if (created) {
             savedWines.push({
               name: created.name,
@@ -61,7 +81,7 @@ const importMachine = setup({
           } else {
             errors.push({row: i + 1, message: "No wine returned"});
           }
-        } catch (err: any) {
+        } catch (err: unknown) {
           errors.push({row: i + 1, message: readableError(err)});
         }
       }
@@ -88,10 +108,10 @@ const importMachine = setup({
   },
   actions: {
     setFile: assign(({context, event}) => {
-      const file = (event as any).file as File | undefined;
+      if (event.type !== "FILE_SELECTED") return context;
       return {
         ...context,
-        file,
+        file: event.file,
         extraction: undefined,
         editableWines: [],
         result: undefined,
@@ -99,7 +119,8 @@ const importMachine = setup({
       };
     }),
     setExtraction: assign(({context, event}) => {
-      const extraction = (event as any).output as WineExtraction;
+      if (!hasOutput<WineExtraction>(event)) return context;
+      const extraction = event.output;
       return {
         ...context,
         extraction,
@@ -108,18 +129,20 @@ const importMachine = setup({
       };
     }),
     setError: assign(({context, event}) => {
-      const err = (event as any).error;
+      const err = hasError(event) ? event.error : event;
       const message = readableError(err);
       return {...context, error: message};
     }),
     applyEdit: assign(({context, event}) => {
-      const {index, patch} = event as any;
+      if (event.type !== "EDIT_WINE") return context;
+      const {index, patch} = event;
       const next = [...context.editableWines];
       next[index] = {...next[index], ...patch} as Wine;
       return {...context, editableWines: next};
     }),
     setResult: assign(({context, event}) => {
-      const result = (event as any).output as ImportResult;
+      if (!hasOutput<ImportResult>(event)) return context;
+      const result = event.output;
       return {...context, result};
     }),
     resetCtx: assign(({context}) => ({producerId: context.producerId, editableWines: []} as ImportContext)),
@@ -207,17 +230,23 @@ export function useImportMachine(producerId: string) {
   const invalids = useMemo(() => validateWines(state.context.editableWines), [state.context.editableWines]);
 
   // Map XState state to the previous ImportState union for compatibility
-  const current: ImportState = (state.value as any) as ImportState;
+  const current: ImportState = typeof state.value === "string" ? state.value : "idle";
 
   return {state: current, ctx: state.context, selectFile, upload, editWine, confirm, reset, invalids};
 }
 
-function readableError(e: any): string {
+function readableError(e: unknown): string {
+  const obj = e && typeof e === "object" ? (e as Record<string, unknown>) : undefined;
+
   // Apollo GraphQLError shapes
-  const gqlMsg = e?.graphQLErrors && e.graphQLErrors.length > 0 ? e.graphQLErrors[0]?.message : undefined;
-  const netMsg = e?.networkError?.message;
-  const respMsg = e?.response?.data?.message;
-  const msg = gqlMsg || respMsg || netMsg || e?.message || "Unknown error";
+  const gqlErrors = Array.isArray(obj?.graphQLErrors) ? (obj?.graphQLErrors as Array<Record<string, unknown>>) : [];
+  const gqlMsg = gqlErrors.length > 0 && typeof gqlErrors[0]?.message === "string" ? gqlErrors[0].message : undefined;
+  const networkError = obj?.networkError as Record<string, unknown> | undefined;
+  const response = obj?.response as Record<string, unknown> | undefined;
+  const responseData = response?.data as Record<string, unknown> | undefined;
+  const netMsg = typeof networkError?.message === "string" ? networkError.message : undefined;
+  const respMsg = typeof responseData?.message === "string" ? responseData.message : undefined;
+  const msg = gqlMsg || respMsg || netMsg || (typeof obj?.message === "string" ? obj.message : undefined) || "Unknown error";
   return typeof msg === "string" ? msg : "Request failed";
 }
 

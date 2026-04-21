@@ -6,6 +6,7 @@ import {RETAILERS_QUERY} from "../../services/retailer/retailerGraph.ts";
 import {retailerClient} from "../../services/apolloClient.ts";
 import {MapView} from "../../components/MapView.tsx";
 import type {LatLngExpression} from "leaflet";
+import {Card, SectionTitle, StatePanel} from "../../components/ui";
 
 export const RetailerMarketplace = () => {
   const {data, loading} = useQuery(RETAILERS_QUERY, {client: retailerClient});
@@ -36,18 +37,18 @@ export const RetailerMarketplace = () => {
       };
     });
 
-  if (!position) return <div className="p-8 text-center">Loading map…</div>;
+  if (!position) return <StatePanel title="Loading map..." align="center" className="py-12" />;
 
   return (
     <div className="py-2">
       {/* Compact Retailer List at Top */}
-      <div className="py-6">
-        <h2 className="text-2xl font-bold mb-6">Nearby Retailers</h2>
+      <Card className="p-6 sm:p-8">
+        <SectionTitle eyebrow="Local results" title="Nearby Retailers" className="mb-6" />
 
         {loading ? (
-          <p className="text-center py-12">Loading retailers…</p>
+          <StatePanel title="Loading retailers..." align="center" className="py-12" />
         ) : retailers.length === 0 ? (
-          <p className="text-center py-12 text-[color:var(--color-fg-muted)]">No retailers found nearby.</p>
+          <StatePanel title="No retailers found nearby." align="center" variant="empty" className="py-12" />
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {retailers.map((r) => (
@@ -55,11 +56,11 @@ export const RetailerMarketplace = () => {
             ))}
           </div>
         )}
-      </div>
+      </Card>
 
       {/* Full-bleed, perfectly filling map */}
       <div
-        className="relative w-full h-[60vh] sm:h-[70vh] lg:h-[80vh] border-2 border-[color:var(--color-border)] overflow-hidden">
+        className="relative w-full mt-5 h-[60vh] sm:h-[70vh] lg:h-[80vh] border border-[color:var(--color-border)] rounded-[var(--radius-lg)] overflow-hidden shadow-[var(--shadow-soft)]">
         <MapView center={position} zoom={13} markers={markers}/>
       </div>
     </div>

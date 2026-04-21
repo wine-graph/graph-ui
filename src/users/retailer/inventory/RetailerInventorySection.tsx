@@ -1,6 +1,7 @@
 import type {RetailerInventory} from "../retailer.ts";
 import {useMemo, useState} from "react";
 import RetailerInventoryTable from "./RetailerInventoryTable.tsx";
+import {ActionRow, Card, EmptyState, InputField, SectionTitle} from "../../../components/ui";
 
 type RetailerInventorySectionProps = {
   inventory: RetailerInventory[];
@@ -24,44 +25,41 @@ export const RetailerInventorySection = ({inventory}: RetailerInventorySectionPr
   }, [inventory, query]);
 
   return (
-    <div>
+    <Card className="p-6">
       {/* Screen header: title + actions */}
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-4">
+      <ActionRow className="sm:items-end mb-4">
         <div>
-          <h2 className="text-2xl font-bold">Inventory</h2>
+          <SectionTitle eyebrow="Cellar" title="Inventory" titleClassName="text-[28px]" />
           <p className="text-sm text-[color:var(--color-fg-muted)] mt-0.5">{inventory.length} wines available</p>
         </div>
-      </div>
+      </ActionRow>
 
       {/* Controls row: search above table */}
       <div className="mb-4">
-        <input
+        <InputField
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search inventory…"
-          className="w-full h-10 px-3 border-2 border-[color:var(--color-border)] bg-[color:var(--color-panel)] placeholder-[color:var(--color-fg-muted)]"
           aria-label="Search inventory"
         />
       </div>
 
       {filteredInventory?.length === 0 ? (
-        <div
-          className="text-center py-16 text-[color:var(--color-fg-muted)] border-2 border-dashed border-[color:var(--color-border)]">
-          {inventory?.length === 0 ? (
-            <div>No wines in inventory yet.</div>
-          ) : (
-            <>
-              <div>No inventory matches your search.</div>
-              <button className="mt-3 underline" onClick={() => setQuery("")}>Clear search</button>
-            </>
-          )}
-        </div>
+        <EmptyState
+          title={inventory?.length === 0 ? "No wines in inventory yet." : "No inventory matches your search."}
+          action={
+            inventory?.length === 0
+              ? undefined
+              : <button className="underline text-[13px]" onClick={() => setQuery("")}>Clear search</button>
+          }
+          className="py-16"
+        />
       ) : (
         <RetailerInventoryTable
           wines={filteredInventory}
         />
       )}
-    </div>
+    </Card>
   );
 };

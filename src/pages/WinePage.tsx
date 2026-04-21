@@ -1,180 +1,314 @@
 import {Link, useParams} from "react-router-dom";
-import {useMemo} from "react";
+import {useEffect, useMemo, useState} from "react";
 import {useQuery} from "@apollo/client";
 import {WINE_BY_ID_ENRICHED} from "../services/producer/wineGraph.ts";
-import {producerClient} from "../services/apolloClient.ts";
+import {producerClient, retailerClient} from "../services/apolloClient.ts";
 import type {WineEnriched, WineProducer, WineRetailer} from "../users/producer/producer.ts";
+import {Card, DataTable, EmptyState, SectionTitle, StatePanel} from "../components/ui";
+import {RETAILER_COORDINATES_QUERY} from "../services/retailer/retailerGraph.ts";
+import {
+  formatDistanceMiles,
+  getBrowserLocation,
+  getDistanceMiles,
+  getGeolocationPermission,
+  getLocationMessage,
+  getLocationStateFromError,
+  watchGeolocationPermission,
+} from "../lib/location.ts";
+import type {Coordinates, LocationState} from "../lib/location.ts";
 
-function SkeletonRow() {
-  return <div className="animate-pulse h-5 bg-neutral-200 rounded"/>;
-}
+type RetailerDistanceRow = WineRetailer & {
+  distanceMiles: number | null;
+  distanceLabel: string | null;
+};
 
 export default function WinePage() {
   const {id} = useParams();
+  const [userCoordinates, setUserCoordinates] = useState<Coordinates | null>(null);
+  const [locationState, setLocationState] = useState<LocationState>("checking");
+  const [isRequestingLocation, setIsRequestingLocation] = useState(false);
+  const [retailerCoordinatesById, setRetailerCoordinatesById] = useState<Record<string, Coordinates>>({});
 
-  const {data, loading, error, refetch} = useQuery(WINE_BY_ID_ENRICHED, {client: producerClient, variables: {id}, skip: !id});
+  const {data, loading, error, refetch} = useQuery(WINE_BY_ID_ENRICHED, {
+    client: producerClient,
+    variables: {id},
+    skip: !id,
+  });
+
   const wine = data?.Wine?.enriched as WineEnriched | undefined;
   const retailers = wine?.retailers as WineRetailer[] | undefined;
   const producer = wine?.producer as WineProducer | undefined;
+
+  useEffect(() => {
+    const readUserLocation = async () => {
+      setIsRequestingLocation(true);
+      try {
+        const coordinates = await getBrowserLocation();
+        setUserCoordinates(coordinates);
+        setLocationState("granted");
+      } catch (geoError) {
+        setLocationState(getLocationStateFromError(geoError as GeolocationPositionError | Error));
+      } finally {
+        setIsRequestingLocation(false);
+      }
+    };
+
+    let cancelled = false;
+    let stopWatching: (() => void) | undefined;
+
+    void getGeolocationPermission().then((state) => {
+      if (cancelled) return;
+      setLocationState(state);
+      if (state === "granted") void readUserLocation();
+    });
+
+    void watchGeolocationPermission((state) => {
+      if (cancelled) return;
+      setLocationState(state);
+      if (state === "granted") void readUserLocation();
+    }).then((cleanup) => {
+      stopWatching = cleanup;
+    });
+
+    return () => {
+      cancelled = true;
+      stopWatching?.();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!retailers?.length) {
+      setRetailerCoordinatesById({});
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadRetailerCoordinates = async () => {
+      const results = await Promise.allSettled(
+        retailers.map(async (retailer) => {
+          const response = await retailerClient.query({
+            query: RETAILER_COORDINATES_QUERY,
+            variables: {id: retailer.id},
+            fetchPolicy: "no-cache",
+          });
+
+          const coordinates = response.data?.Retailer?.retailer?.location?.coordinates as Coordinates | undefined;
+          if (
+            coordinates?.latitude == null ||
+            coordinates?.longitude == null
+          ) {
+            return null;
+          }
+
+          return [retailer.id, coordinates] as const;
+        }),
+      );
+
+      if (cancelled) return;
+
+      const nextCoordinates = results.reduce<Record<string, Coordinates>>((acc, result) => {
+        if (result.status !== "fulfilled" || !result.value) return acc;
+        const [retailerId, coordinates] = result.value;
+        acc[retailerId] = coordinates;
+        return acc;
+      }, {});
+
+      setRetailerCoordinatesById(nextCoordinates);
+    };
+
+    void loadRetailerCoordinates();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [retailers]);
+
+  const requestUserLocation = () => {
+    setIsRequestingLocation(true);
+    void getBrowserLocation()
+      .then((coordinates) => {
+        setUserCoordinates(coordinates);
+        setLocationState("granted");
+      })
+      .catch((geoError) => {
+        setLocationState(getLocationStateFromError(geoError as GeolocationPositionError | Error));
+      })
+      .finally(() => {
+        setIsRequestingLocation(false);
+      });
+  };
 
   const subtitle = useMemo(() => {
     if (!wine) return "";
     const parts: string[] = [];
     if (wine.vintage) parts.push(String(wine.vintage));
-    if (producer?.name) parts.push(producer.name);
+    if (wine.varietal) parts.push(wine.varietal);
     if (wine.retailers?.length) parts.push(`${wine.retailers.length} retailers`);
     return parts.join(" • ");
-  }, [wine, producer?.name]);
+  }, [wine]);
+
+  const retailerRows = useMemo(() => {
+    if (!retailers?.length) return [];
+
+    const rows = retailers.map((retailer) => {
+      const retailerCoordinates = retailerCoordinatesById[retailer.id];
+      const distanceMiles = userCoordinates && retailerCoordinates
+        ? getDistanceMiles(userCoordinates, retailerCoordinates)
+        : null;
+
+      return {
+        ...retailer,
+        distanceMiles,
+        distanceLabel: distanceMiles == null ? null : formatDistanceMiles(distanceMiles),
+      } satisfies RetailerDistanceRow;
+    });
+
+    if (!userCoordinates) return rows;
+
+    return [...rows].sort((a, b) => {
+      if (a.distanceMiles == null && b.distanceMiles == null) return 0;
+      if (a.distanceMiles == null) return 1;
+      if (b.distanceMiles == null) return -1;
+      return a.distanceMiles - b.distanceMiles;
+    });
+  }, [retailerCoordinatesById, retailers, userCoordinates]);
+
+  const locationMessage = useMemo(() => {
+    return getLocationMessage(locationState, Boolean(retailers?.length), Boolean(userCoordinates));
+  }, [locationState, retailers?.length, userCoordinates]);
 
   return (
-    <main className="px-4 sm:px-6 md:px-8 py-4" aria-labelledby="page-title">
-      {/* Breadcrumb */}
-      <nav aria-label="Breadcrumb" className="text-sm text-neutral-600 mb-2">
+    <main className="container-max py-6 sm:py-8" aria-labelledby="page-title">
+      <nav aria-label="Breadcrumb" className="text-sm text-fg-muted mb-3">
         <ol className="flex gap-2">
           <li><Link className="underline-offset-2 hover:underline" to="/">Wine Graph</Link></li>
           <li>/</li>
           <li>Wines</li>
           <li>/</li>
-          <li className="text-neutral-900 truncate max-w-[50vw]" aria-current="page">{wine?.name || wine?.slug}</li>
+          <li className="text-token truncate max-w-[50vw]" aria-current="page">{wine?.name || "Wine"}</li>
         </ol>
       </nav>
 
-      {/* Header band */}
-      <header className="flex items-start justify-between gap-4 border-b border-neutral-200 pb-4">
-        <div>
-          <h1 id="page-title"
-              className="text-2xl text-neutral-900 font-medium leading-tight">{wine?.name || (loading ? "Loading…" : wine?.slug)}</h1>
-          {subtitle && (
-            <p className="text-sm text-neutral-700 mt-1">
-              {producer ? (
-                <>
-                  <span className="mx-1">•</span>
-                  <Link className="underline underline-offset-2"
-                        to={`/producer/${(producer.slug)}/${producer.id}`}>{producer.name}</Link>
-                </>
-              ) : null}
-            </p>
-          )}
-        </div>
-        <div className="flex items-center gap-3">
-          {wine?.createdAt && (
-            <span className="text-sm text-neutral-700">In Wine Graph since {new Date(wine.createdAt).getFullYear()}</span>
-          )}
+      <header className="border-b border-token pb-4">
+        <h1 id="page-title" className="text-heading-page">{wine?.name || (loading ? "Loading..." : "Wine")}</h1>
+        <div className="text-sm text-fg-muted mt-2 flex flex-wrap gap-3">
+          {subtitle ? <span>{subtitle}</span> : null}
+          {producer ? (
+            <Link className="underline underline-offset-2" to={`/producer/${producer.slug}/${producer.id}`}>
+              {producer.name}
+            </Link>
+          ) : null}
+          {wine?.createdAt ? <span>In Wine Graph since {new Date(wine.createdAt).getFullYear()}</span> : null}
         </div>
       </header>
 
-      {/* States */}
       {loading && (
         <section className="mt-6">
-          <div className="space-y-2 max-w-md">
-            <SkeletonRow/>
-            <SkeletonRow/>
-            <SkeletonRow/>
-          </div>
+          <StatePanel title="Loading wine..." variant="loading" />
         </section>
       )}
+
       {error && (
-        <section className="mt-6" role="alert" aria-live="polite">
-          <div className="border border-neutral-300 bg-white p-3 rounded">
-            <p className="text-neutral-900">We couldn’t load this wine. Retry in a moment.</p>
-            <div className="mt-3">
-              <button
-                type="button"
-                onClick={() => refetch()}
-                className="px-3 py-2 text-sm border border-neutral-300 rounded hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-neutral-900"
-              >
-                Retry
-              </button>
-            </div>
-          </div>
+        <section className="mt-6">
+          <StatePanel
+            variant="error"
+            role="alert"
+            title="We couldn’t load this wine."
+            desc="Retry in a moment."
+            action={<button type="button" onClick={() => refetch()} className="btn btn-secondary focus-accent">Retry</button>}
+          />
         </section>
       )}
 
       {(!loading && !error && wine) && (
         <div className="mt-6 space-y-6">
-          {/* Profile + In the graph */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Profile */}
-            <section className="bg-white border border-neutral-200 rounded p-4" aria-labelledby="profile-title">
-              <h2 id="profile-title" className="text-lg font-medium text-neutral-900">Profile</h2>
-              <div className="mt-3 divide-y divide-neutral-200">
-                {wine?.producer && (
+            <Card className="p-4">
+              <SectionTitle title="Profile" titleClassName="text-[20px]" />
+              <div className="mt-3 divide-y divide-token/80">
+                {wine?.producer ? (
                   <div className="py-2 flex items-center justify-between">
-                    <span className="text-neutral-700">Producer</span>
-                    <Link className="text-neutral-900 underline underline-offset-2"
-                          to={`/producer/${(producer?.slug)}/${producer?.id}`}>{producer?.name}</Link>
+                    <span className="text-fg-muted">Producer</span>
+                    <Link className="underline underline-offset-2" to={`/producer/${producer?.slug}/${producer?.id}`}>{producer?.name}</Link>
                   </div>
-                )}
-                {wine.vintage && (
-                  <div className="py-2 flex items-center justify-between"><span
-                    className="text-neutral-700">Vintage</span><span className="text-neutral-900">{wine.vintage}</span>
+                ) : null}
+                {wine.vintage ? (
+                  <div className="py-2 flex items-center justify-between">
+                    <span className="text-fg-muted">Vintage</span>
+                    <span>{wine.vintage}</span>
                   </div>
-                )}
-                {(wine.varietal) && (
-                  <div className="py-2 flex items-center justify-between"><span
-                    className="text-neutral-700">Varietal</span><span
-                    className="text-neutral-900">{wine.varietal}</span></div>
-                )}
-                {wine.description && (
+                ) : null}
+                {wine.varietal ? (
+                  <div className="py-2 flex items-center justify-between">
+                    <span className="text-fg-muted">Varietal</span>
+                    <span>{wine.varietal}</span>
+                  </div>
+                ) : null}
+                {wine.description ? (
                   <div className="py-2">
-                    <div className="text-neutral-700">Notes</div>
-                    <p className="text-neutral-900 text-sm mt-1">{wine.description}</p></div>
-                )}
+                    <div className="text-fg-muted">Notes</div>
+                    <p className="text-sm mt-1">{wine.description}</p>
+                  </div>
+                ) : null}
               </div>
-            </section>
+            </Card>
 
-            {/* In the graph */}
-            <section className="bg-white border border-neutral-200 rounded p-4" aria-labelledby="ingraph-title">
-              <h2 id="ingraph-title" className="text-lg font-medium text-neutral-900">In the graph</h2>
-              <p className="text-[14px] text-muted text-center">Coming soon...</p>
-              {/* Role-aware examples (text only, no branching layout) */}
-              <p
-                className="text-sm text-neutral-700 mt-2">{/* Retailer/Producer context could show here in the future. */}</p>
-            </section>
+            <Card className="p-4">
+              <SectionTitle title="In the graph" titleClassName="text-[20px]" />
+              <p className="text-[14px] text-muted mt-2">Coming soon...</p>
+            </Card>
           </div>
 
-          {/* Retailers + Similar wines */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Retailers carrying this wine */}
-            <section className="md:col-span-2 bg-white border border-neutral-200 rounded p-4 outline-none"
-                     aria-labelledby="retailers-title">
-              <h2 id="retailers-title" className="text-lg font-medium text-neutral-900">Retailers carrying this
-                wine</h2>
-              <div className="mt-3">
-                {retailers?.length === 0 ? (
-                  <p className="text-neutral-700">No retailers listed yet.</p>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full text-sm">
-                      <thead className="text-left text-neutral-700">
-                      <tr>
-                        <th className="py-2 pr-4">Retailer</th>
-                      </tr>
-                      </thead>
-                      <tbody className="border-t border-neutral-200 text-neutral-900">
-                      {retailers?.map((r, i) => (
-                        <tr key={i} className="border-b border-neutral-200 last:border-b-0">
-                          <td className="py-2 pr-4">
-                            {
-                              <Link className="underline underline-offset-2" to={`/${r.id}/inventory`}>
-                                {r.name}
-                              </Link>
-                            }
-                          </td>
-                        </tr>
-                      ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
+            <Card className="md:col-span-2 p-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <SectionTitle title="Find this wine near you" titleClassName="text-[20px]" />
+                  {locationMessage ? (
+                    <p className="mt-2 text-[13px] text-fg-muted">{locationMessage}</p>
+                  ) : null}
+                </div>
+                {locationState === "prompt" && retailers?.length ? (
+                  <button
+                    type="button"
+                    className="btn btn-secondary focus-accent self-start"
+                    onClick={requestUserLocation}
+                    disabled={isRequestingLocation}
+                  >
+                    {isRequestingLocation ? "Locating…" : "Use my location"}
+                  </button>
+                ) : null}
               </div>
-            </section>
+              {!retailers || retailers.length === 0 ? (
+                <EmptyState title="No retailers listed yet." className="mt-3" />
+              ) : (
+                <DataTable<RetailerDistanceRow>
+                  className="mt-3"
+                  columns={[
+                    {
+                      id: "retailer",
+                      header: "Retailer",
+                      render: (r) => <Link className="underline underline-offset-2" to={`/retailer/${r.id}/inventory`}>{r.name}</Link>,
+                    },
+                    {
+                      id: "distance",
+                      header: "Distance",
+                      headerClassName: "w-[120px]",
+                      render: (r) => r.distanceLabel ?? "—",
+                      cellClassName: "whitespace-nowrap text-fg-muted",
+                    },
+                  ]}
+                  rows={retailerRows}
+                  rowKey={(r, i) => r.id || `${r.name}-${i}`}
+                />
+              )}
+            </Card>
 
-            {/* Similar wines */}
-            <section className="bg-white border border-neutral-200 rounded p-4" aria-labelledby="similar-title">
-              <h2 id="similar-title" className="text-lg font-medium text-neutral-900">Similar wines</h2>
-              <p className="text-[14px] text-muted text-center">Coming soon...</p>
-            </section>
+            <Card className="p-4">
+              <SectionTitle title="Similar wines" titleClassName="text-[20px]" />
+              <p className="text-[14px] text-muted mt-2">Coming soon...</p>
+            </Card>
           </div>
         </div>
       )}

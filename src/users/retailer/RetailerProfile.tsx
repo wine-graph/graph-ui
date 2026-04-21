@@ -6,6 +6,7 @@ import {Store} from "lucide-react";
 import SectionCard from "../../components/SectionCard.tsx";
 import PosProviderStatus from "./pos/PosProviderStatus";
 import {useEffect, useState} from "react";
+import {Notice} from "../../components/ui";
 
 export const RetailerProfile = () => {
   const {user, isRetailer, pos} = useAuth();
@@ -43,18 +44,23 @@ export const RetailerProfile = () => {
 
       <div className="mt-10 grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Left: Google Profile — now wrapped in matching SectionCard */}
-        <GoogleProfile name={user?.user.name ?? ""} picture={user?.user.picture ?? ""} email={user?.user.email ?? ""}/>
+        <GoogleProfile
+          name={user?.user.name ?? ""}
+          picture={user?.user.picture ?? ""}
+          email={user?.user.email ?? ""}
+          className="h-full"
+        />
 
         {/* Right: POS status and connections */}
-        <div className="space-y-6">
+        <div className="space-y-6 h-full">
           {oauthError && (
-            <div className="border border-red-300 bg-red-50 text-red-700 px-3 py-2 rounded-md text-sm" role="alert">
+            <Notice variant="error" className="text-sm" role="alert">
               {oauthError}
-            </div>
+            </Notice>
           )}
           {/* Show status when authorized or checking; else show connect options */}
           {(!notConnected) ? (
-            <SectionCard cardHeader={{icon: Store, title: "POS status"}}>
+            <SectionCard cardHeader={{icon: Store, title: "POS status"}} className="h-full">
               <div className="p-6">
                 {pos.provider && (
                   <PosProviderStatus
