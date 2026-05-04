@@ -4,17 +4,12 @@
 export {useAuthService} from "./authSystem";
 export {AuthProvider} from "./AuthManager";
 
-// State machine (kept separate for clarity/testability)
-export {authMachine} from "./authMachine";
-export {posOAuthMachine} from "./posOAuthMachine";
-
 export {useAuth} from "./authContext";
 
 // Types
 export type {
+  GraphUser,
   Role,
-  SessionUser,
-  User,
   UserRole,
   PosProvider,
   PosToken,
@@ -27,6 +22,7 @@ export {
   startAuthentication,
   completeGoogleAuth,
   fetchCurrentUser,
+  createSessionUser,
   getPosToken,
   refreshPosToken,
   startAuthorization,

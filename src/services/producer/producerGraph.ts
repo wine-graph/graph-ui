@@ -98,10 +98,15 @@ const ADD_PRODUCER = gql(`
         id
         slug
         name
+        createdAt
         description
         email
         phone
         website
+        social {
+          provider
+          url
+        }
       }
     }
   }

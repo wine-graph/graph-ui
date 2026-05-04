@@ -20,24 +20,6 @@ type FlowError = {
 
 const onboardingInflight = new Map<string, Promise<void>>();
 
-const doneKeyFor = (key: string) => `retailer_onboarded::${key}`;
-
-const hasDoneOnboarding = (key: string): boolean => {
-  try {
-    return localStorage.getItem(doneKeyFor(key)) === "done";
-  } catch {
-    return false;
-  }
-};
-
-const markDoneOnboarding = (key: string) => {
-  try {
-    localStorage.setItem(doneKeyFor(key), "done");
-  } catch {
-    // Ignore storage failures and continue.
-  }
-};
-
 const collectErrorStrings = (value: unknown): string[] => {
   if (!value) return [];
   if (typeof value === "string") return [value];
@@ -100,8 +82,6 @@ export const retailerFlowMachine = setup({
   actors: {
     onboardRetailer: fromPromise<void, OnboardInput>(async ({input}) => {
       const key = `${input.pos}::${input.merchantId}`;
-      if (hasDoneOnboarding(key)) return;
-
       const existing = onboardingInflight.get(key);
       if (existing) {
         await existing;
@@ -114,12 +94,10 @@ export const retailerFlowMachine = setup({
             mutation: RETAILER_ONBOARDING_MUTATION,
             variables: {merchantId: input.merchantId, pos: input.pos},
           });
-          markDoneOnboarding(key);
         } catch (error) {
           // Parallel first-time onboarding may race into a duplicate insert.
           // Treat that as success since the retailer row already exists.
           if (isDuplicateRetailerInsert(error)) {
-            markDoneOnboarding(key);
             return;
           }
           throw error;

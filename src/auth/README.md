@@ -1,108 +1,56 @@
 # Auth System (`src/auth/`)
 
-A type-safe, XState-powered authentication layer for the Wine Graph SPA.
+The auth module owns the browser-side session lifecycle for the Wine Graph SPA:
+Google OIDC authentication, pending onboarding state, backend-backed graph user tokens, and retailer POS token status.
 
-This module centralizes the React provider, consumer hook, and facade for auth in a single consolidated file (`authSystem.tsx`) while keeping the XState machine (`authMachine.ts`) separate as the single source of truth for state logic. Public consumers should import from the barrel `src/auth` only.
-
-## How it all works together:
-- The Context (authContext.ts): Creates a "bucket" that holds the auth object so any component can reach in and grab it using useAuth().
-- The Hook (useAuth): When you call const { isRetailer, currentPosToken } = useAuth(), you are actually calling useAuthService.
-- The Selectors: useSelector ensures that your component only re-renders if the specific piece of auth data it cares about changes.
-- The POS Logic: posStatus.ts contains the pure functions (like checking if a token is expired). The useAuthService hook calls these functions so your components don't have to calculate dates manually.
-
----
+Public app code should import from the barrel at `src/auth` unless it is part of the auth module itself.
 
 ## Flow Overview
 
 | Flow | Steps |
 |------|-------|
-| Google Login | Click → `/session/authenticate` → Google → `/session/complete?state=xyz` → `auth.login()` |
-| Square Connect | Click → `/square/authorize` → Square → callback → server sets session → redirects to `/retailer?id=123` → `posOAuthMachine` (via `AuthManager`) → `auth.loadPos` → `auth.fetchUser` |
-| Clover Connect | Same as Square, different provider path |
-| Shopify Connect | Click → shop capture → `/shopify/authorize?shop=...` → callback → server redirects → `posOAuthMachine` (via `AuthManager`) → `auth.loadPos` → `auth.fetchUser` |
-
-Notes:
-- No frontend POST to provider callbacks; the backend (Quarkus) completes the OAuth flow and redirects the browser back with query params.
-- We gate provider OAuth completion with `sessionStorage` flags like `square_oauth_pending` to avoid running on normal navigations.
-
----
+| Google login | User starts `/session/authenticate` -> Google redirects back with `state` -> `/session/complete` returns a `GraphUser` |
+| Existing user | `GraphUser.role` is present -> token is saved from `role.token` -> user is routed to the role profile |
+| New user | `GraphUser.role` is missing -> pending user is saved in `sessionStorage` -> user is routed to `/onboarding` |
+| Producer onboarding | Producer form creates the producer record -> `/session/user/create` creates the graph-auth user with the producer id as role id -> returned token is saved |
+| Retailer onboarding | POS authorization completes through the provider callback -> graph-auth returns the fully onboarded retailer user |
+| Session restore | Stored graph token calls `/session/me`; pending onboarding user restores `/onboarding` without a graph token |
 
 ## Files
 
 | File | Purpose |
-|------|--------|
-| `index.ts` | Public barrel: import everything from `src/auth` |
-| `authSystem.tsx` | Consolidated module: `AuthProvider`, `AuthContext`/`useAuth`, and `useAuthService` facade (selectors + actions) |
-| `authMachine.ts` | XState machine — single source of truth for state logic |
-| `posOAuthMachine.ts` | XState machine that completes POS OAuth callbacks and drives redirect/error outcomes |
-| `types.ts` | `SessionUser`, `Role`, POS types and helpers (`deriveRole`, `hasRole`) |
-| `storage.ts` | Persist user/token in web storage |
-| `authClient.ts` | Axios client + auth/session/POS helpers |
+|------|---------|
+| `index.ts` | Public barrel for app imports |
+| `AuthManager.tsx` | Auth provider plus Google/POS redirect side effects |
+| `authSystem.tsx` | `useAuthService` facade built from XState selectors and actions |
+| `authMachine.ts` | Main auth state machine for session, onboarding role selection, and POS token status |
+| `posOAuthMachine.ts` | Internal machine for POS callback completion |
+| `types.ts` | `GraphUser`, role, POS types, and role helpers |
+| `storage.ts` | Session storage helpers for graph token and pending onboarding user |
+| `authClient.ts` | Axios client plus session/POS API helpers |
 | `google.ts` | Google OIDC completion hook |
-| `square.ts` | Legacy compatibility module (not exported by barrel) |
-| `clover.ts` | Legacy compatibility module (not exported by barrel) |
-| `shopify.ts` | Legacy compatibility module (not exported by barrel) |
-| `authContext.ts` | Re-export shim: re-exports `AuthContext` and `useAuth` from `authSystem.tsx` |
-| `AuthProvider.tsx` | Re-export shim: re-exports `AuthProvider` from `authSystem.tsx` |
-| `useAuthService.ts` | Re-export shim: re-exports `useAuthService` (for deep import compatibility) |
 
----
+## Public Facade
 
-## Public imports (barrel)
+`useAuth()` exposes the app-facing auth state:
 
-Always import from the barrel to keep call sites stable:
+- `user`: current `GraphUser | null`
+- `role`: derived backend-backed role, or `null` for pending onboarding
+- `authStatus`: `initializing`, `unauthenticated`, `authenticated_unonboarded`, or `authenticated_onboarded`
+- `isAuthenticated`, `isOnboarded`, `isInitializing`, `isLoading`
+- `login(data)`, `logout()`, `fetchUser()`
+- `selectOnboardingRole(role)`, `clearOnboardingRole()`
+- `pos.load(provider, merchantId)`, `pos.refresh(provider, merchantId)`, and POS status fields
 
-```ts
-import { AuthProvider, useAuth } from "../auth";
-import { startAuthentication } from "../auth";
-import type { Role, PosToken } from "../auth";
-```
+Protected app routes should rely on backend-backed `role` only. Pending onboarding role selection is only for the `/onboarding` flow.
 
----
+## Storage
 
-## Facade shape (useAuth)
+Current dev/staging storage is browser `sessionStorage`:
 
-`useAuth()` returns a stable facade used across the app. Key fields and actions include:
+- `graph_token`: JWT returned on a completed graph-auth user
+- `wg_onboarding_user`: temporary Google OIDC user while onboarding is incomplete
+- `wg_onboarding_role`: temporary onboarding role selection
+- `{provider}_oauth_pending`: provider callback guard for POS OAuth
 
-- State:
-  - `user`: `SessionUser | null`
-  - `isAuthenticated`: boolean
-  - `isLoading`: boolean
-  - `role`: derived `Role` (respects a temporary local override during onboarding)
-  - POS: `currentProvider`, `currentPosToken`, `isAuthorized`, `posLoading`, `posError`
-- Actions:
-  - `login(data: SessionUser)` / `logout()`
-  - `fetchUser(): Promise<SessionUser | null>`
-  - `loadPos(provider, merchantId)` / `refreshPos(provider, merchantId)`
-  - `updateRole(nextRole: Role, roleId: string)`
-  - `setLocalRole(role: Role)` / `clearLocalRole()` (onboarding aid)
-
-Machine-specific details remain encapsulated; consumers should stick to the facade.
-
----
-
-## Rationale for consolidation
-
-- Reduced file-hopping: provider, context, and service facade are co-located.
-- Machine isolation: `authMachine.ts` stays separate for clarity and testability.
-- Stable public surface: the barrel exports keep imports consistent across the app.
-
----
-
-## Legacy shims
-
-The following files exist as thin re-export shims to preserve deep imports and ease migration.
-They may be kept indefinitely for stability, or removed in a future cleanup once all imports are verified to go through the barrel:
-
-- `src/auth/authContext.ts`
-- `src/auth/AuthProvider.tsx`
-- `src/auth/useAuthService.ts`
-
-Recommendation: prefer importing from the barrel (`src/auth`) and treat deep imports as internal.
-
----
-
-## State Machine
-
-`authMachine.ts` defines the full state logic, including POS token actors, role attach windows, and storage hydration.
-Use the facade actions rather than sending raw machine events from the UI.
+Production can migrate the graph token to cookies without changing the route-level onboarding model.

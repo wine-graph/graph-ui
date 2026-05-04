@@ -42,17 +42,16 @@ export const RetailerProfile = () => {
         desc="Manage your profile, POS integration, and sync status."
       />
 
-      <div className="mt-10 grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Left: Google Profile — now wrapped in matching SectionCard */}
+      <div className="mt-10 grid grid-cols-1 lg:grid-cols-[minmax(260px,340px)_1fr] items-start gap-8">
+        {/* Left: Google Profile */}
         <GoogleProfile
-          name={user?.user.name ?? ""}
-          picture={user?.user.picture ?? ""}
-          email={user?.user.email ?? ""}
-          className="h-full"
+          name={user?.name ?? ""}
+          picture={user?.picture ?? ""}
+          email={user?.email ?? ""}
         />
 
         {/* Right: POS status and connections */}
-        <div className="space-y-6 h-full">
+        <div className="space-y-6">
           {oauthError && (
             <Notice variant="error" className="text-sm" role="alert">
               {oauthError}
@@ -74,11 +73,10 @@ export const RetailerProfile = () => {
               </div>
             </SectionCard>
           ) : (
-            <PosAuthOptions userId={user?.user.id ?? ""}/>
+            <PosAuthOptions userId={user?.id ?? ""}/>
           )}
         </div>
       </div>
-      {/*{import.meta.env.DEV && <AuthDebug/>}*/}
     </div>
   );
 };

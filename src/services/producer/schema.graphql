@@ -23,8 +23,9 @@ type Producer {
   name: String
   phone: String
   slug: String
+  social: [SocialPlatform]
   website: String
-  "Get wines for the given producer"
+  "Wines for the given producer"
   wines: [Wine]
 }
 
@@ -33,13 +34,13 @@ type ProducerMutation {
 }
 
 type ProducerQuery {
-  "Get all producers"
+  "All producers"
   all: [Producer]
-  "Get a producer by its ID, but enriched with 'extra' data"
+  "Producer by its ID, but enriched with 'extra' data"
   enriched(id: ID!): Producer
-  "Get a producer by its ID"
+  "Producer by its ID"
   producer(id: ID!): Producer
-  "Get producers for a given area"
+  "Producers for a given area"
   producers(areaId: ID!): [Producer]
 }
 
@@ -47,6 +48,11 @@ type ProducerQuery {
 type Query {
   Producer: ProducerQuery
   Wine: WineQuery
+}
+
+type SocialPlatform {
+  provider: Provider
+  url: String
 }
 
 type Wine {
@@ -98,6 +104,7 @@ type WineRetailer {
   id: ID
   name: String
   source: String
+  sourceId: String
 }
 
 enum Closure {
@@ -116,6 +123,12 @@ enum Color {
   RED
   ROSE
   WHITE
+}
+
+enum Provider {
+  FACEBOOK
+  INSTAGRAM
+  TWITTER
 }
 
 enum Shape {
@@ -151,7 +164,13 @@ input ProducerInput {
   email: String
   name: String!
   phone: String
+  socialLinks: [SocialPlatformInput]
   website: String
+}
+
+input SocialPlatformInput {
+  provider: Provider
+  url: String
 }
 
 input WineComponentInput {

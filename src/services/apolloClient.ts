@@ -2,15 +2,15 @@ import {ApolloClient, InMemoryCache, HttpLink} from '@apollo/client';
 
 const domainUri = import.meta.env.DEV
   ? 'http://localhost:8081/graphql'
-  : 'https://wine-domain.fly.dev/graphql';
+  : 'https://domain.winegraph.io/graphql';
 
 const retailerUri = import.meta.env.DEV
   ? 'http://localhost:8086/graphql'
-  : 'https://wine-retailer.fly.dev/graphql';
+  : 'https://retailer.winegraph.io/graphql';
 
 const producerUri = import.meta.env.DEV
   ? 'http://localhost:8083/graphql'
-  : 'https://wine-producer.fly.dev/graphql';
+  : 'https://producer.winegraph.io/graphql';
 
 export const domainClient = new ApolloClient({
   link: new HttpLink({uri: domainUri}),

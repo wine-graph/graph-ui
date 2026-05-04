@@ -2,8 +2,10 @@ import {useCallback, useEffect, useRef, useState} from "react";
 import {completeGoogleAuth} from "./authClient";
 import {useNavigate} from "react-router-dom";
 import type {AuthContextValue} from "./authContext.ts";
+import {deriveRole} from "./types.ts";
+import {ONBOARDING_PATH, roleProfilePath} from "../app/onboarding.ts";
 
-export const useGoogleOidc = ({auth}: { auth: AuthContextValue}) => {
+export const useGoogleOidc = ({auth}: { auth: AuthContextValue }) => {
   const navigate = useNavigate();
   const hasHandleRef = useRef(false);
 
@@ -13,8 +15,6 @@ export const useGoogleOidc = ({auth}: { auth: AuthContextValue}) => {
   });
 
   const authorize = useCallback(async () => {
-    console.log("[google] authorize called")
-
     if (hasHandleRef.current) return;
 
     const params = new URLSearchParams(location.search);
@@ -25,15 +25,34 @@ export const useGoogleOidc = ({auth}: { auth: AuthContextValue}) => {
     setIsProcessing(true);
 
     try {
-      const sessionUser = await completeGoogleAuth(state);
-      auth.login(sessionUser);
+      const graphUser = await completeGoogleAuth(state);
 
-      if (sessionUser.user.role.value === 'retailer') {
-        const retailerId = sessionUser.user.role.id;
-        navigate(`/retailer/${retailerId}/profile`, {replace: true});
+      // Commit user to auth context
+      auth.login(graphUser);
+
+      const roleValue = deriveRole(graphUser.role?.value);
+
+      // Evaluate user's destination based on role
+      switch (roleValue) {
+        case null:
+        case undefined:
+          navigate(ONBOARDING_PATH, {replace: true});
+          break;
+
+        case 'retailer':
+        case 'producer': {
+          navigate(roleProfilePath(graphUser), {replace: true});
+          break;
+        }
+
+        default:
+          // Catch-all safety net for unexpected or unhandled roles
+          console.warn(`Unhandled role detected: ${roleValue}`);
+          navigate('/profile', {replace: true});
+          break;
       }
 
-      // Clean URL
+      // Clean URL & Session Storage
       params.delete("state");
       const cleanPath = `${location.pathname}${params.toString() ? "?" + params : ""}${location.hash}`;
       window.history.replaceState({}, "", cleanPath);

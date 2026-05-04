@@ -1,9 +1,10 @@
-import {NavLink, Outlet, useLocation} from "react-router-dom";
+import {Navigate, NavLink, Outlet, useLocation} from "react-router-dom";
 import {type FormEvent, useCallback, useEffect, useMemo, useState} from "react";
 import {useAuth} from "../auth";
 import {type NavLinkDef, resolveNavLinksByRole, toPath} from "./roleNavConfig.ts";
 import {LogIn, Menu, Search, X} from "lucide-react";
 import {likelyPathsForRole, prefetchPath, prefetchPaths} from "./routePrefetch.ts";
+import {ONBOARDING_PATH} from "./onboarding.ts";
 
 const linkClass = (isActive: boolean) =>
   [
@@ -14,29 +15,31 @@ const linkClass = (isActive: boolean) =>
   ].join(" ");
 
 const Layout = () => {
-  const {isAuthenticated, user, pos} = useAuth();
+  const {isAuthenticated, user, role, isInitializing, pos} = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
 
   const retailerId = useMemo(
-    () => user?.user?.role.value === "retailer" ? user.user.role.id : pos.token?.merchantId,
-    [user?.user?.role.id, user?.user?.role.value, pos.token?.merchantId]
+    () => role === "retailer" ? user?.role?.id : pos.token?.merchantId,
+    [role, user?.role?.id, pos.token?.merchantId]
   );
 
-  const producerId = user?.user.role.value === "producer" ? user?.user.role.id : "";
-  const role = user?.user.role.value;
+  const producerId = role === "producer" ? user?.role?.id : "";
 
   const links: NavLinkDef[] | undefined = useMemo(() => {
     if (role === "retailer" && retailerId) return resolveNavLinksByRole(role, retailerId);
     if (role === "producer" && producerId) return resolveNavLinksByRole(role, producerId);
-    return resolveNavLinksByRole("visitor", user?.user.role.id ?? "");
-  }, [retailerId, producerId, role, user?.user.role.id]);
+    return resolveNavLinksByRole("", user?.role?.id ?? "");
+  }, [retailerId, producerId, role, user?.role?.id]);
 
   const profilePath: string = useMemo(() => {
     if (role === "retailer" && retailerId) return `/retailer/${retailerId}/profile`;
     if (role === "producer") return `/producer/${producerId}/profile`;
     return "/profile";
   }, [role, retailerId, producerId]);
+
+  const isOnboardingPath = location.pathname === ONBOARDING_PATH;
+  const shouldGateToOnboarding = !isInitializing && isAuthenticated && !role && !isOnboardingPath;
 
   useEffect(() => {
     setMobileOpen(false);
@@ -56,7 +59,7 @@ const Layout = () => {
       .slice(0, 4);
 
     const roleCandidates = likelyPathsForRole({
-      role,
+      role: role ?? undefined,
       retailerId,
       producerId,
     }).filter((path) => path && path !== location.pathname);
@@ -125,18 +128,18 @@ const Layout = () => {
               className="md:hidden inline-flex items-center justify-center tap-target border border-token rounded-[var(--radius-sm)]"
             >
               {isAuthenticated ? (
-                user?.user?.picture ? (
+                user?.picture ? (
                   <span className="w-8 h-8 inline-flex items-center justify-center rounded-full overflow-hidden border border-token" aria-hidden="true">
                     <img
-                      src={user?.user.picture}
-                      alt={user?.user.name ?? "Profile"}
+                      src={user?.picture}
+                      alt={user?.name ?? "Profile"}
                       className="w-full h-full object-cover"
                       referrerPolicy="no-referrer"
                     />
                   </span>
                 ) : (
                   <span className="w-8 h-8 inline-flex items-center justify-center rounded-full border border-token text-[12px]">
-                    {(user?.user?.name ?? "").slice(0, 1).toUpperCase() || "U"}
+                    {(user?.name ?? "").slice(0, 1).toUpperCase() || "U"}
                   </span>
                 )
               ) : (
@@ -198,18 +201,18 @@ const Layout = () => {
                   className={({isActive}) => linkClass(isActive)}
                 >
                   {isAuthenticated ? (
-                    user?.user?.picture ? (
+                    user?.picture ? (
                       <span className="w-8 h-8 inline-flex items-center justify-center rounded-full overflow-hidden border border-token" aria-hidden="true">
                         <img
-                          src={user?.user.picture}
-                          alt={user?.user.name ?? "Profile"}
+                          src={user?.picture}
+                          alt={user?.name ?? "Profile"}
                           className="w-full h-full object-cover"
                           referrerPolicy="no-referrer"
                         />
                       </span>
                     ) : (
                       <span className="w-8 h-8 inline-flex items-center justify-center rounded-full border border-token text-[12px]">
-                        {(user?.user?.name ?? "").slice(0, 1).toUpperCase() || "U"}
+                        {(user?.name ?? "").slice(0, 1).toUpperCase() || "U"}
                       </span>
                     )
                   ) : (
@@ -224,7 +227,7 @@ const Layout = () => {
 
         <main id="main" className="flex-1 min-w-0">
           <div className="container-max py-6 sm:py-8">
-            <Outlet/>
+            {shouldGateToOnboarding ? <Navigate to={ONBOARDING_PATH} replace/> : <Outlet/>}
           </div>
         </main>
       </div>
