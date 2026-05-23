@@ -38,7 +38,7 @@ function retailerLinks(retailerId: string): NavLinkDef[] {
   return [baseLinks[0], marketplace, cellar, baseLinks[3]];
 }
 
-function visitorLinks(): NavLinkDef[] {
+function publicLinks(): NavLinkDef[] {
   return baseLinks;
 }
 
@@ -53,7 +53,7 @@ function producerLinks(producerId: string): NavLinkDef[] {
 }
 
 export function resolveNavLinksByRole(role: string, userId?: string): NavLinkDef[] {
-  const normalized = (role || "visitor").toLowerCase();
+  const normalized = role.toLowerCase();
   switch (normalized) {
     case "retailer":
       return userId ? retailerLinks(userId) : baseLinks;
@@ -62,7 +62,7 @@ export function resolveNavLinksByRole(role: string, userId?: string): NavLinkDef
     case "producer":
       return userId ? producerLinks(userId) : baseLinks;
     default:
-      return visitorLinks();
+      return publicLinks();
   }
 }
 

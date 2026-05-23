@@ -1,34 +1,21 @@
 import axios from "axios";
-import type {PosProvider, PosToken, SessionUser} from "./types.ts";
+import type {PosProvider, PosToken, GraphUser, Role} from "./types.ts";
 import {storage} from "./storage.ts";
 
 const BASE_URL = import.meta.env.DEV
   ? "http://localhost:8082"
-  : "https://graph-auth.fly.dev";
+  : "https://auth.winegraph.io";
 
 export const api = axios.create({
   baseURL: BASE_URL,
   withCredentials: false, // disable since we aren't using cookies for auth
 });
 
-// todo use later when we move to RBAC in backend
-// === Auto-add Bearer token ===
-// api.interceptors.request.use((config) => {
-//   const token = storage.getToken();
-//   console.log("AuthClient token:", token);
-//   if (token) config.headers.Authorization = `Bearer ${token}`;
-//   return config;
-// });
+const toRoleEnum = (role: Role): string => role.toUpperCase();
 
-// === Debug logs (dev only) ===
 if (import.meta.env.DEV) {
-  api.interceptors.request.use((c) => {
-    //console.log("API →", c.method?.toUpperCase(), c.url);
-    return c;
-  });
   api.interceptors.response.use(
     (r) => {
-      //console.log("API ←", r.status, r.config.url);
       return r;
     },
     (e) => {
@@ -44,18 +31,35 @@ export function startAuthentication(): void {
 }
 
 // === Google OIDC ===
-export const completeGoogleAuth = async (state: string): Promise<SessionUser> => {
+export const completeGoogleAuth = async (state: string): Promise<GraphUser> => {
   const {data} = await api.get("/session/complete", {params: {state}});
   return data;
 };
 
 // === Who am I? ===
-export const fetchCurrentUser = async (): Promise<SessionUser> => {
+export const fetchCurrentUser = async (): Promise<GraphUser> => {
   const token = storage.getToken();
-  const {data} = await api.get("/session/user", {
+  const {data} = await api.get("/session/me", {
     headers: {Authorization: `Bearer ${token}`},
   });
   return data;
+};
+
+export const createSessionUser = async (graphUser: GraphUser, role: Role, roleId: string): Promise<GraphUser> => {
+  const nextUser: GraphUser = {
+    ...graphUser,
+    role: {
+      value: toRoleEnum(role) as Role,
+      id: roleId,
+      system: null,
+      token: null,
+    },
+  };
+  const {data} = await api.post("/session/user/create", nextUser);
+  const user = data as GraphUser;
+  storage.saveTokenFromUser(user);
+  storage.clearOnboardingUser();
+  return user;
 };
 
 export const startAuthorization = (provider: PosProvider, userId: string, shop: string | null): void => {

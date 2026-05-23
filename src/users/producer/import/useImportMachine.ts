@@ -91,7 +91,6 @@ const importMachine = setup({
         await producerClient.refetchQueries({
           include: [PRODUCER_BY_ID],
         });
-        console.debug("[import] post-import refetch succeeded");
       } catch (e) {
         // Non-fatal: if refetch fails, we still return the import result.
         console.warn("[import] post-import refetch failed", e);

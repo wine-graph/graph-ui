@@ -11,7 +11,7 @@ import {ActionRow, Card, DataTable, EmptyState, SectionTitle, SkeletonPanel, Sta
 
 const ProducerInventory: React.FC = () => {
   const {user} = useAuth();
-  const producerId = user?.user.role.id;
+  const producerId = user?.role?.id;
 
   const {data, loading, error, refetch} = useQuery(PRODUCER_BY_ID, {
     variables: {id: producerId},

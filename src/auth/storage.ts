@@ -1,7 +1,7 @@
-import type { SessionUser } from "./types";
+import type {GraphUser} from "./types.ts";
 
-const USER_KEY = "graph_user";
 const TOKEN_KEY = "graph_token";
+const ONBOARDING_USER_KEY = "wg_onboarding_user";
 
 export const storage = {
   getToken: () => sessionStorage.getItem(TOKEN_KEY),
@@ -9,30 +9,31 @@ export const storage = {
   setToken: (t: string | null) =>
     t ? sessionStorage.setItem(TOKEN_KEY, t) : sessionStorage.removeItem(TOKEN_KEY),
 
-  getUser: (): SessionUser | null => {
+  saveTokenFromUser: (user: GraphUser) => {
+    if (user.role?.token) storage.setToken(user.role.token);
+  },
+
+  getOnboardingUser: (): GraphUser | null => {
+    const raw = sessionStorage.getItem(ONBOARDING_USER_KEY);
+    if (!raw) return null;
     try {
-      const raw = localStorage.getItem(USER_KEY);
-      return raw ? JSON.parse(raw) : null;
-    } catch (err) {
-      console.error("storage.getUser parse error", err);
+      return JSON.parse(raw) as GraphUser;
+    } catch {
+      sessionStorage.removeItem(ONBOARDING_USER_KEY);
       return null;
     }
   },
 
-  setUser: (user: SessionUser | null) => {
-    if (user) {
-      localStorage.setItem(USER_KEY, JSON.stringify(user));
-      storage.setToken(user.token);
-    } else {
-      localStorage.removeItem(USER_KEY);
-      storage.setToken(null);
-    }
+  saveOnboardingUser: (user: GraphUser) => {
+    sessionStorage.setItem(ONBOARDING_USER_KEY, JSON.stringify(user));
+  },
+
+  clearOnboardingUser: () => {
+    sessionStorage.removeItem(ONBOARDING_USER_KEY);
   },
 
   clear: () => {
-    localStorage.removeItem(USER_KEY);
-    localStorage.clear();
     storage.setToken(null);
-    sessionStorage.clear();
+    storage.clearOnboardingUser();
   },
 };

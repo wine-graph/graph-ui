@@ -17,7 +17,7 @@ export const RetailerCellar = () => {
   const {retailerId} = useParams();
 
   // Determine the effective retailer id to query: route param if present, otherwise the signed-in retailer id
-  const selfId = user?.user?.role?.id;
+  const selfId = user?.role?.id;
   const effectiveRetailerId = (retailerId ?? selfId) as string | undefined;
 
   const {data, loading, refetch} = useQuery(RETAILER_QUERY, {
@@ -59,10 +59,10 @@ export const RetailerCellar = () => {
   });
 
   const canSync = useMemo(() => {
-    const roleId = user?.user?.role?.id;
+    const roleId = user?.role?.id;
     const owns = Boolean(roleId && (!retailerId || roleId === retailerId));
     return Boolean(isRetailer && owns && isOnboarded && pos.isAuthorized && pos.provider && pos.token);
-  }, [isOnboarded, isRetailer, pos, retailerId, user?.user?.role?.id]);
+  }, [isOnboarded, isRetailer, pos, retailerId, user?.role?.id]);
 
   const handleSync = () => {
     setBanner(null);

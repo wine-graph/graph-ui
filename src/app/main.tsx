@@ -11,6 +11,7 @@ import {likelyPathsForRole, prefetchPaths, routeLoaders} from "./routePrefetch.t
 
 const DiscoverPage = lazy(routeLoaders.discover);
 const ProfilePage = lazy(routeLoaders.profile);
+const OnboardingPage = lazy(routeLoaders.onboarding);
 const MarketplacePage = lazy(routeLoaders.marketplace);
 const ProducerMarketplace = lazy(routeLoaders.producerMarketplace);
 const RetailerInventory = lazy(routeLoaders.retailerInventory);
@@ -31,21 +32,15 @@ const router = createBrowserRouter(
           <App/>
       </AuthProvider>
     }>
-      {/* Default main page for all users: Feed (coming soon) */}
       <Route index element={(<GraphFeed/>)} />
-      {/* Dashboard route for signed-in users */}
       <Route path="explore" element={(<DiscoverPage/>)} />
-      {/* todo fix routes and navigate throughout */}
       <Route path="marketplace" element={(<MarketplacePage/>)} />
-      {/* RetailerInventory should be 'nested' under Marketplace properly */}
       <Route path="retailer/:retailerId/inventory" element={(<RetailerInventory/>)} />
       <Route path="profile" element={(<ProfilePage/>)} />
-      {/* Public graph detail routes: human-readable slugs in path; IDs used for data queries */}
+      <Route path="onboarding" element={(<OnboardingPage/>)} />
       <Route path="producer/:slug/:id" element={(<ProducerPage/>)} />
       <Route path="wine/:slug/:id" element={(<WinePage/>)} />
-      {/* --- Retailer section --- */}
       <Route path="retailer">
-        {/* Retailer-specific routes (require :retailerId) */}
         <Route
           path=":retailerId"
           element={
@@ -66,9 +61,7 @@ const router = createBrowserRouter(
           }
         />
       </Route>
-      {/* --- End Retailer section --- */}
 
-      {/* --- Producer section --- */}
       <Route path="producer">
         <Route
           path=":producerId"
@@ -79,7 +72,6 @@ const router = createBrowserRouter(
           }
         >
           <Route path="profile" element={(<ProducerProfile/>)} />
-          {/* Producer Inventory (includes CSV Import component) */}
           <Route path="cellar" element={(<ProducerInventory/>)} />
         </Route>
         <Route
@@ -91,10 +83,6 @@ const router = createBrowserRouter(
           }
         />
       </Route>
-      {/* --- End Producer section --- */}
-
-      {/* */}
-      {/* */}
     </Route>
   )
 );
@@ -108,7 +96,7 @@ createRoot(document.getElementById("root")!).render(
 );
 
 if (typeof window !== "undefined") {
-  const warm = () => prefetchPaths(likelyPathsForRole({role: "visitor"}).slice(0, 3));
+  const warm = () => prefetchPaths(likelyPathsForRole({}).slice(0, 3));
   const ric = window.requestIdleCallback;
   if (ric) {
     ric(warm, {timeout: 1500});

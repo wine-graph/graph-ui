@@ -41,22 +41,20 @@ components:
         id:
           type: string
         system:
+          type:
+            - string
+            - "null"
+        token:
           type: string
     RoleEnum:
       type: string
       enum:
-        - VISITOR
         - ADMIN
         - RETAILER
         - PRODUCER
         - ENTHUSIAST
-    SessionUser:
-      type: object
-      properties:
-        user:
-          $ref: "#/components/schemas/GraphUser"
-        token:
-          type: string
+        - SOMMELIER
+        - DISTRIBUTOR
     SessionUserRequest:
       type: object
       properties:
@@ -76,82 +74,6 @@ components:
       scheme: bearer
       bearerFormat: JWT
 paths:
-  /clover/authorize:
-    get:
-      parameters:
-        - name: userId
-          in: query
-          schema:
-            type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json: {}
-      summary: Authorize
-      tags:
-        - Clover Token Resource
-  /clover/callback:
-    get:
-      parameters:
-        - name: client_id
-          in: query
-          schema:
-            type: string
-        - name: code
-          in: query
-          schema:
-            type: string
-        - name: merchant_id
-          in: query
-          schema:
-            type: string
-        - name: state
-          in: query
-          schema:
-            type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json: {}
-      summary: Callback
-      tags:
-        - Clover Token Resource
-  /clover/refresh:
-    post:
-      parameters:
-        - name: merchant_id
-          in: query
-          schema:
-            type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PosToken"
-      summary: Refresh Token
-      tags:
-        - Clover Token Resource
-  /clover/token:
-    post:
-      parameters:
-        - name: merchant_id
-          in: query
-          schema:
-            type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PosToken"
-      summary: Token
-      tags:
-        - Clover Token Resource
   /session/authenticate:
     get:
       responses:
@@ -181,11 +103,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SessionUser"
+                $ref: "#/components/schemas/GraphUser"
       summary: Complete
       tags:
         - User Session Resource
-  /session/user:
+  /session/me:
     get:
       responses:
         "200":
@@ -193,11 +115,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SessionUser"
+                $ref: "#/components/schemas/GraphUser"
       summary: User
       tags:
         - User Session Resource
+  /session/user:
     patch:
+      deprecated: true
       requestBody:
         content:
           application/json:
@@ -210,13 +134,37 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SessionUser"
+                $ref: "#/components/schemas/GraphUser"
       summary: Update User
+      tags:
+        - User Session Resource
+  /session/user/create:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GraphUser"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GraphUser"
+        "400":
+          description: Bad Request
+      summary: Add User
       tags:
         - User Session Resource
   /shopify/authorize:
     get:
       parameters:
+        - name: userId
+          in: query
+          schema:
+            type: string
         - name: shop
           in: query
           schema:
@@ -236,7 +184,19 @@ paths:
   /shopify/callback:
     get:
       parameters:
+        - name: client_id
+          in: query
+          schema:
+            type: string
         - name: code
+          in: query
+          schema:
+            type: string
+        - name: merchant_id
+          in: query
+          schema:
+            type: string
+        - name: state
           in: query
           schema:
             type: string
@@ -252,75 +212,7 @@ paths:
           in: query
           schema:
             type: string
-        - name: state
-          in: query
-          schema:
-            type: string
         - name: timestamp
-          in: query
-          schema:
-            type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json: {}
-      summary: Callback
-      tags:
-        - Shopify Token Resource
-  /shopify/refresh:
-    post:
-      parameters:
-        - name: merchant_id
-          in: query
-          schema:
-            type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PosToken"
-      summary: Refresh
-      tags:
-        - Shopify Token Resource
-  /shopify/token:
-    get:
-      parameters:
-        - name: merchant_id
-          in: query
-          schema:
-            type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PosToken"
-      summary: Token
-      tags:
-        - Shopify Token Resource
-  /square/authorize:
-    get:
-      parameters:
-        - name: user_id
-          in: query
-          schema:
-            type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json: {}
-      summary: Authorize
-      tags:
-        - Square Token Resource
-  /square/callback:
-    get:
-      parameters:
-        - name: code
           in: query
           schema:
             type: string
@@ -329,10 +221,6 @@ paths:
           schema:
             type: string
         - name: error_description
-          in: query
-          schema:
-            type: string
-        - name: state
           in: query
           schema:
             type: string
@@ -379,6 +267,22 @@ paths:
       tags:
         - Square Token Resource
   /square/token:
+    post:
+      parameters:
+        - name: merchant_id
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PosToken"
+      summary: Token
+      tags:
+        - Clover Token Resource
     get:
       parameters:
         - name: merchant_id

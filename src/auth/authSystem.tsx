@@ -1,29 +1,31 @@
 import {useSelector} from "@xstate/react";
-import type {PosProvider, Role, SessionUser} from "./types";
+import type {GraphUser, PosProvider, Role} from "./types";
 import {deriveRole} from "./types";
 import type {AuthMachineActor} from "./authMachine.ts";
 
-const LOCAL_ROLE_KEY = "wg_local_role";
-
 export const useAuthService = (actor: AuthMachineActor) => {
-  const {user, pos: posState, isAuthenticated, isFetchingUser, isInitializing, isLoading} = useSelector(actor, (s) => ({
+  const {user, pos: posState, onboardingRole, isAuthenticated, isFetchingUser, isInitializing, isLoading} = useSelector(actor, (s) => ({
     user: s.context.user,
     pos: s.context.pos,
+    onboardingRole: s.context.onboardingRole,
     isAuthenticated: s.matches("authenticated"),
     isFetchingUser: s.context.isFetchingUser ?? false,
-    isInitializing: s.matches("initializing"),
+    isInitializing: s.matches("initializing") || (s.matches({authenticated: "loadingUser"}) && !s.context.user),
     isLoading: s.context.isFetchingUser || s.context.pos.loading
   }));
 
-  //todo possible bug here or in this 'flow' -> after retailer authz's via pos we aren't setting the role properly in storage
-  const role: Role = (() => {
-    if (!isAuthenticated) return "visitor" as Role;
-    const local = sessionStorage.getItem(LOCAL_ROLE_KEY);
-    return local ? deriveRole(local) : deriveRole(user?.user.role.value);
-  })();
+  const role = isAuthenticated ? deriveRole(user?.role?.value) : null;
+  const authStatus = isInitializing
+    ? "initializing"
+    : !isAuthenticated
+      ? "unauthenticated"
+      : role
+        ? "authenticated_onboarded"
+        : "authenticated_unonboarded";
 
   const fetchUser = () =>
-    new Promise<SessionUser>((resolve, reject) => {
+    new Promise<GraphUser>((resolve, reject) => {
+      actor.send({type: "FETCH_USER"});
       const sub = actor.subscribe((state) => {
         if (!state.context.isFetchingUser) {
           sub.unsubscribe();
@@ -34,38 +36,29 @@ export const useAuthService = (actor: AuthMachineActor) => {
           }
         }
       });
-      actor.send({type: "FETCH_USER"});
     });
 
   return {
     user,
     role,
+    onboardingRole,
+    authStatus,
     isAuthenticated,
+    isOnboarded: isAuthenticated && Boolean(role),
     isFetchingUser,
     fetchUser,
     isInitializing,
     isLoading,
 
-    login: (data: SessionUser) => actor.send({type: "LOGGED_IN", data}),
+    login: (data: GraphUser) => actor.send({type: "LOGGED_IN", data}),
     logout: () => actor.send({type: "LOGGED_OUT"}),
 
-    setLocalRole: (nextRole: Role) => {
-      if (!isAuthenticated || nextRole === "visitor" || nextRole === "admin") return;
-      try {
-        sessionStorage.setItem(LOCAL_ROLE_KEY, nextRole);
-        if (user) actor.send({type: "LOGGED_IN", data: user}); // force re-render
-      } catch (err) {
-        console.error("setLocalRole failed", err);
-      }
+    selectOnboardingRole: (nextRole: Role) => {
+      if (!isAuthenticated || nextRole === "admin") return;
+      actor.send({type: "ONBOARDING.SELECT_ROLE", role: nextRole});
     },
 
-    clearLocalRole: () => {
-      try {
-        sessionStorage.removeItem(LOCAL_ROLE_KEY);
-      } catch {
-        console.warn("Failed to clear local role");
-      }
-    },
+    clearOnboardingRole: () => actor.send({type: "ONBOARDING.CLEAR"}),
 
     pos: {
       provider: posState.provider,
@@ -75,12 +68,10 @@ export const useAuthService = (actor: AuthMachineActor) => {
       isAuthorized: !!posState.token && posState.token.expiresAtMs > Date.now(),
 
       load: (provider: PosProvider, merchantId: string) => {
-        console.debug("[auth pos] explicit LOAD requested", { provider, merchantId });
         actor.send({type: "POS.LOAD", provider, merchantId})
       },
 
       refresh: (provider: PosProvider, merchantId: string) => {
-        console.debug("[auth pos] explicit REFRESH requested", { provider, merchantId });
         actor.send({type: "POS.REFRESH", provider, merchantId})
       }
     },

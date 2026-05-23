@@ -1,23 +1,19 @@
-export type Role = "visitor" | "retailer" | "producer" | "enthusiast" | "admin";
+export type Role = "retailer" | "producer" | "enthusiast" | "admin" | "sommelier";
 
-export type User = {
+export type GraphUser = {
   id: string;
   email: string;
   name: string;
   picture: string;
-  role: UserRole;
+  role?: UserRole | null;
 };
 
 export type UserRole = {
   id: string;
   value: Role;
   // System provider identifier provided by backend (single POS per retailer)
-  system?: PosProvider;
-};
-
-export type SessionUser = {
-  user: User;
-  token: string;
+  system?: PosProvider | null;
+  token?: string | null;
 };
 
 export type PosToken = {
@@ -29,17 +25,18 @@ export type PosToken = {
 
 export type PosProvider = "square" | "clover" | "shopify";
 
-// Helper to derive role cleanly (used in UI + machine)
-export function deriveRole(rawValue: string | undefined): Role {
-  if (!rawValue) return "visitor";
+// Helper to derive backend-backed roles cleanly (used in UI + machine)
+export function deriveRole(rawValue: string | null | undefined): Role | null {
+  if (!rawValue) return null;
   const lower = rawValue.toLowerCase();
   if (lower.includes("admin")) return "admin";
   if (lower.includes("retailer")) return "retailer";
   if (lower.includes("producer")) return "producer";
   if (lower.includes("enthusiast")) return "enthusiast";
-  return "visitor";
+  if (lower.includes("sommelier")) return "sommelier";
+  return null;
 }
 
-export function hasRole(user: SessionUser | null, needle: Role): boolean {
-  return deriveRole(user?.user.role.value) === needle;
+export function hasRole(user: GraphUser | null, needle: Role): boolean {
+  return deriveRole(user?.role?.value) === needle;
 }

@@ -1,8 +1,9 @@
 import {assign, fromPromise, setup} from "xstate";
-import type {PosProvider, SessionUser} from "./types";
+import type {GraphUser, PosProvider} from "./types";
+import {ONBOARDING_PATH} from "../app/onboarding.ts";
 
 type MachineInput = {
-  fetchUser: () => Promise<SessionUser>;
+  fetchUser: () => Promise<GraphUser>;
   loadPos: (provider: PosProvider, merchantId: string) => void;
 };
 
@@ -51,7 +52,7 @@ export const posOAuthMachine = setup({
         if (!merchantId) throw new Error("Missing merchant ID");
         loadPos(provider, merchantId);
         const updatedUser = await fetchUser();
-        const retailerId = updatedUser?.user.role.id ?? merchantId;
+        const retailerId = updatedUser?.role?.id ?? merchantId;
         if (!retailerId) throw new Error("Missing retailer ID after authorization");
         return {retailerId};
       } finally {
@@ -87,7 +88,7 @@ export const posOAuthMachine = setup({
         return message;
       },
       completedAt: () => Date.now(),
-      redirectPath: () => "/profile",
+      redirectPath: () => ONBOARDING_PATH,
     }),
     clearPersistedError: () => {
       sessionStorage.removeItem("pos_oauth_error");

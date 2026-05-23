@@ -11,7 +11,6 @@ import type {PosProvider} from "./types.ts";
 
 /**
  * Handles OAuth redirection side effects.
- * Kept separate to prevent AuthProvider from becoming a "God Component".
  */
 export const AuthManager = ({auth}: { auth: AuthContextValue }) => {
   const navigate = useNavigate();

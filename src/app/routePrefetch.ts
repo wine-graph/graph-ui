@@ -4,6 +4,7 @@ export const routeLoaders = {
   graphFeed: () => import("../pages/GraphFeed.tsx"),
   discover: () => import("../pages/Discover.tsx").then((m) => ({default: m.DiscoverPage})),
   profile: () => import("../pages/Profile.tsx").then((m) => ({default: m.ProfilePage})),
+  onboarding: () => import("../pages/Onboarding.tsx").then((m) => ({default: m.OnboardingPage})),
   marketplace: () => import("../pages/Marketplace.tsx").then((m) => ({default: m.MarketplacePage})),
   producerMarketplace: () => import("../users/producer/ProducerMarketplace.tsx").then((m) => ({default: m.ProducerMarketplace})),
   retailerMarketplace: () => import("../users/retailer/RetailerMarketplace.tsx").then((m) => ({default: m.RetailerMarketplace})),
@@ -17,7 +18,7 @@ export const routeLoaders = {
 } as const;
 
 type LoaderKey = keyof typeof routeLoaders;
-type UserRole = "retailer" | "producer" | "enthusiast" | "visitor" | string;
+type UserRole = "retailer" | "producer" | "enthusiast" | string;
 
 function getLoaderKeysForPath(path: string): LoaderKey[] {
   const clean = path.split("?")[0].split("#")[0];
@@ -26,6 +27,7 @@ function getLoaderKeysForPath(path: string): LoaderKey[] {
   if (clean === "/explore") return ["discover"];
   if (clean === "/marketplace") return ["marketplace"];
   if (clean === "/profile") return ["profile"];
+  if (clean === "/onboarding") return ["onboarding"];
   if (clean === "/retailer/marketplace") return ["producerMarketplace"];
   if (clean === "/producer/marketplace") return ["retailerMarketplace"];
   if (/^\/retailer\/[^/]+\/inventory$/.test(clean)) return ["retailerInventory"];
@@ -59,7 +61,7 @@ type LikelyPathOptions = {
 };
 
 export function likelyPathsForRole({role, retailerId, producerId}: LikelyPathOptions): string[] {
-  const normalized = (role ?? "visitor").toLowerCase();
+  const normalized = (role ?? "").toLowerCase();
 
   if (normalized === "retailer") {
     const paths = ["/", "/retailer/marketplace", "/marketplace", "/profile"];
@@ -73,5 +75,5 @@ export function likelyPathsForRole({role, retailerId, producerId}: LikelyPathOpt
     return paths;
   }
 
-  return ["/", "/explore", "/marketplace", "/profile"];
+  return ["/", "/explore", "/marketplace", "/profile", "/onboarding"];
 }
