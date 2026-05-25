@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from "react";
+import React, {useMemo} from "react";
 import {Link} from "react-router-dom";
 import {useImportMachine} from "./useImportMachine";
 import CsvDropzone from "./CsvDropzone";
@@ -6,7 +6,6 @@ import ImportActionBar from "./ImportActionBar";
 import WinesPreviewTable from "./WinesPreviewTable";
 import ImportResultsSummary from "./ImportResultsSummary";
 import ImportErrorsPanel from "./ImportErrorsPanel";
-import AdvancedDrawer from "./AdvancedDrawer";
 import {OverlaySpinner} from "../../../components/OverlaySpinner.tsx";
 
 type Props = { producerId: string };
@@ -18,11 +17,12 @@ type Props = { producerId: string };
  */
 const ProducerWinesImport: React.FC<Props> = ({producerId}) => {
   const machine = useImportMachine(producerId ?? "");
+  const cellarHref = producerId ? "/producer/cellar" : "/profile";
 
   // Advanced options (MVP: not sent to backend yet)
-  const [maxRows, setMaxRows] = useState<number>(100);
-  const [dryRun, setDryRun] = useState<boolean>(false);
-  const [strictMode, setStrictMode] = useState<boolean>(false);
+  // const [maxRows, setMaxRows] = useState<number>(100);
+  // const [dryRun, setDryRun] = useState<boolean>(false);
+  // const [strictMode, setStrictMode] = useState<boolean>(false);
 
   const canUpload = !!machine.ctx.file && machine.state === "idle";
   const canConfirm = machine.state === "reviewing" && machine.invalids.length === 0 && machine.ctx.editableWines.length > 0;
@@ -35,8 +35,8 @@ const ProducerWinesImport: React.FC<Props> = ({producerId}) => {
 
   // Overlay copy
   const overlay = useMemo(() => {
-    if (machine.state === "uploading") return { title: "Our AI sommelier is parsing your data…", sub: "This takes a few moments so please be patient." };
-    if (machine.state === "confirming") return { title: "Saving wines to your catalog…", sub: undefined };
+    if (machine.state === "uploading") return { title: "We are parsing your data...", sub: "This takes a few moments so please be patient." };
+    if (machine.state === "confirming") return { title: "Saving wines to your portfolio...", sub: undefined };
     return null;
   }, [machine.state]);
 
@@ -110,20 +110,20 @@ const ProducerWinesImport: React.FC<Props> = ({producerId}) => {
 
             <div className="flex items-center justify-end gap-2">
               <button className="btn btn-secondary" onClick={() => machine.reset()}>Import another file</button>
-              <Link to={`/producer/${producerId}/inventory`} className="btn btn-primary">View wines</Link>
+              <Link to={cellarHref} className="btn btn-primary">View wines</Link>
             </div>
           </div>
         ) : null}
 
         {/* Advanced */}
-        <AdvancedDrawer
-          maxRows={maxRows}
-          onMaxRowsChange={setMaxRows}
-          dryRun={dryRun}
-          onDryRunChange={setDryRun}
-          strictMode={strictMode}
-          onStrictModeChange={setStrictMode}
-        />
+        {/*<AdvancedDrawer*/}
+        {/*  maxRows={maxRows}*/}
+        {/*  onMaxRowsChange={setMaxRows}*/}
+        {/*  dryRun={dryRun}*/}
+        {/*  onDryRunChange={setDryRun}*/}
+        {/*  strictMode={strictMode}*/}
+        {/*  onStrictModeChange={setStrictMode}*/}
+        {/*/>*/}
       </div>
 
       {/* Blocking overlay */}

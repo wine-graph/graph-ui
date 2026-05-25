@@ -1,38 +1,30 @@
 import {gql} from "@apollo/client";
 
-const PRODUCERS_QUERY = gql(`
-  query {
+const PRODUCER_MARKETPLACE_QUERY = gql(`
+  query ProducerMarketplace {
     Producer {
       all {
-        id
         slug
         name
-        description
         email
         phone
         website
-        wines {
-          id
-          name
-          slug
+        wineCount
+        logo
+        social {
+          provider
+          url
         }
       }
     }
   }
 `)
 
-const PRODUCER_BY_ID = gql(`
-  query($id: ID!) {
+const PRODUCER_INVENTORY_QUERY = gql(`
+  query ProducerInventory($id: ID!) {
     Producer {
       producer(id: $id) {
         id
-        slug
-        name
-        description
-        website
-        email
-        phone
-        createdAt
         wines {
           id
           name
@@ -45,10 +37,29 @@ const PRODUCER_BY_ID = gql(`
   }
 `)
 
-const PRODUCER_BY_ID_ENRICHED = gql(`
-  query($id: ID!) {
+const PRODUCER_PROFILE_QUERY = gql(`
+  query ProducerProfile($id: ID!) {
     Producer {
-      enriched(id: $id) {
+      producer(id: $id) {
+        id
+        name
+        website
+        email
+        phone
+        logo
+        social {
+          provider
+          url
+        }
+      }
+    }
+  }
+`)
+
+const PRODUCER_PUBLIC_PAGE_QUERY = gql(`
+  query ProducerPublicPage($slug: String!) {
+    Producer {
+      producerBySlug(slug: $slug) {
         id
         slug
         name
@@ -57,7 +68,12 @@ const PRODUCER_BY_ID_ENRICHED = gql(`
         email
         phone
         createdAt
-        areas
+        wineCount
+        logo
+        social {
+          provider
+          url
+        }
         wines {
           id
           name
@@ -70,21 +86,13 @@ const PRODUCER_BY_ID_ENRICHED = gql(`
   }
 `)
 
-const PRODUCERS_BY_AREA = gql(`
-  query($areaId: ID!) {
+const PRODUCERS_BY_AREA_QUERY = gql(`
+  query DiscoverProducersByArea($areaId: ID!) {
     Producer {
       producers(areaId: $areaId) {
         id
         slug
         name
-        description
-        email
-        phone
-        website
-        wines {
-          id
-          name
-        }
       }  
     }
   }
@@ -107,9 +115,17 @@ const ADD_PRODUCER = gql(`
           provider
           url
         }
+        logo
       }
     }
   }
 `)
 
-export {PRODUCERS_QUERY, PRODUCER_BY_ID, PRODUCERS_BY_AREA, ADD_PRODUCER, PRODUCER_BY_ID_ENRICHED}
+export {
+  PRODUCER_MARKETPLACE_QUERY,
+  PRODUCER_INVENTORY_QUERY,
+  PRODUCER_PROFILE_QUERY,
+  PRODUCER_PUBLIC_PAGE_QUERY,
+  PRODUCERS_BY_AREA_QUERY,
+  ADD_PRODUCER,
+}

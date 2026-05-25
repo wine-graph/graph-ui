@@ -39,9 +39,13 @@ export const useGoogleOidc = ({auth}: { auth: AuthContextValue }) => {
           navigate(ONBOARDING_PATH, {replace: true});
           break;
 
-        case 'retailer':
-        case 'producer': {
+        case 'retailer': {
           navigate(roleProfilePath(graphUser), {replace: true});
+          break;
+        }
+
+        case 'producer': {
+          navigate('/profile', {replace: true});
           break;
         }
 

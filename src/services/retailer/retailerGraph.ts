@@ -1,7 +1,7 @@
 import {gql} from "@apollo/client";
 
-const RETAILER_QUERY = gql(`
-  query($id: ID!) {
+const RETAILER_INVENTORY_PAGE_QUERY = gql(`
+  query RetailerInventoryPage($id: ID!) {
     Retailer {
       retailer(retailerId: $id) {
         id
@@ -29,8 +29,8 @@ const RETAILER_QUERY = gql(`
  }
 `);
 
-const RETAILERS_QUERY = gql(`
-  query {
+const RETAILER_MARKETPLACE_QUERY = gql(`
+  query RetailerMarketplace {
     Retailer {
       retailers {
         pos
@@ -55,8 +55,31 @@ const RETAILERS_QUERY = gql(`
   }
 `)
 
+const PRODUCER_RETAILER_SOURCING_QUERY = gql(`
+  query ProducerRetailerSourcing {
+    Retailer {
+      retailers {
+        pos
+        name
+        id
+        inventoryCount
+        location {
+          zipCode
+          website
+          address
+          city
+          contactEmail
+          phone
+          id
+          state
+        }
+      }
+    }
+  }
+`)
+
 const RETAILER_COORDINATES_QUERY = gql(`
-  query($id: ID!) {
+  query RetailerCoordinates($id: ID!) {
     Retailer {
       retailer(retailerId: $id) {
         location {
@@ -106,4 +129,11 @@ const RETAILER_INVENTORY_MUTATION = gql(`
   }
 `)
 
-export {RETAILER_QUERY, RETAILERS_QUERY, RETAILER_INVENTORY_MUTATION, RETAILER_ONBOARDING_MUTATION, RETAILER_COORDINATES_QUERY};
+export {
+  PRODUCER_RETAILER_SOURCING_QUERY,
+  RETAILER_MARKETPLACE_QUERY,
+  RETAILER_INVENTORY_PAGE_QUERY,
+  RETAILER_INVENTORY_MUTATION,
+  RETAILER_ONBOARDING_MUTATION,
+  RETAILER_COORDINATES_QUERY
+};

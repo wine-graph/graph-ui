@@ -1,10 +1,9 @@
 import React, {type ReactNode, useMemo, useState} from "react";
 import {DomainCard} from "../components/DomainCard.tsx";
 import {useQuery} from "@apollo/client";
-import {DOMAIN_QUERY} from "../services/domain/domainGraph.ts";
-import {PRODUCERS_BY_AREA} from "../services/producer/producerGraph.ts";
+import {DISCOVER_DOMAIN_QUERY} from "../services/domain/domainGraph.ts";
+import {PRODUCERS_BY_AREA_QUERY} from "../services/producer/producerGraph.ts";
 import PageHeader from "../components/PageHeader.tsx";
-// CrumbButton removed in favor of text-label breadcrumbs per new design spec
 import {domainClient, producerClient} from "../services/apolloClient.ts";
 import type {Producer} from "../users/producer/producer.ts";
 import Spinner from "../components/Spinner.tsx";
@@ -42,14 +41,14 @@ const Grid: React.FC<{ children: ReactNode }> = ({children}) => (
 );
 
 const DomainList = () => {
-  const {data, loading} = useQuery(DOMAIN_QUERY, {client: domainClient});
+  const {data, loading} = useQuery(DISCOVER_DOMAIN_QUERY, {client: domainClient});
 
   const [selectedCountryId, setSelectedCountryId] = useState<string | null>(null);
   const [selectedRegionId, setSelectedRegionId] = useState<string | null>(null);
   const [selectedAreaId, setSelectedAreaId] = useState<string | null>(null);
   const [selectedProducerId, setSelectedProducerId] = useState<string | null>(null);
 
-  const {data: producersData, loading: producersLoading} = useQuery(PRODUCERS_BY_AREA, {
+  const {data: producersData, loading: producersLoading} = useQuery(PRODUCERS_BY_AREA_QUERY, {
     client: producerClient,
     variables: {areaId: selectedAreaId as string | undefined},
     skip: !selectedAreaId,
@@ -105,7 +104,7 @@ const DomainList = () => {
     <>
       {loading ? (
         <div className="py-10">
-          <Spinner label="Loading countries…" />
+          <Spinner label="Loading countries..."/>
         </div>
       ) : (
         <>
@@ -113,7 +112,8 @@ const DomainList = () => {
           <nav className="mb-8" aria-label="Breadcrumb">
             <ol className="flex items-center gap-2 text-label">
               <li className={showCountries ? "text-foreground" : "text-fg-muted"}>
-                <button type="button" onClick={resetToCountries} className="cursor-pointer underline-offset-4 hover:underline">
+                <button type="button" onClick={resetToCountries}
+                        className="cursor-pointer underline-offset-4 hover:underline">
                   Countries
                 </button>
               </li>
@@ -121,7 +121,8 @@ const DomainList = () => {
                 <>
                   <li aria-hidden="true" className="text-fg-muted">/</li>
                   <li className={showRegions ? "text-foreground" : "text-fg-muted"}>
-                    <button type="button" onClick={resetToRegions} className="cursor-pointer underline-offset-4 hover:underline">
+                    <button type="button" onClick={resetToRegions}
+                            className="cursor-pointer underline-offset-4 hover:underline">
                       {selectedCountry.name}
                     </button>
                   </li>
@@ -131,7 +132,8 @@ const DomainList = () => {
                 <>
                   <li aria-hidden="true" className="text-fg-muted">/</li>
                   <li className={showAreas ? "text-foreground" : "text-fg-muted"}>
-                    <button type="button" onClick={resetToAreas} className="cursor-pointer underline-offset-4 hover:underline">
+                    <button type="button" onClick={resetToAreas}
+                            className="cursor-pointer underline-offset-4 hover:underline">
                       {selectedRegion.name}
                     </button>
                   </li>
@@ -141,7 +143,8 @@ const DomainList = () => {
                 <>
                   <li aria-hidden="true" className="text-fg-muted">/</li>
                   <li className={showProducers ? "text-foreground" : "text-fg-muted"}>
-                    <button type="button" onClick={resetToProducers} className="cursor-pointer underline-offset-4 hover:underline">
+                    <button type="button" onClick={resetToProducers}
+                            className="cursor-pointer underline-offset-4 hover:underline">
                       {selectedArea.name}
                     </button>
                   </li>
@@ -198,16 +201,7 @@ const DomainList = () => {
                 </div>
               ) : (
                 producers.map((p: Producer) => (
-                  <ProducerCard
-                    key={p.id}
-                    id={p.id}
-                    slug={p.slug}
-                    name={p.name}
-                    email={p.email}
-                    phone={p.phone}
-                    website={p.website}
-                    description={p.description}
-                    wines={p.wines}/>
+                  <ProducerCard key={p.id} {...p} />
                 ))
               )
             )}

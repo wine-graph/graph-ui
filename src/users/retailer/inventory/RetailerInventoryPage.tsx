@@ -1,6 +1,6 @@
 import {useParams} from "react-router-dom";
 import {useQuery} from "@apollo/client";
-import {RETAILER_QUERY} from "../../../services/retailer/retailerGraph.ts";
+import {RETAILER_INVENTORY_PAGE_QUERY} from "../../../services/retailer/retailerGraph.ts";
 import {retailerClient} from "../../../services/apolloClient.ts";
 import type {Retailer, RetailerInventory} from "../retailer.ts";
 import {useMemo} from "react";
@@ -14,7 +14,7 @@ export const RetailerInventoryPage = () => {
 
   const {retailerId} = useParams();
 
-  const {data, loading} = useQuery(RETAILER_QUERY, {
+  const {data, loading} = useQuery(RETAILER_INVENTORY_PAGE_QUERY, {
     variables: {id: retailerId},
     client: retailerClient,
     skip: !retailerId,

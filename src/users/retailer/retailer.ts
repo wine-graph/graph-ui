@@ -4,6 +4,7 @@ export type Retailer = {
   logoUrl?: string;
   name: string;
   pos: string;
+  inventoryCount?: number;
   inventory?: RetailerInventory[];
 }
 

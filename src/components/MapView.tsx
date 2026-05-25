@@ -71,8 +71,7 @@ export const MapView = ({center, zoom = 13, markers = []}: MapViewProps) => {
     <MapContainer
       center={center}
       zoom={zoom}
-      className="h-full w-full z-0"
-      style={{height: '100%', width: '100%'}}
+      className="map-view"
     >
       <TileLayer
         attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'

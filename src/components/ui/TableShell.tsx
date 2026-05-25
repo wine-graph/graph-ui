@@ -7,10 +7,8 @@ type TableShellProps = {
 
 export const TableShell = ({children, className = ""}: TableShellProps) => {
   return (
-    <div className={`border border-token rounded-[var(--radius-sm)] bg-[color:var(--color-panel)] ${className}`.trim()}>
+    <div className={`ui-table-shell ${className}`.trim()}>
       {children}
     </div>
   );
 };
-
-export default TableShell;

@@ -1,5 +1,5 @@
 import {useParams} from "react-router-dom";
-import {RETAILER_QUERY} from "../../services/retailer/retailerGraph.ts";
+import {RETAILER_INVENTORY_PAGE_QUERY} from "../../services/retailer/retailerGraph.ts";
 import {useQuery} from "@apollo/client";
 import {retailerClient} from "../../services/apolloClient.ts";
 import {RefreshCcw, Store} from "lucide-react";
@@ -20,7 +20,7 @@ export const RetailerCellar = () => {
   const selfId = user?.role?.id;
   const effectiveRetailerId = (retailerId ?? selfId) as string | undefined;
 
-  const {data, loading, refetch} = useQuery(RETAILER_QUERY, {
+  const {data, loading, refetch} = useQuery(RETAILER_INVENTORY_PAGE_QUERY, {
     variables: {id: effectiveRetailerId},
     client: retailerClient,
     skip: !effectiveRetailerId,

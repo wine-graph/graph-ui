@@ -2,14 +2,14 @@ import {useEffect, useMemo, useState} from "react";
 import {RetailerTile} from "./RetailerTile.tsx";
 import {type Retailer} from "./retailer.ts";
 import {useQuery} from "@apollo/client";
-import {RETAILERS_QUERY} from "../../services/retailer/retailerGraph.ts";
+import {RETAILER_MARKETPLACE_QUERY} from "../../services/retailer/retailerGraph.ts";
 import {retailerClient} from "../../services/apolloClient.ts";
 import {MapView} from "../../components/MapView.tsx";
 import type {LatLngExpression} from "leaflet";
 import {Card, SectionTitle, StatePanel} from "../../components/ui";
 
 export const RetailerMarketplace = () => {
-  const {data, loading} = useQuery(RETAILERS_QUERY, {client: retailerClient});
+  const {data, loading} = useQuery(RETAILER_MARKETPLACE_QUERY, {client: retailerClient});
   const retailers = useMemo(() => (data?.Retailer?.retailers as Retailer[]) ?? [], [data]);
 
   const [position, setPosition] = useState<LatLngExpression | null>(null);

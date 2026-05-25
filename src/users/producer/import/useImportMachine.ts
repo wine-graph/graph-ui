@@ -4,7 +4,7 @@ import {useMachine} from "@xstate/react";
 import type {ImportContext, ImportResult, ImportState, Wine, WineExtraction} from "./types";
 import {uploadProducerWinesCsv} from "./client";
 import {producerClient} from "../../../services/apolloClient.ts";
-import {PRODUCER_BY_ID} from "../../../services/producer/producerGraph.ts";
+import {PRODUCER_INVENTORY_QUERY} from "../../../services/producer/producerGraph.ts";
 import {ADD_WINE_MUTATION} from "../../../services/producer/wineGraph.ts";
 
 type AddWinePayload = {
@@ -89,7 +89,7 @@ const importMachine = setup({
       // After batch finishes, refetch producer inventory so UI updates without reload.
       try {
         await producerClient.refetchQueries({
-          include: [PRODUCER_BY_ID],
+          include: [PRODUCER_INVENTORY_QUERY],
         });
       } catch (e) {
         // Non-fatal: if refetch fails, we still return the import result.

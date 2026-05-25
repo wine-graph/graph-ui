@@ -13,7 +13,7 @@ export function roleProfilePath(user: GraphUser | null | undefined): string {
   const id = user?.role?.id;
 
   if (role === "retailer" && id) return `/retailer/${id}/profile`;
-  if (role === "producer" && id) return `/producer/${id}/profile`;
+  if (role === "producer") return "/profile";
 
   return "/profile";
 }

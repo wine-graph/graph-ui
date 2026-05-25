@@ -18,6 +18,7 @@ type Retailer {
   id: ID
   "Get current (persisted) inventory"
   inventory: [RetailerInventory]
+  inventoryCount: Int!
   location: RetailerLocation
   logoUrl: String
   name: String

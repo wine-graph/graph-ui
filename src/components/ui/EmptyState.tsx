@@ -9,12 +9,10 @@ type EmptyStateProps = {
 
 export const EmptyState = ({title, desc, action, className = ""}: EmptyStateProps) => {
   return (
-    <div className={`text-center py-10 border border-dashed border-token rounded-[var(--radius-sm)] ${className}`.trim()}>
-      <p className="text-[14px] font-medium">{title}</p>
-      {desc ? <p className="text-[13px] text-fg-muted mt-1">{desc}</p> : null}
-      {action ? <div className="mt-3">{action}</div> : null}
+    <div className={`ui-empty-state ${className}`.trim()}>
+      <p className="ui-empty-state-title">{title}</p>
+      {desc ? <p className="ui-empty-state-desc">{desc}</p> : null}
+      {action ? <div className="ui-empty-state-action">{action}</div> : null}
     </div>
   );
 };
-
-export default EmptyState;

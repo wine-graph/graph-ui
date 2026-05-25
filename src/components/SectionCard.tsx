@@ -4,6 +4,7 @@ import {Card} from "./ui";
 type CardHeaderProps = {
   icon: ElementType;
   title: string;
+  action?: ReactNode;
 };
 
 type SectionCardProps = {
@@ -16,13 +17,17 @@ type SectionCardProps = {
 const CardHeader: React.FC<CardHeaderProps> = ({
   icon: Icon,
   title,
+  action,
 }) => {
   return (
-    <div className="border-b border-token bg-panel-token rounded-t-[var(--radius-lg)] px-4 py-3 flex items-center gap-2">
-      <Icon className="w-5 h-5 text-[color:var(--color-accent)]" />
-      <span className="text-textPrimary text-[18px] font-semibold tracking-tight">
-        {title}
-      </span>
+    <div className="flex flex-col gap-4 border-b border-token bg-panel-token rounded-t-[var(--radius-lg)] px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
+      <div className="flex items-center gap-2">
+        <Icon className="w-5 h-5 text-[color:var(--color-accent)]" />
+        <span className="text-textPrimary text-[18px] font-semibold tracking-tight">
+          {title}
+        </span>
+      </div>
+      {action}
     </div>
   );
 };

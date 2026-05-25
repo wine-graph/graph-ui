@@ -1,13 +1,3 @@
-type Fermentation {
-  days: Int
-  temperature: Float
-}
-
-type Maceration {
-  days: Int
-  temperature: Float
-}
-
 "Mutation root"
 type Mutation {
   Producer: ProducerMutation
@@ -15,16 +5,17 @@ type Mutation {
 }
 
 type Producer {
-  areas: [String]
   createdAt: String
   description: String
   email: String
   id: ID
+  logo: [Int]
   name: String
   phone: String
   slug: String
   social: [SocialPlatform]
   website: String
+  wineCount: Int!
   "Wines for the given producer"
   wines: [Wine]
 }
@@ -36,10 +27,10 @@ type ProducerMutation {
 type ProducerQuery {
   "All producers"
   all: [Producer]
-  "Producer by its ID, but enriched with 'extra' data"
-  enriched(id: ID!): Producer
   "Producer by its ID"
   producer(id: ID!): Producer
+  "Producer by its slug"
+  producerBySlug(slug: String!): Producer
   "Producers for a given area"
   producers(areaId: ID!): [Producer]
 }
@@ -59,6 +50,7 @@ type Wine {
   createdAt: String
   description: String
   id: ID
+  matchCount: Int!
   name: String
   producer: WineProducer
   retailers: [WineRetailer]
@@ -66,25 +58,11 @@ type Wine {
   "Can be a single varietal (grape) or blend"
   varietal: String
   vintage: Int
-  "Get a wines components"
-  wineComponents: [WineGrape]
-}
-
-type WineGrape {
-  fermentation: Fermentation
-  grapeId: ID
-  grapeName: String
-  harvestBegin: String
-  harvestEnd: String
-  maceration: Maceration
-  percentage: Float
 }
 
 type WineMutation {
-  "Add a new wine to a producer"
+  "Add wine to a producer"
   addWine(input: WineInput!): Wine
-  "Add grape and barrel components to a wine"
-  addWineComponents(input: WineComponentInput!): [WineGrape]
 }
 
 type WineProducer {
@@ -94,10 +72,10 @@ type WineProducer {
 }
 
 type WineQuery {
-  "Get a wine by its ID but fully enriched with producer and retailer data"
-  enriched(id: ID!): Wine
-  "Get a wine by its ID"
+  "Wine by its ID"
   wine(id: ID!): Wine
+  "Wine by its slug fully enriched with producer and retailer data"
+  wineBySlug(slug: String!): Wine
 }
 
 type WineRetailer {
@@ -148,20 +126,11 @@ enum Type {
   STILL
 }
 
-input FermentationInput {
-  days: Int
-  temperature: Float
-}
-
-input MacerationInput {
-  days: Int
-  temperature: Float
-}
-
 input ProducerInput {
   areaId: ID!
   description: String
   email: String
+  logo: [Int]
   name: String!
   phone: String
   socialLinks: [SocialPlatformInput]
@@ -171,15 +140,6 @@ input ProducerInput {
 input SocialPlatformInput {
   provider: Provider
   url: String
-}
-
-input WineComponentInput {
-  fermentation: FermentationInput
-  grape: String
-  harvestBegin: Date
-  harvestEnd: Date
-  maceration: MacerationInput
-  percentage: Float
 }
 
 input WineInput {

@@ -9,12 +9,10 @@ type CardProps = {
 };
 
 export const Card = ({children, className = "", tone = "elevated"}: CardProps) => {
-  const toneClass = tone === "pop" ? "surface-pop" : "surface-elevated";
+  const toneClass = tone === "pop" ? "ui-card-pop" : "ui-card-elevated";
   return (
-    <div className={`${toneClass} rounded-[var(--radius-lg)] ${className}`.trim()}>
+    <div className={`ui-card ${toneClass} ${className}`.trim()}>
       {children}
     </div>
   );
 };
-
-export default Card;

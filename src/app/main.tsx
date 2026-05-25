@@ -14,6 +14,7 @@ const ProfilePage = lazy(routeLoaders.profile);
 const OnboardingPage = lazy(routeLoaders.onboarding);
 const MarketplacePage = lazy(routeLoaders.marketplace);
 const ProducerMarketplace = lazy(routeLoaders.producerMarketplace);
+const ProducerRetailerMarketplace = lazy(routeLoaders.producerRetailerMarketplace);
 const RetailerInventory = lazy(routeLoaders.retailerInventory);
 const RetailerProfile = lazy(routeLoaders.retailerProfile);
 const ProducerProfile = lazy(routeLoaders.producerProfile);
@@ -21,7 +22,6 @@ const GraphFeed = lazy(routeLoaders.graphFeed);
 const ProducerInventory = lazy(routeLoaders.producerInventory);
 const ProducerPage = lazy(routeLoaders.producerPage);
 const WinePage = lazy(routeLoaders.winePage);
-const RetailerMarketplace = lazy(routeLoaders.retailerMarketplace);
 
 const RetailerCellar = lazy(routeLoaders.retailerCellar);
 
@@ -38,8 +38,18 @@ const router = createBrowserRouter(
       <Route path="retailer/:retailerId/inventory" element={(<RetailerInventory/>)} />
       <Route path="profile" element={(<ProfilePage/>)} />
       <Route path="onboarding" element={(<OnboardingPage/>)} />
-      <Route path="producer/:slug/:id" element={(<ProducerPage/>)} />
-      <Route path="wine/:slug/:id" element={(<WinePage/>)} />
+      <Route path="producer/:slug" element={(<ProducerPage/>)} />
+      <Route path="producer/profile" element={
+        <RoleRoute allowedRole={"producer"} redirectPath="/">
+          {(<ProducerProfile/>)}
+        </RoleRoute>
+      } />
+      <Route path="producer/cellar" element={
+        <RoleRoute allowedRole={"producer"} redirectPath="/">
+          {(<ProducerInventory/>)}
+        </RoleRoute>
+      } />
+      <Route path="wine/:slug" element={(<WinePage/>)} />
       <Route path="retailer">
         <Route
           path=":retailerId"
@@ -55,8 +65,8 @@ const router = createBrowserRouter(
         <Route
           path="marketplace"
           element={
-            <RoleRoute allowedRole={"retailer"} redirectPath="/">
-              {(<ProducerMarketplace/>)}
+            <RoleRoute allowedRole={"producer"} redirectPath="/">
+              {(<ProducerRetailerMarketplace/>)}
             </RoleRoute>
           }
         />
@@ -64,21 +74,10 @@ const router = createBrowserRouter(
 
       <Route path="producer">
         <Route
-          path=":producerId"
-          element={
-            <RoleRoute allowedRole={"producer"} redirectPath="/">
-              <Outlet/>
-            </RoleRoute>
-          }
-        >
-          <Route path="profile" element={(<ProducerProfile/>)} />
-          <Route path="cellar" element={(<ProducerInventory/>)} />
-        </Route>
-        <Route
           path="marketplace"
           element={
-            <RoleRoute allowedRole={"producer"} redirectPath="/">
-              {(<RetailerMarketplace/>)}
+            <RoleRoute allowedRole={"retailer"} redirectPath="/">
+              {(<ProducerMarketplace/>)}
             </RoleRoute>
           }
         />

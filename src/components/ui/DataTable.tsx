@@ -28,12 +28,12 @@ export const DataTable = <T,>({
 }: DataTableProps<T>) => {
   return (
     <TableShell className={className}>
-      <div className="overflow-x-auto">
-        <table className={`w-full text-[14px] ${tableClassName}`.trim()}>
+      <div className="ui-data-table-scroll">
+        <table className={`ui-data-table ${tableClassName}`.trim()}>
           <thead>
             <tr className="text-left">
               {columns.map((col) => (
-                <th key={col.id} className={`py-2 px-2 border-b border-token ${col.headerClassName ?? ""}`.trim()}>
+                <th key={col.id} className={`ui-data-table-head-cell ${col.headerClassName ?? ""}`.trim()}>
                   {col.header}
                 </th>
               ))}
@@ -43,7 +43,7 @@ export const DataTable = <T,>({
             {rows.map((row, index) => (
               <tr key={rowKey(row, index)} className={typeof rowClassName === "function" ? rowClassName(row, index) : rowClassName}>
                 {columns.map((col) => (
-                  <td key={col.id} className={`py-2 pr-4 ${col.cellClassName ?? ""}`.trim()}>
+                  <td key={col.id} className={`ui-data-table-cell ${col.cellClassName ?? ""}`.trim()}>
                     {col.render(row, index)}
                   </td>
                 ))}
@@ -55,5 +55,3 @@ export const DataTable = <T,>({
     </TableShell>
   );
 };
-
-export default DataTable;

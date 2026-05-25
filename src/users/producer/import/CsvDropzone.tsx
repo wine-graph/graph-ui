@@ -1,4 +1,5 @@
 import React, {useCallback, useRef} from "react";
+import {Upload} from "lucide-react";
 
 type Props = {
   file?: File;
@@ -8,6 +9,7 @@ type Props = {
 export const CsvDropzone: React.FC<Props> = ({ file, onFileSelected }) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [fileError, setFileError] = React.useState<string | null>(null);
+  const hasFile = Boolean(file);
 
   const onChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
@@ -37,7 +39,12 @@ export const CsvDropzone: React.FC<Props> = ({ file, onFileSelected }) => {
       <div
         onDragOver={(e) => e.preventDefault()}
         onDrop={onDrop}
-        className="border border-token rounded-[var(--radius-md)] p-6 text-center cursor-pointer select-none hover:bg-[color:var(--color-muted)]/20 transition-colors"
+        className={`rounded-[var(--radius-md)] border p-6 text-center cursor-pointer select-none transition-colors
+          ${hasFile
+            ? "border-token hover:bg-[color:var(--color-muted)]/20"
+            : "border-dashed border-[color:var(--color-accent)] bg-[color:var(--color-accent-soft)]/55 hover:bg-[color:var(--color-accent-soft)]"
+          }
+        `}
         onClick={() => inputRef.current?.click()}
         aria-label="Upload CSV"
         role="button"
@@ -49,7 +56,11 @@ export const CsvDropzone: React.FC<Props> = ({ file, onFileSelected }) => {
           }
         }}
       >
-        <p className="text-[14px] text-muted">Drag a CSV here, or click to browse.</p>
+        <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full border border-token bg-[color:var(--color-panel)]">
+          <Upload className="h-5 w-5 text-[color:var(--color-accent)]" aria-hidden="true"/>
+        </div>
+        <p className="text-[14px] font-medium">{hasFile ? "Replace CSV file" : "Upload CSV file"}</p>
+        <p className="mt-1 text-[13px] text-muted">Drag a CSV here, or click to browse.</p>
         <p className="text-[12px] text-muted mt-1">Accepted: .csv</p>
       </div>
       <input

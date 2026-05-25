@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from "react";
+import React, {type ReactNode, useCallback, useState} from "react";
 import SectionCard from "../../../components/SectionCard.tsx";
 import PosConnectButton from "./PosConnectButton.tsx";
 import {startAuthorization} from "../../../auth";
@@ -7,13 +7,14 @@ import {InputField} from "../../../components/ui";
 
 type Props = {
   userId: string;
+  headerAction?: ReactNode;
 };
 
 const squarePng = "/pos/square.png";
 const cloverPng = "/pos/clover.png";
 const shopifyPng = "/pos/shopify.png";
 
-const PosAuthOptions: React.FC<Props> = ({userId}) => {
+const PosAuthOptions: React.FC<Props> = ({userId, headerAction}) => {
   // Shopify shop capture state
   const [showShopifyForm, setShowShopifyForm] = useState(false);
   const [shopInput, setShopInput] = useState("");
@@ -70,61 +71,59 @@ const PosAuthOptions: React.FC<Props> = ({userId}) => {
 
   return (
     <SectionCard
-      cardHeader={{ icon: Store, title: "Point-of-sale connections" }}
+      cardHeader={{icon: Store, title: "Retailer setup", action: headerAction}}
     >
       <div className="p-6 space-y-4">
         <p className="text-sm text-fg-muted">
           Connect your POS to sync inventory into Wine Graph. Choose one provider to continue.
         </p>
 
-        <div className="grid grid-cols-1 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <PosConnectButton logoSrc={cloverPng} label="Clover" onClick={handleClover} disabled={isRedirecting || !userId}/>
-          <div>
-            <PosConnectButton logoSrc={shopifyPng} label="Shopify" onClick={handleShopify} disabled={isRedirecting || !userId}/>
-            {showShopifyForm && (
-              <form onSubmit={submitShopify} className="mt-3 border border-token rounded-[var(--radius-sm)] p-3 panel-token">
-                <label className="block text-sm mb-2" htmlFor="shopify-shop">
-                  Shopify shop name
-                </label>
-                <InputField
-                  id="shopify-shop"
-                  name="shop"
-                  type="text"
-                  inputMode="text"
-                  placeholder="e.g., my-wine-store"
-                  value={shopInput}
-                  onChange={(e) => {
-                    setShopInput(e.target.value);
-                    if (shopError) setShopError(null);
-                  }}
-                />
-                <div className="mt-2 text-xs text-fg-muted">
-                  You can paste your full shop URL or just the name. We will pass it as provided and the server will normalize it.
-                </div>
-                {shopError && (
-                  <div className="mt-2 text-xs text-[color:var(--color-danger)]" role="alert">{shopError}</div>
-                )}
-                <div className="mt-3 flex items-center gap-3">
-                  <button
-                    type="submit"
-                    disabled={isRedirecting}
-                    className="btn btn-primary focus-accent"
-                  >
-                    {isRedirecting ? "Redirecting…" : "Continue to Shopify"}
-                  </button>
-                  <a
-                    className="text-xs underline text-token"
-                    href="https://help.shopify.com/en/manual/domains/myshopify-com-domains"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    How to find your shop name
-                  </a>
-                </div>
-              </form>
-            )}
-          </div>
+          <PosConnectButton logoSrc={shopifyPng} label="Shopify" onClick={handleShopify} disabled={isRedirecting || !userId}/>
           <PosConnectButton logoSrc={squarePng} label="Square" onClick={handleSquare} disabled={isRedirecting || !userId}/>
+          {showShopifyForm && (
+            <form onSubmit={submitShopify} className="border border-token rounded-[var(--radius-sm)] p-3 panel-token sm:col-span-2">
+              <label className="block text-sm mb-2" htmlFor="shopify-shop">
+                Shopify shop name
+              </label>
+              <InputField
+                id="shopify-shop"
+                name="shop"
+                type="text"
+                inputMode="text"
+                placeholder="e.g., my-wine-store"
+                value={shopInput}
+                onChange={(e) => {
+                  setShopInput(e.target.value);
+                  if (shopError) setShopError(null);
+                }}
+              />
+              <div className="mt-2 text-xs text-fg-muted">
+                You can paste your full shop URL or just the name. We will pass it as provided and the server will normalize it.
+              </div>
+              {shopError && (
+                <div className="mt-2 text-xs text-[color:var(--color-danger)]" role="alert">{shopError}</div>
+              )}
+              <div className="mt-3 flex items-center gap-3">
+                <button
+                  type="submit"
+                  disabled={isRedirecting}
+                  className="btn btn-primary focus-accent"
+                >
+                  {isRedirecting ? "Redirecting…" : "Continue to Shopify"}
+                </button>
+                <a
+                  className="text-xs underline text-token"
+                  href="https://help.shopify.com/en/manual/domains/myshopify-com-domains"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  How to find your shop name
+                </a>
+              </div>
+            </form>
+          )}
         </div>
         {isRedirecting && (
           <p className="text-xs text-fg-muted" role="status">Opening provider authorization…</p>

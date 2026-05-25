@@ -7,8 +7,17 @@ export type Producer = {
   website?: string;
   description?: string;
   createdAt?: string;
+  logo?: number[];
+  wineCount?: number;
   wines?: Wine[];
-  areas?: string[];
+  social?: ProducerSocialLink[];
+}
+
+export type SocialProvider = "FACEBOOK" | "INSTAGRAM" | "TWITTER";
+
+export type ProducerSocialLink = {
+  provider?: SocialProvider | string | null;
+  url?: string | null;
 }
 
 export type Wine = {
@@ -19,6 +28,7 @@ export type Wine = {
   vintage : string;
   varietal: string;
   createdAt?: string;
+  matchCount?: number;
 }
 
 export type WineEnriched = {
@@ -29,7 +39,8 @@ export type WineEnriched = {
   vintage : string;
   varietal: string;
   createdAt?: string;
-  producer: WineProducer;
+  matchCount?: number;
+  producer?: WineProducer;
   retailers?: WineRetailer[];
 }
 

@@ -1,14 +1,14 @@
 import PageHeader from "../../components/PageHeader.tsx";
 import {ProducerCard} from "./ProducerCard.tsx";
 import {useQuery} from "@apollo/client";
-import {PRODUCERS_QUERY} from "../../services/producer/producerGraph.ts";
+import {PRODUCER_MARKETPLACE_QUERY} from "../../services/producer/producerGraph.ts";
 import {producerClient} from "../../services/apolloClient.ts";
 import {useMemo} from "react";
 import type {Producer} from "./producer.ts";
 import {StatePanel} from "../../components/ui";
 
 export const ProducerMarketplace = () => {
-  const {data, loading, error, refetch} = useQuery(PRODUCERS_QUERY, {client: producerClient});
+  const {data, loading, error, refetch} = useQuery(PRODUCER_MARKETPLACE_QUERY, {client: producerClient});
   const producers = useMemo(() => (data?.Producer?.all as Producer[]) ?? [], [data]);
 
   return (

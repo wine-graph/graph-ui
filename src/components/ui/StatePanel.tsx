@@ -22,19 +22,14 @@ export const StatePanel = ({
   align = "left",
   role = "status",
 }: StatePanelProps) => {
-  const alignClass = align === "center" ? "text-center items-center" : "text-left items-start";
-  const toneClass =
-    variant === "error"
-      ? "border-[color:var(--color-danger)]/30 bg-[color:var(--color-danger)]/8 text-[color:var(--color-danger)]"
-      : "border-token bg-[color:var(--color-panel)] text-token";
+  const alignClass = align === "center" ? "ui-state-panel-center" : "ui-state-panel-left";
+  const toneClass = variant === "error" ? "ui-state-panel-error" : "ui-state-panel-default";
 
   return (
-    <div role={role} className={`rounded-[var(--radius-sm)] border p-4 flex flex-col gap-2 ${alignClass} ${toneClass} ${className}`.trim()}>
-      <p className="text-[14px] font-medium">{title}</p>
-      {desc ? <p className="text-[13px] text-fg-muted">{desc}</p> : null}
-      {action ? <div className="pt-1">{action}</div> : null}
+    <div role={role} className={`ui-state-panel ${alignClass} ${toneClass} ${className}`.trim()}>
+      <p className="ui-state-panel-title">{title}</p>
+      {desc ? <p className="ui-state-panel-desc">{desc}</p> : null}
+      {action ? <div className="ui-state-panel-action">{action}</div> : null}
     </div>
   );
 };
-
-export default StatePanel;

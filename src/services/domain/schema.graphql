@@ -8,7 +8,6 @@ type Area {
 
 type Country {
   description: String
-  flag: String
   id: ID
   name: String
   "Get regions for the given country"
@@ -39,6 +38,7 @@ type Producer {
   id: String
   name: String
   slug: String
+  wineCount: Int!
   "Get wines for the given producer"
   wines: [Wine]
 }
@@ -59,6 +59,7 @@ type Region {
 
 type Wine {
   id: String
+  matchCount: Int!
   name: String
   slug: String
   varietal: String

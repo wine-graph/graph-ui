@@ -42,40 +42,54 @@ export const RetailerProfile = () => {
         desc="Manage your profile, POS integration, and sync status."
       />
 
-      <div className="mt-10 grid grid-cols-1 lg:grid-cols-[minmax(260px,340px)_1fr] items-start gap-8">
-        {/* Left: Google Profile */}
-        <GoogleProfile
-          name={user?.name ?? ""}
-          picture={user?.picture ?? ""}
-          email={user?.email ?? ""}
-        />
+      <div className="mt-8 max-w-4xl space-y-6">
+        {oauthError && (
+          <Notice variant="error" className="text-sm" role="alert">
+            {oauthError}
+          </Notice>
+        )}
 
-        {/* Right: POS status and connections */}
-        <div className="space-y-6">
-          {oauthError && (
-            <Notice variant="error" className="text-sm" role="alert">
-              {oauthError}
-            </Notice>
-          )}
-          {/* Show status when authorized or checking; else show connect options */}
-          {(!notConnected) ? (
-            <SectionCard cardHeader={{icon: Store, title: "POS status"}} className="h-full">
-              <div className="p-6">
-                {pos.provider && (
-                  <PosProviderStatus
-                    provider={pos.provider}
-                    token={pos.token}
-                    globalLoading={pos.loading}
-                    globalError={pos.error}
-                    onRefresh={handleRefresh}
-                  />
-                )}
-              </div>
-            </SectionCard>
-          ) : (
-            <PosAuthOptions userId={user?.id ?? ""}/>
-          )}
-        </div>
+        {/* Show status when authorized or checking; else show connect options */}
+        {(!notConnected) ? (
+          <SectionCard
+            cardHeader={{
+              icon: Store,
+              title: "POS status",
+              action: (
+                <GoogleProfile
+                  variant="compact"
+                  name={user?.name ?? ""}
+                  picture={user?.picture ?? ""}
+                  email={user?.email ?? ""}
+                />
+              )
+            }}
+          >
+            <div className="p-5 sm:p-6">
+              {pos.provider && (
+                <PosProviderStatus
+                  provider={pos.provider}
+                  token={pos.token}
+                  globalLoading={pos.loading}
+                  globalError={pos.error}
+                  onRefresh={handleRefresh}
+                />
+              )}
+            </div>
+          </SectionCard>
+        ) : (
+          <PosAuthOptions
+            userId={user?.id ?? ""}
+            headerAction={(
+              <GoogleProfile
+                variant="compact"
+                name={user?.name ?? ""}
+                picture={user?.picture ?? ""}
+                email={user?.email ?? ""}
+              />
+            )}
+          />
+        )}
       </div>
     </div>
   );

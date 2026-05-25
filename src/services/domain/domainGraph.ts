@@ -1,7 +1,7 @@
 import {gql} from "@apollo/client";
 
-const DOMAIN_QUERY = gql(`
-  query {
+const DISCOVER_DOMAIN_QUERY = gql(`
+  query DiscoverDomain {
     Domain {
       countries {
         id
@@ -15,6 +15,11 @@ const DOMAIN_QUERY = gql(`
             id
             name
             description
+            producers {
+              id
+              name
+              slug
+            }
           }
         }
       }
@@ -22,8 +27,8 @@ const DOMAIN_QUERY = gql(`
   }
 `);
 
-const AREAS_QUERY = gql(`
-  query {
+const PRODUCER_ONBOARDING_AREAS_QUERY = gql(`
+  query ProducerOnboardingAreas {
     Domain {
       countries {
         regions {
@@ -37,4 +42,46 @@ const AREAS_QUERY = gql(`
   }
 `)
 
-export {DOMAIN_QUERY, AREAS_QUERY};
+const DOMAIN_AREA_PRODUCERS_QUERY = gql(`
+  query DomainAreaProducers($areaId: ID!) {
+    Domain {
+      area(areaId: $areaId) {
+        id
+        producers {
+          id
+          name
+          slug
+          wineCount
+        }
+      }
+    }
+  }
+`)
+
+const DOMAIN_AREA_WINE_MATCHES_QUERY = gql(`
+  query DomainAreaWineMatches($areaId: ID!) {
+    Domain {
+      area(areaId: $areaId) {
+        id
+        producers {
+          id
+          wines {
+            id
+            name
+            slug
+            varietal
+            vintage
+            matchCount
+          }
+        }
+      }
+    }
+  }
+`)
+
+export {
+  DISCOVER_DOMAIN_QUERY,
+  PRODUCER_ONBOARDING_AREAS_QUERY,
+  DOMAIN_AREA_PRODUCERS_QUERY,
+  DOMAIN_AREA_WINE_MATCHES_QUERY,
+};
