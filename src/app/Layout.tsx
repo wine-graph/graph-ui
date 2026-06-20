@@ -24,19 +24,25 @@ const Layout = () => {
     [role, user?.role?.id, pos.token?.merchantId]
   );
 
-  const producerId = role === "producer" ? user?.role?.id : "";
-
-  const links: NavLinkDef[] | undefined = useMemo(() => {
-    if (role === "retailer" && retailerId) return resolveNavLinksByRole(role, retailerId);
-    if (role === "producer" && producerId) return resolveNavLinksByRole(role, producerId);
-    return resolveNavLinksByRole("", user?.role?.id ?? "");
-  }, [retailerId, producerId, role, user?.role?.id]);
-
   const profilePath: string = useMemo(() => {
     if (role === "retailer" && retailerId) return `/retailer/${retailerId}/profile`;
-    if (role === "producer") return `/producer/${producerId}/profile`;
+    if (role === "producer") return "/producer/profile";
     return "/profile";
-  }, [role, retailerId, producerId]);
+  }, [role, retailerId]);
+
+  const baseLinksForRole: NavLinkDef[] | undefined = useMemo(() => {
+    if (role === "retailer" && retailerId) return resolveNavLinksByRole(role, retailerId);
+    if (role === "producer") return resolveNavLinksByRole(role, user?.role?.id);
+    return resolveNavLinksByRole("", user?.role?.id ?? "");
+  }, [retailerId, role, user?.role?.id]);
+
+  const links: NavLinkDef[] | undefined = useMemo(() => {
+    return baseLinksForRole?.map((link) => (
+      link.title === "Profile" ? {...link, route: profilePath} :
+        link.title === "Cellar" && role === "producer" ? {...link, route: "/producer/cellar"} :
+          link
+    ));
+  }, [baseLinksForRole, profilePath, role]);
 
   const isOnboardingPath = location.pathname === ONBOARDING_PATH;
   const shouldGateToOnboarding = !isInitializing && isAuthenticated && !role && !isOnboardingPath;
@@ -61,7 +67,6 @@ const Layout = () => {
     const roleCandidates = likelyPathsForRole({
       role: role ?? undefined,
       retailerId,
-      producerId,
     }).filter((path) => path && path !== location.pathname);
 
     const candidates = Array.from(new Set([...roleCandidates, ...navCandidates])).slice(0, 6);
@@ -76,7 +81,7 @@ const Layout = () => {
 
     const timeout = window.setTimeout(warm, 300);
     return () => window.clearTimeout(timeout);
-  }, [links, location.pathname, producerId, retailerId, role]);
+  }, [links, location.pathname, retailerId, role]);
 
   return (
     <div className="min-h-screen flex flex-col bg-token text-token">

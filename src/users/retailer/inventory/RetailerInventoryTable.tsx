@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import {TableShell} from "../../../components/ui";
+import {winePath} from "../../../app/routes.ts";
 
 type Wine = {
   vintage: string | number;
@@ -40,7 +41,7 @@ const RetailerInventoryTable: React.FC<Props> = ({ wines, onRowClick, onRowFocus
           <tbody>
             {wines.map((w, idx) => {
               const key = `${w.canonicalId ?? "noid"}-${w.name}-${String(w.vintage ?? "NV")}-${idx}`;
-              const wineHref = w.canonicalId ? `/wine/${w.slug}/${w.canonicalId}` : undefined;
+              const wineHref = w.canonicalId ? winePath(w) : undefined;
               return (
                 <tr
                   key={key}
@@ -100,7 +101,7 @@ const RetailerInventoryTable: React.FC<Props> = ({ wines, onRowClick, onRowFocus
       <ul className="divide-y divide-[color:var(--color-border)]">
         {wines.map((w, idx) => {
           const key = `${w.canonicalId ?? "noid"}-${w.name}-${String(w.vintage ?? "NV")}-${idx}`;
-          const wineHref = w.canonicalId ? `/wine/${w.slug}/${w.canonicalId}` : undefined;
+          const wineHref = w.canonicalId ? winePath(w) : undefined;
           return (
             <li
               key={key}

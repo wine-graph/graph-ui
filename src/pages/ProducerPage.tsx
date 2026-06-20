@@ -1,19 +1,30 @@
 import {Link, useParams} from "react-router-dom";
 import {useQuery} from "@apollo/client";
 import {producerClient} from "../services/apolloClient";
-import {PRODUCER_BY_ID_ENRICHED} from "../services/producer/producerGraph.ts";
+import {PRODUCER_PUBLIC_PAGE_QUERY} from "../services/producer/producerGraph.ts";
 import type {Producer} from "../users/producer/producer.ts";
 import {Card, DataTable, EmptyState, SectionTitle, StatePanel} from "../components/ui";
+import ProducerLogo from "../users/producer/ProducerLogo.tsx";
+import ContactLinks from "../components/ContactLinks.tsx";
+import {winePath} from "../app/routes.ts";
+
+const formatBio = (description?: string) => description
+  ?.replace(/\r\n/g, "\n")
+  .split(/\n{2,}/)
+  .map((paragraph) => paragraph.replace(/\s*\n\s*/g, " ").replace(/\s+/g, " ").trim())
+  .filter(Boolean);
 
 export default function ProducerPage() {
-  const {id} = useParams();
-  const {data, loading, error, refetch} = useQuery(PRODUCER_BY_ID_ENRICHED, {
+  const {slug} = useParams();
+  const {data, loading, error, refetch} = useQuery(PRODUCER_PUBLIC_PAGE_QUERY, {
     client: producerClient,
-    variables: {id},
-    skip: !id,
+    variables: {slug},
+    skip: !slug,
   });
 
-  const producer = data?.Producer?.enriched as Producer | undefined;
+  const producer = data?.Producer?.producerBySlug as Producer | undefined;
+  const bioParagraphs = formatBio(producer?.description);
+  const hasConnectLinks = Boolean(producer?.website || producer?.email || producer?.phone || producer?.social?.length);
 
   return (
     <main className="container-max py-6 sm:py-8" aria-labelledby="page-title">
@@ -28,7 +39,29 @@ export default function ProducerPage() {
       </nav>
 
       <header className="border-b border-token pb-4">
-        <h1 id="page-title" className="text-heading-page">{producer?.name || (loading ? "Loading..." : "Producer")}</h1>
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="flex items-center gap-4">
+            <ProducerLogo
+              logo={producer?.logo}
+              name={producer?.name}
+              className="h-16 w-16 sm:h-20 sm:w-20"
+              iconClassName="h-9 w-9"
+            />
+            <h1 id="page-title" className="text-heading-page">{producer?.name || (loading ? "Loading..." : "Producer")}</h1>
+          </div>
+
+          {hasConnectLinks && (
+            <div className="flex flex-col gap-2 lg:items-end">
+              <div className="text-xs uppercase tracking-[0.16em] text-fg-muted">Connect with us</div>
+              <ContactLinks
+                website={producer?.website}
+                email={producer?.email}
+                phone={producer?.phone}
+                social={producer?.social}
+              />
+            </div>
+          )}
+        </div>
       </header>
 
       {loading && (
@@ -51,49 +84,53 @@ export default function ProducerPage() {
 
       {(!loading && !error && producer) && (
         <div className="mt-6 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card className="p-4">
-              <SectionTitle title="Overview" titleClassName="text-[20px]" />
-              <div className="mt-3 divide-y divide-token/80">
-                {producer.description ? (
-                  <div className="py-2">
-                    <div className="text-fg-muted">Description</div>
-                    <div className="text-sm mt-1">{producer.description}</div>
-                  </div>
-                ) : null}
-                {producer.website ? (
-                  <div className="py-2 flex items-center justify-between">
-                    <span className="text-fg-muted">Website</span>
-                    <a className="underline underline-offset-2" href={producer.website} target="_blank" rel="noreferrer">Visit</a>
-                  </div>
-                ) : null}
-                {producer.phone ? (
-                  <div className="py-2 flex items-center justify-between">
-                    <span className="text-fg-muted">Phone</span>
-                    <a className="underline underline-offset-2" href={`tel:${producer.phone}`}>{producer.phone}</a>
-                  </div>
-                ) : null}
-                {producer.email ? (
-                  <div className="py-2 flex items-center justify-between">
-                    <span className="text-fg-muted">Email</span>
-                    <a className="underline underline-offset-2" href={`mailto:${producer.email}`}>{producer.email}</a>
-                  </div>
-                ) : null}
-              </div>
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start">
+            <Card className="p-5 sm:p-6">
+              <SectionTitle title="Our Story" titleClassName="text-[20px]" />
+              {bioParagraphs?.length ? (
+                <div className="mt-4 max-w-4xl space-y-4 text-base leading-7 text-token">
+                  {bioParagraphs.map((paragraph, index) => (
+                    <p key={`${paragraph.slice(0, 24)}-${index}`}>{paragraph}</p>
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-4 text-fg-muted">No producer bio has been added yet.</p>
+              )}
             </Card>
 
             <Card className="p-4">
-              <SectionTitle title="In the graph" titleClassName="text-[20px]" />
-              <ul className="mt-3 space-y-2">
-                <li>{producer?.wines?.length ?? 0} wines in Wine Graph</li>
-                <li>Located in {producer.areas?.length ?? 0} areas (AVA, AOC, etc.)</li>
-                <li>Added to Wine Graph: {producer.createdAt ? new Date(producer.createdAt).getFullYear() : "-"}</li>
-              </ul>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <SectionTitle title="In the graph" titleClassName="text-[20px]" />
+                <span className="w-fit rounded-[var(--radius-sm)] border border-token px-2 py-1 text-xs uppercase tracking-[0.12em] text-fg-muted">
+                  Coming soon...
+                </span>
+              </div>
+              <div className="mt-4 grid grid-cols-3 gap-2">
+                <div className="rounded-[var(--radius-sm)] border border-token bg-[color:var(--color-bg)] p-3">
+                  <div className="text-2xl font-semibold">{producer.wineCount ?? producer.wines?.length ?? 0}</div>
+                  <div className="mt-1 text-xs text-fg-muted">Wines</div>
+                </div>
+                <div className="rounded-[var(--radius-sm)] border border-token bg-[color:var(--color-bg)] p-3">
+                  <div className="text-2xl font-semibold">{producer.createdAt ? new Date(producer.createdAt).getFullYear() : "-"}</div>
+                  <div className="mt-1 text-xs text-fg-muted">Joined</div>
+                </div>
+              </div>
+              <div className="mt-4 divide-y divide-token overflow-hidden rounded-[var(--radius-sm)] border border-token">
+                {[
+                  {label: "Retailers carrying this producer", value: "Coming soon"},
+                  {label: "Saved by users", value: "Coming soon"},
+                ].map((item) => (
+                  <div key={item.label} className="bg-[color:var(--color-bg)] p-3">
+                    <div className="text-sm font-medium">{item.label}</div>
+                    <div className="mt-1 text-xs text-fg-muted">{item.value}</div>
+                  </div>
+                ))}
+              </div>
             </Card>
           </div>
 
           <Card className="p-4">
-            <SectionTitle title="Wines from this producer" titleClassName="text-[20px]" />
+            <SectionTitle title="Current Portfolio" titleClassName="text-[20px]" />
             {!producer.wines || producer.wines.length === 0 ? (
               <EmptyState title="No wines for this producer yet." className="mt-3" />
             ) : (
@@ -103,9 +140,12 @@ export default function ProducerPage() {
                   {
                     id: "wine",
                     header: "Wine",
-                    render: (w) => (w.slug && w.id)
-                      ? <Link className="underline underline-offset-2" to={`/wine/${w.slug}/${w.id}`}>{w.name}</Link>
-                      : <span>{w.name}</span>,
+                    render: (w) => {
+                      const href = winePath(w);
+                      return href
+                        ? <Link className="underline underline-offset-2" to={href}>{w.name}</Link>
+                        : <span>{w.name}</span>;
+                    },
                   },
                   {id: "vintage", header: "Vintage", render: (w) => w.vintage ?? "-"},
                   {id: "varietal", header: "Varietal", render: (w) => w.varietal ?? "-"},
@@ -116,10 +156,10 @@ export default function ProducerPage() {
             )}
           </Card>
 
-          <Card className="p-4">
-            <SectionTitle title="Data" titleClassName="text-[20px]" />
-            <p className="text-fg-muted mt-2">Data completeness, corrections, and history will appear here.</p>
-          </Card>
+          {/*<Card className="p-4">*/}
+          {/*  <SectionTitle title="Data" titleClassName="text-[20px]" />*/}
+          {/*  <p className="text-fg-muted mt-2">Data completeness, corrections, and history will appear here.</p>*/}
+          {/*</Card>*/}
         </div>
       )}
     </main>

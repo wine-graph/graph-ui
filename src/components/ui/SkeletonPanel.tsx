@@ -10,14 +10,12 @@ export const SkeletonPanel = ({className = "", children}: SkeletonPanelProps) =>
   return (
     <Card className={`animate-pulse p-4 ${className}`.trim()}>
       {children ?? (
-        <div className="space-y-3">
-          <div className="h-6 w-40 rounded bg-[color:var(--color-muted)]" />
-          <div className="h-4 w-56 rounded bg-[color:var(--color-muted)]" />
-          <div className="h-4 w-48 rounded bg-[color:var(--color-muted)]" />
+        <div className="ui-skeleton-lines">
+          <div className="ui-skeleton-line ui-skeleton-line-lg" />
+          <div className="ui-skeleton-line ui-skeleton-line-md" />
+          <div className="ui-skeleton-line ui-skeleton-line-sm" />
         </div>
       )}
     </Card>
   );
 };
-
-export default SkeletonPanel;

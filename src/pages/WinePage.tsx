@@ -1,11 +1,12 @@
 import {Link, useParams} from "react-router-dom";
 import {useEffect, useMemo, useState} from "react";
 import {useQuery} from "@apollo/client";
-import {WINE_BY_ID_ENRICHED} from "../services/producer/wineGraph.ts";
+import {WINE_PUBLIC_PAGE_QUERY} from "../services/producer/wineGraph.ts";
 import {producerClient, retailerClient} from "../services/apolloClient.ts";
 import type {WineEnriched, WineProducer, WineRetailer} from "../users/producer/producer.ts";
 import {Card, DataTable, EmptyState, SectionTitle, StatePanel} from "../components/ui";
 import {RETAILER_COORDINATES_QUERY} from "../services/retailer/retailerGraph.ts";
+import {producerPath} from "../app/routes.ts";
 import {
   formatDistanceMiles,
   getBrowserLocation,
@@ -23,19 +24,20 @@ type RetailerDistanceRow = WineRetailer & {
 };
 
 export default function WinePage() {
-  const {id} = useParams();
+  const {slug} = useParams();
   const [userCoordinates, setUserCoordinates] = useState<Coordinates | null>(null);
   const [locationState, setLocationState] = useState<LocationState>("checking");
   const [isRequestingLocation, setIsRequestingLocation] = useState(false);
   const [retailerCoordinatesById, setRetailerCoordinatesById] = useState<Record<string, Coordinates>>({});
 
-  const {data, loading, error, refetch} = useQuery(WINE_BY_ID_ENRICHED, {
+  const {data, loading, error, refetch} = useQuery(WINE_PUBLIC_PAGE_QUERY, {
     client: producerClient,
-    variables: {id},
-    skip: !id,
+    variables: {slug},
+    skip: !slug,
+    fetchPolicy: "cache-first"
   });
 
-  const wine = data?.Wine?.enriched as WineEnriched | undefined;
+  const wine = data?.Wine?.wineBySlug as WineEnriched | undefined;
   const retailers = wine?.retailers as WineRetailer[] | undefined;
   const producer = wine?.producer as WineProducer | undefined;
 
@@ -144,7 +146,8 @@ export default function WinePage() {
     const parts: string[] = [];
     if (wine.vintage) parts.push(String(wine.vintage));
     if (wine.varietal) parts.push(wine.varietal);
-    if (wine.retailers?.length) parts.push(`${wine.retailers.length} retailers`);
+    if (wine.retailers?.length) parts.push(`${wine.retailers.length} ${wine.retailers.length === 1 ? "retailer" : "retailers"}`);
+    else if (wine.matchCount !== undefined) parts.push(`${wine.matchCount} ${wine.matchCount === 1 ? "match" : "matches"}`);
     return parts.join(" • ");
   }, [wine]);
 
@@ -177,6 +180,7 @@ export default function WinePage() {
   const locationMessage = useMemo(() => {
     return getLocationMessage(locationState, Boolean(retailers?.length), Boolean(userCoordinates));
   }, [locationState, retailers?.length, userCoordinates]);
+  const producerHref = producer ? producerPath(producer) : undefined;
 
   return (
     <main className="container-max py-6 sm:py-8" aria-labelledby="page-title">
@@ -194,8 +198,8 @@ export default function WinePage() {
         <h1 id="page-title" className="text-heading-page">{wine?.name || (loading ? "Loading..." : "Wine")}</h1>
         <div className="text-sm text-fg-muted mt-2 flex flex-wrap gap-3">
           {subtitle ? <span>{subtitle}</span> : null}
-          {producer ? (
-            <Link className="underline underline-offset-2" to={`/producer/${producer.slug}/${producer.id}`}>
+          {producerHref && producer ? (
+            <Link className="underline underline-offset-2" to={producerHref}>
               {producer.name}
             </Link>
           ) : null}
@@ -227,10 +231,10 @@ export default function WinePage() {
             <Card className="p-4">
               <SectionTitle title="Profile" titleClassName="text-[20px]" />
               <div className="mt-3 divide-y divide-token/80">
-                {wine?.producer ? (
+                {producerHref && wine?.producer ? (
                   <div className="py-2 flex items-center justify-between">
                     <span className="text-fg-muted">Producer</span>
-                    <Link className="underline underline-offset-2" to={`/producer/${producer?.slug}/${producer?.id}`}>{producer?.name}</Link>
+                    <Link className="underline underline-offset-2" to={producerHref}>{producer?.name}</Link>
                   </div>
                 ) : null}
                 {wine.vintage ? (
@@ -256,7 +260,10 @@ export default function WinePage() {
 
             <Card className="p-4">
               <SectionTitle title="In the graph" titleClassName="text-[20px]" />
-              <p className="text-[14px] text-muted mt-2">Coming soon...</p>
+              <div className="mt-4 rounded-[var(--radius-sm)] border border-token bg-[color:var(--color-bg)] p-3">
+                <div className="text-2xl font-semibold">{wine.matchCount ?? 0}</div>
+                <div className="mt-1 text-xs text-fg-muted">Matches</div>
+              </div>
             </Card>
           </div>
 

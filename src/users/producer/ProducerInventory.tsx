@@ -3,17 +3,18 @@ import {useAuth} from "../../auth";
 import PageHeader from "../../components/PageHeader.tsx";
 import ProducerWinesImport from "./import/ProducerWinesImport.tsx";
 import {useQuery} from "@apollo/client";
-import {PRODUCER_BY_ID} from "../../services/producer/producerGraph.ts";
+import {PRODUCER_INVENTORY_QUERY} from "../../services/producer/producerGraph.ts";
 import {producerClient} from "../../services/apolloClient.ts";
 import type {Wine} from "./producer.ts";
 import {Link} from "react-router-dom";
 import {ActionRow, Card, DataTable, EmptyState, SectionTitle, SkeletonPanel, StatePanel} from "../../components/ui";
+import {winePath} from "../../app/routes.ts";
 
 const ProducerInventory: React.FC = () => {
   const {user} = useAuth();
   const producerId = user?.role?.id;
 
-  const {data, loading, error, refetch} = useQuery(PRODUCER_BY_ID, {
+  const {data, loading, error, refetch} = useQuery(PRODUCER_INVENTORY_QUERY, {
     variables: {id: producerId},
     client: producerClient,
     skip: !producerId,
@@ -25,13 +26,12 @@ const ProducerInventory: React.FC = () => {
     // Defensive: ensure array of items with id/name
     return Array.isArray(arr) ? arr : [];
   }, [data]);
-
   return (
     <main className="container-max py-6 sm:py-8" id="main">
       <div className="max-w-6xl mx-auto px-4">
         <PageHeader
           title="Inventory"
-          desc="View your current wines and upload more to your catalog."
+          desc="View your current wines and upload more to your portfolio."
         />
 
         {/* Inventory table (List + Detail scaffold) */}
@@ -78,9 +78,12 @@ const ProducerInventory: React.FC = () => {
                   {
                     id: "name",
                     header: "Name",
-                    render: (w) => (w.slug && w.id)
-                      ? <Link className="underline underline-offset-2" to={`/wine/${w.slug}/${w.id}`}>{w.name}</Link>
-                      : <span>{w.name}</span>,
+                    render: (w) => {
+                      const href = winePath(w);
+                      return href
+                        ? <Link className="underline underline-offset-2" to={href}>{w.name}</Link>
+                        : <span>{w.name}</span>;
+                    },
                   },
                   {id: "vintage", header: "Vintage", render: (w) => w.vintage ?? "—"},
                   {id: "varietal", header: "Varietal", render: (w) => w.varietal ?? "—"},

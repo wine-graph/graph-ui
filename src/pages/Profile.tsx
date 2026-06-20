@@ -4,8 +4,9 @@ import {startAuthentication, useAuth} from "../auth";
 import {Navigate} from "react-router-dom";
 import {FullScreenSpinner} from "../components/FullScreenSpinner.tsx";
 import {Card, SectionTitle} from "../components/ui";
-import facebookLogo from "../public/facebook/Facebook_Logo_Primary.png";
 import {ONBOARDING_PATH, roleProfilePath} from "../app/onboarding.ts";
+
+const facebookLogo = "/facebook/Facebook_Logo_Primary.png";
 
 const GoogleMark = () => (
   <svg
@@ -49,9 +50,13 @@ export const ProfilePage = () => {
   }
 
   if (isAuthenticated && role) {
-    const destination = roleProfilePath(user);
-    if (destination !== "/profile") {
-      return <Navigate to={destination} replace/>;
+    if (role === "producer") {
+      return <Navigate to="/producer/profile" replace/>;
+    } else {
+      const destination = roleProfilePath(user);
+      if (destination !== "/profile") {
+        return <Navigate to={destination} replace/>;
+      }
     }
   }
 

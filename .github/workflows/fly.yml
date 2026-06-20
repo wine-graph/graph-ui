@@ -24,6 +24,7 @@ jobs:
         run: npm run build
 
   fly-deploy:
+    if: false # disabling and making deploys manual for now
     needs: npm-build
     runs-on: ubuntu-latest
     concurrency: deploy-group

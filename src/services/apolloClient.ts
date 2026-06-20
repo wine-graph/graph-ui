@@ -1,4 +1,13 @@
 import {ApolloClient, InMemoryCache, HttpLink} from '@apollo/client';
+import {persistCache, LocalStorageWrapper} from 'apollo3-cache-persist';
+
+const cache = new InMemoryCache();
+
+// This runs asynchronously to load saved data before the app queries anything
+await persistCache({
+  cache,
+  storage: new LocalStorageWrapper(window.localStorage),
+});
 
 const domainUri = import.meta.env.DEV
   ? 'http://localhost:8081/graphql'
@@ -14,15 +23,15 @@ const producerUri = import.meta.env.DEV
 
 export const domainClient = new ApolloClient({
   link: new HttpLink({uri: domainUri}),
-  cache: new InMemoryCache(),
+  cache
 });
 
 export const retailerClient = new ApolloClient({
   link: new HttpLink({uri: retailerUri}),
-  cache: new InMemoryCache(),
+  cache
 });
 
 export const producerClient = new ApolloClient({
   link: new HttpLink({uri: producerUri}),
-  cache: new InMemoryCache(),
+  cache
 })

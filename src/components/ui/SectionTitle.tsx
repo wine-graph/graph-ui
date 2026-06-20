@@ -20,11 +20,9 @@ export const SectionTitle = ({
   const HeadingTag = as;
   return (
     <div className={className}>
-      {eyebrow ? <p className="text-label text-fg-muted mb-2">{eyebrow}</p> : null}
+      {eyebrow ? <p className="ui-section-eyebrow">{eyebrow}</p> : null}
       <HeadingTag className={`text-title ${titleClassName}`.trim()}>{title}</HeadingTag>
-      {desc ? <p className={`text-sm text-fg-muted mt-2 ${descClassName}`.trim()}>{desc}</p> : null}
+      {desc ? <p className={`ui-section-desc ${descClassName}`.trim()}>{desc}</p> : null}
     </div>
   );
 };
-
-export default SectionTitle;

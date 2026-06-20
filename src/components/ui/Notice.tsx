@@ -17,5 +17,3 @@ export const Notice = ({children, variant, className = "", role = "status"}: Not
     </div>
   );
 };
-
-export default Notice;

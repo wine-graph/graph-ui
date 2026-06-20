@@ -213,6 +213,141 @@
 }
 
 @layer components {
+  .map-view {
+    height: 100%;
+    width: 100%;
+    z-index: 0;
+  }
+
+  .ui-card {
+    border-radius: var(--radius-lg);
+  }
+
+  .ui-card-elevated {
+    background: var(--color-panel);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-soft);
+  }
+
+  .ui-card-pop {
+    background: var(--color-panel);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-pop);
+  }
+
+  .ui-state-panel {
+    @apply flex flex-col gap-2 border p-4;
+    border-radius: var(--radius-sm);
+  }
+
+  .ui-state-panel-left {
+    @apply items-start text-left;
+  }
+
+  .ui-state-panel-center {
+    @apply items-center text-center;
+  }
+
+  .ui-state-panel-default {
+    background: var(--color-panel);
+    border-color: var(--color-border);
+    color: var(--color-fg);
+  }
+
+  .ui-state-panel-error {
+    border-color: color-mix(in oklab, var(--color-danger) 30%, transparent);
+    background: color-mix(in oklab, var(--color-danger) 8%, transparent);
+    color: var(--color-danger);
+  }
+
+  .ui-state-panel-title,
+  .ui-empty-state-title {
+    @apply text-[14px] font-medium;
+  }
+
+  .ui-state-panel-desc {
+    @apply text-[13px];
+    color: var(--color-fg-muted);
+  }
+
+  .ui-state-panel-action {
+    @apply pt-1;
+  }
+
+  .ui-table-shell {
+    @apply border;
+    background: var(--color-panel);
+    border-color: var(--color-border);
+    border-radius: var(--radius-sm);
+  }
+
+  .ui-data-table-scroll {
+    @apply overflow-x-auto;
+  }
+
+  .ui-data-table {
+    @apply w-full text-[14px];
+  }
+
+  .ui-data-table-head-cell {
+    @apply border-b px-2 py-2;
+    border-color: var(--color-border);
+  }
+
+  .ui-data-table-cell {
+    @apply py-2 pr-4;
+  }
+
+  .ui-empty-state {
+    @apply border border-dashed py-10 text-center;
+    border-color: var(--color-border);
+    border-radius: var(--radius-sm);
+  }
+
+  .ui-empty-state-desc {
+    @apply mt-1 text-[13px];
+    color: var(--color-fg-muted);
+  }
+
+  .ui-empty-state-action {
+    @apply mt-3;
+  }
+
+  .ui-action-row {
+    @apply flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between;
+  }
+
+  .ui-section-eyebrow {
+    @apply mb-2 text-[11px] font-semibold uppercase tracking-[0.18em];
+    color: var(--color-fg-muted);
+  }
+
+  .ui-section-desc {
+    @apply mt-2 text-sm;
+    color: var(--color-fg-muted);
+  }
+
+  .ui-skeleton-lines {
+    @apply space-y-3;
+  }
+
+  .ui-skeleton-line {
+    @apply rounded;
+    background: var(--color-muted);
+  }
+
+  .ui-skeleton-line-lg {
+    @apply h-6 w-40;
+  }
+
+  .ui-skeleton-line-md {
+    @apply h-4 w-56;
+  }
+
+  .ui-skeleton-line-sm {
+    @apply h-4 w-48;
+  }
+
   .btn-primary {
     @apply inline-flex items-center justify-center gap-3 px-7 py-3.5
            border-2 border-[color:var(--color-fg)]

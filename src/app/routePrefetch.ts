@@ -7,6 +7,7 @@ export const routeLoaders = {
   onboarding: () => import("../pages/Onboarding.tsx").then((m) => ({default: m.OnboardingPage})),
   marketplace: () => import("../pages/Marketplace.tsx").then((m) => ({default: m.MarketplacePage})),
   producerMarketplace: () => import("../users/producer/ProducerMarketplace.tsx").then((m) => ({default: m.ProducerMarketplace})),
+  producerRetailerMarketplace: () => import("../users/producer/ProducerRetailerMarketplace.tsx").then((m) => ({default: m.ProducerRetailerMarketplace})),
   retailerMarketplace: () => import("../users/retailer/RetailerMarketplace.tsx").then((m) => ({default: m.RetailerMarketplace})),
   retailerInventory: () => import("../users/retailer/inventory/RetailerInventoryPage.tsx").then((m) => ({default: m.RetailerInventoryPage})),
   retailerProfile: () => import("../users/retailer/RetailerProfile.tsx").then((m) => ({default: m.RetailerProfile})),
@@ -28,15 +29,17 @@ function getLoaderKeysForPath(path: string): LoaderKey[] {
   if (clean === "/marketplace") return ["marketplace"];
   if (clean === "/profile") return ["profile"];
   if (clean === "/onboarding") return ["onboarding"];
-  if (clean === "/retailer/marketplace") return ["producerMarketplace"];
-  if (clean === "/producer/marketplace") return ["retailerMarketplace"];
+  if (clean === "/retailer/marketplace") return ["producerRetailerMarketplace"];
+  if (clean === "/producer/profile") return ["producerProfile"];
+  if (clean === "/producer/cellar") return ["producerInventory"];
+  if (clean === "/producer/marketplace") return ["producerMarketplace"];
   if (/^\/retailer\/[^/]+\/inventory$/.test(clean)) return ["retailerInventory"];
   if (/^\/retailer\/[^/]+\/profile$/.test(clean)) return ["retailerProfile"];
   if (/^\/retailer\/[^/]+\/cellar$/.test(clean)) return ["retailerCellar"];
   if (/^\/producer\/[^/]+\/profile$/.test(clean)) return ["producerProfile"];
   if (/^\/producer\/[^/]+\/cellar$/.test(clean)) return ["producerInventory"];
-  if (/^\/producer\/[^/]+\/[^/]+$/.test(clean)) return ["producerPage"];
-  if (/^\/wine\/[^/]+\/[^/]+$/.test(clean)) return ["winePage"];
+  if (/^\/producer\/[^/]+$/.test(clean)) return ["producerPage"];
+  if (/^\/wine\/[^/]+$/.test(clean)) return ["winePage"];
 
   return [];
 }
@@ -57,22 +60,19 @@ export function prefetchPaths(paths: string[]) {
 type LikelyPathOptions = {
   role?: UserRole;
   retailerId?: string;
-  producerId?: string;
 };
 
-export function likelyPathsForRole({role, retailerId, producerId}: LikelyPathOptions): string[] {
+export function likelyPathsForRole({role, retailerId}: LikelyPathOptions): string[] {
   const normalized = (role ?? "").toLowerCase();
 
   if (normalized === "retailer") {
-    const paths = ["/", "/retailer/marketplace", "/marketplace", "/profile"];
+    const paths = ["/", "/producer/marketplace", "/marketplace", "/profile"];
     if (retailerId) paths.push(`/retailer/${retailerId}/cellar`, `/retailer/${retailerId}/profile`);
     return paths;
   }
 
   if (normalized === "producer") {
-    const paths = ["/", "/producer/marketplace", "/explore", "/profile"];
-    if (producerId) paths.push(`/producer/${producerId}/cellar`, `/producer/${producerId}/profile`);
-    return paths;
+    return ["/", "/retailer/marketplace", "/explore", "/profile", "/producer/cellar", "/producer/profile"];
   }
 
   return ["/", "/explore", "/marketplace", "/profile", "/onboarding"];

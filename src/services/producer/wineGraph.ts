@@ -1,8 +1,5 @@
 import {gql} from "@apollo/client";
 
-// Create a new wine for a producer — mirrors the style used in ADD_PRODUCER
-// Expects backend schema:
-//   type WineMutation { addWine(input: WineInput!): Wine }
 export const ADD_WINE_MUTATION = gql(`
   mutation AddWine($input: WineInput!) {
     Wine {
@@ -16,10 +13,10 @@ export const ADD_WINE_MUTATION = gql(`
   }
 `)
 
-export const WINE_BY_ID_ENRICHED = gql(`
-  query($id: ID!) {
+export const WINE_PUBLIC_PAGE_QUERY = gql(`
+  query WinePublicPage($slug: String!) {
     Wine {
-      enriched(id: $id) {
+      wineBySlug(slug: $slug) {
         id
         name
         slug
@@ -27,6 +24,7 @@ export const WINE_BY_ID_ENRICHED = gql(`
         varietal
         vintage
         createdAt
+        matchCount
         producer {
           id
           name

@@ -33,7 +33,7 @@ const baseLinks: NavLinkDef[] = [
 function retailerLinks(retailerId: string): NavLinkDef[] {
   // Use dynamic retailerId paths to match router: /retailer/:retailerId/...
   const cellar: NavLinkDef = {title: "Cellar", icon: Package, route: `/retailer/${retailerId}/cellar`};
-  const marketplace: NavLinkDef = {title: "Producers", icon: Store, route: "/retailer/marketplace"};
+  const marketplace: NavLinkDef = {title: "Producers", icon: Store, route: "/producer/marketplace"};
   //const profile: NavLinkDef = {title: "Profile", icon: User, route: `/retailer/${retailerId}/profile`};
   return [baseLinks[0], marketplace, cellar, baseLinks[3]];
 }
@@ -46,8 +46,8 @@ function enthusiastLinks(): NavLinkDef[] {
   return baseLinks;
 }
 
-function producerLinks(producerId: string): NavLinkDef[] {
-  const cellar: NavLinkDef = {title: "Cellar", icon: Package, route: `/producer/${producerId}/cellar`};
+function producerLinks(): NavLinkDef[] {
+  const cellar: NavLinkDef = {title: "Cellar", icon: Package, route: "/profile"};
   const marketplace: NavLinkDef = {title: "Retailers", icon: Store, route: "/retailer/marketplace"};
   return [baseLinks[0], marketplace, cellar, baseLinks[3]];
 }
@@ -60,7 +60,7 @@ export function resolveNavLinksByRole(role: string, userId?: string): NavLinkDef
     case "enthusiast":
       return enthusiastLinks();
     case "producer":
-      return userId ? producerLinks(userId) : baseLinks;
+      return userId ? producerLinks() : baseLinks;
     default:
       return publicLinks();
   }
