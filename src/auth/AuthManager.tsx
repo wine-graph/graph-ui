@@ -8,6 +8,7 @@ import {FullScreenSpinner} from "../components/FullScreenSpinner.tsx";
 import {useNavigate} from "react-router-dom";
 import {posOAuthMachine} from "./posOAuthMachine.ts";
 import type {PosProvider} from "./types.ts";
+import {exchangeRetailerSession} from "./authClient.ts";
 
 /**
  * Handles OAuth redirection side effects.
@@ -17,7 +18,8 @@ export const AuthManager = ({auth}: { auth: AuthContextValue }) => {
   const google = useGoogleOidc({auth});
   const [oauthState, oauthSend] = useMachine(posOAuthMachine, {
     input: {
-      fetchUser: auth.fetchUser,
+      exchangeSession: exchangeRetailerSession,
+      login: auth.login,
       loadPos: auth.pos.load,
     },
   });

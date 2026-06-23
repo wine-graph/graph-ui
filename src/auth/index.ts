@@ -21,6 +21,7 @@ export {
   api,
   startAuthentication,
   completeGoogleAuth,
+  exchangeRetailerSession,
   fetchCurrentUser,
   createSessionUser,
   getPosToken,

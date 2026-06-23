@@ -42,7 +42,7 @@ const devProducerDefaults = import.meta.env.DEV ? {
   description: "Local development producer profile.",
   socialLinks: {
     INSTAGRAM: "https://www.instagram.com/wine_graph/?hl=en",
-    FACEBOOK: "",
+    FACEBOOK: "https://www.facebook.com/winegraph/",
     TWITTER: "",
   } satisfies Record<SocialProvider, string>,
 } : null;

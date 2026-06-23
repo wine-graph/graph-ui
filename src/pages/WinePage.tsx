@@ -37,7 +37,7 @@ export default function WinePage() {
     fetchPolicy: "cache-first"
   });
 
-  const wine = data?.Wine?.wineBySlug as WineEnriched | undefined;
+  const wine = data?.Wine?.wine as WineEnriched | undefined;
   const retailers = wine?.retailers as WineRetailer[] | undefined;
   const producer = wine?.producer as WineProducer | undefined;
 
@@ -203,11 +203,10 @@ export default function WinePage() {
               {producer.name}
             </Link>
           ) : null}
-          {wine?.createdAt ? <span>In Wine Graph since {new Date(wine.createdAt).getFullYear()}</span> : null}
         </div>
       </header>
 
-      {loading && (
+      {loading && !wine && (
         <section className="mt-6">
           <StatePanel title="Loading wine..." variant="loading" />
         </section>
@@ -225,7 +224,7 @@ export default function WinePage() {
         </section>
       )}
 
-      {(!loading && !error && wine) && (
+      {(!error && wine) && (
         <div className="mt-6 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card className="p-4">

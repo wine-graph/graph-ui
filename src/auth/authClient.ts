@@ -36,6 +36,11 @@ export const completeGoogleAuth = async (state: string): Promise<GraphUser> => {
   return data;
 };
 
+export const exchangeRetailerSession = async (code: string): Promise<GraphUser> => {
+  const {data} = await api.post("/session/exchange", {code});
+  return data;
+};
+
 // === Who am I? ===
 export const fetchCurrentUser = async (): Promise<GraphUser> => {
   const token = storage.getToken();

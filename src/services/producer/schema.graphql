@@ -25,14 +25,10 @@ type ProducerMutation {
 }
 
 type ProducerQuery {
+  "Producer by its ID or slug"
+  producer(id: ID, slug: String): Producer
   "All producers"
   all: [Producer]
-  "Producer by its ID"
-  producer(id: ID!): Producer
-  "Producer by its slug"
-  producerBySlug(slug: String!): Producer
-  "Producers for a given area"
-  producers(areaId: ID!): [Producer]
 }
 
 "Query root"
@@ -47,7 +43,6 @@ type SocialPlatform {
 }
 
 type Wine {
-  createdAt: String
   description: String
   id: ID
   matchCount: Int!
@@ -72,10 +67,8 @@ type WineProducer {
 }
 
 type WineQuery {
-  "Wine by its ID"
-  wine(id: ID!): Wine
-  "Wine by its slug fully enriched with producer and retailer data"
-  wineBySlug(slug: String!): Wine
+  "Wine by its ID or slug"
+  wine(id: ID, slug: String): Wine
 }
 
 type WineRetailer {
