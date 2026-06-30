@@ -14,16 +14,15 @@ export const ADD_WINE_MUTATION = gql(`
 `)
 
 export const WINE_PUBLIC_PAGE_QUERY = gql(`
-  query WinePublicPage($slug: String!) {
+  query WinePublicPage($id: ID, $slug: String) {
     Wine {
-      wineBySlug(slug: $slug) {
+      wine(id: $id, slug: $slug) {
         id
         name
         slug
         description
         varietal
         vintage
-        createdAt
         matchCount
         producer {
           id

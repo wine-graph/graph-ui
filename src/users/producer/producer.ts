@@ -38,7 +38,6 @@ export type WineEnriched = {
   description?: string;
   vintage : string;
   varietal: string;
-  createdAt?: string;
   matchCount?: number;
   producer?: WineProducer;
   retailers?: WineRetailer[];

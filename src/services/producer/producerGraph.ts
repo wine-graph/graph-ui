@@ -9,12 +9,7 @@ const PRODUCER_MARKETPLACE_QUERY = gql(`
         email
         phone
         website
-        wineCount
         logo
-        social {
-          provider
-          url
-        }
       }
     }
   }
@@ -38,9 +33,9 @@ const PRODUCER_INVENTORY_QUERY = gql(`
 `)
 
 const PRODUCER_PROFILE_QUERY = gql(`
-  query ProducerProfile($id: ID!) {
+  query ProducerProfile($id: ID, $slug: String) {
     Producer {
-      producer(id: $id) {
+      producer(id: $id, slug: $slug) {
         id
         name
         website
@@ -57,9 +52,9 @@ const PRODUCER_PROFILE_QUERY = gql(`
 `)
 
 const PRODUCER_PUBLIC_PAGE_QUERY = gql(`
-  query ProducerPublicPage($slug: String!) {
+  query ProducerPublicPage($id: ID, $slug: String) {
     Producer {
-      producerBySlug(slug: $slug) {
+      producer(id: $id, slug: $slug) {
         id
         slug
         name

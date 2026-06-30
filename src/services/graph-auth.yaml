@@ -2,6 +2,13 @@
 openapi: 3.1.0
 components:
   schemas:
+    ExchangeRequest:
+      type: object
+      required:
+        - code
+      properties:
+        code:
+          type: string
     GraphUser:
       type: object
       properties:
@@ -45,22 +52,6 @@ components:
             - string
             - "null"
         token:
-          type: string
-    RoleEnum:
-      type: string
-      enum:
-        - ADMIN
-        - RETAILER
-        - PRODUCER
-        - ENTHUSIAST
-        - SOMMELIER
-        - DISTRIBUTOR
-    SessionUserRequest:
-      type: object
-      properties:
-        role:
-          $ref: "#/components/schemas/RoleEnum"
-        id:
           type: string
     TokenRevokeResponse:
       type: object
@@ -107,6 +98,26 @@ paths:
       summary: Complete
       tags:
         - User Session Resource
+  /session/exchange:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExchangeRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GraphUser"
+        "400":
+          description: Bad Request
+      summary: Exchange
+      tags:
+        - User Session Resource
   /session/me:
     get:
       responses:
@@ -117,25 +128,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/GraphUser"
       summary: User
-      tags:
-        - User Session Resource
-  /session/user:
-    patch:
-      deprecated: true
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/SessionUserRequest"
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/GraphUser"
-      summary: Update User
       tags:
         - User Session Resource
   /session/user/create:

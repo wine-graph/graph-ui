@@ -39,8 +39,6 @@ type Producer {
   name: String
   slug: String
   wineCount: Int!
-  "Get wines for the given producer"
-  wines: [Wine]
 }
 
 "Query root"
@@ -55,13 +53,4 @@ type Region {
   id: ID
   name: String
   weblink: String
-}
-
-type Wine {
-  id: String
-  matchCount: Int!
-  name: String
-  slug: String
-  varietal: String
-  vintage: String
 }
